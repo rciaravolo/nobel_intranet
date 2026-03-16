@@ -1,10 +1,8 @@
 /**
  * Seed de usuários para desenvolvimento/teste.
- * Em produção, isso vem do D1 via Prisma.
+ * Em produção: query no Cloudflare D1 via Prisma.
  *
- * Senhas hasheadas com bcrypt (rounds=12).
- * Para gerar: `await bcrypt.hash('senha', 12)`
- *
+ * Hash gerado com: hashPassword('password123', salt)
  * Admin: rafael.brandao / password123
  */
 
@@ -19,13 +17,13 @@ export interface User {
   avatarInitials: string
 }
 
-// Hash de "password123" com bcrypt rounds=12
-// Gerado via: require('bcryptjs').hashSync('password123', 12)
 const SEED_USERS: User[] = [
   {
     id: 'usr_admin_001',
     username: 'rafael.brandao',
-    passwordHash: '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LQv3c1yqBWVHxkd0L',
+    // scrypt hash de "password123" — gerado com salt fixo para seed reproduzível
+    passwordHash:
+      '704fcea865f0c2eb89f925cadd2fa8a74b0fa5cd1170ea377849e8c53b18a842f643f65db22f7f4c14621834a6909addc4a8a18d97bcb151e209cc7ae015224d.a7f3d2e1c4b5a6f7d8e9c0b1a2f3d4e5',
     name: 'Rafael Brandão',
     email: 'rafael.brandao@nobelcapital.com.br',
     role: 'admin',
@@ -34,18 +32,10 @@ const SEED_USERS: User[] = [
   },
 ]
 
-/**
- * Busca um usuário pelo username.
- * Em produção: substituir por query no D1.
- */
 export function findUserByUsername(username: string): User | undefined {
-  return SEED_USERS.find((u) => u.username === username)
+  return SEED_USERS.find((u) => u.username === username.toLowerCase().trim())
 }
 
-/**
- * Retorna todos os usuários (sem passwordHash).
- * Em produção: substituir por query no D1.
- */
 export function listUsers(): Omit<User, 'passwordHash'>[] {
   return SEED_USERS.map(({ passwordHash: _, ...rest }) => rest)
 }

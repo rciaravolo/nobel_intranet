@@ -1,62 +1,41 @@
-import { compare } from 'bcryptjs'
-import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { createSession, sessionCookieOptions } from '@/lib/auth/session'
+import { verifyPassword } from '@/lib/auth/password'
+import { setSession } from '@/lib/auth/session'
 import { findUserByUsername } from '@/lib/auth/users'
 
 const loginSchema = z.object({
-  username: z
-    .string()
-    .min(1, 'Username obrigatório')
-    .max(64)
-    .toLowerCase()
-    .trim(),
-  password: z.string().min(1, 'Senha obrigatória').max(128),
+  username: z.string().min(1).max(64).trim().toLowerCase(),
+  password: z.string().min(1).max(128),
 })
 
-// Rate limiting simples em memória (substituir por KV em produção)
+// Rate limiting simples em memória
 const attempts = new Map<string, { count: number; resetAt: number }>()
-const MAX_ATTEMPTS = 5
-const WINDOW_MS = 15 * 60 * 1000 // 15 min
+const MAX = 5
+const WINDOW = 15 * 60 * 1000
 
-function checkRateLimit(ip: string): { allowed: boolean; remaining: number } {
+function rateLimit(ip: string): boolean {
   const now = Date.now()
-  const record = attempts.get(ip)
-
-  if (!record || now > record.resetAt) {
-    attempts.set(ip, { count: 1, resetAt: now + WINDOW_MS })
-    return { allowed: true, remaining: MAX_ATTEMPTS - 1 }
+  const rec = attempts.get(ip)
+  if (!rec || now > rec.resetAt) {
+    attempts.set(ip, { count: 1, resetAt: now + WINDOW })
+    return true
   }
-
-  if (record.count >= MAX_ATTEMPTS) {
-    return { allowed: false, remaining: 0 }
-  }
-
-  record.count++
-  return { allowed: true, remaining: MAX_ATTEMPTS - record.count }
-}
-
-function resetRateLimit(ip: string) {
-  attempts.delete(ip)
+  if (rec.count >= MAX) return false
+  rec.count++
+  return true
 }
 
 export async function POST(req: NextRequest) {
-  // Rate limiting por IP
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
-  const rate = checkRateLimit(ip)
 
-  if (!rate.allowed) {
+  if (!rateLimit(ip)) {
     return NextResponse.json(
-      { error: 'Muitas tentativas. Tente novamente em 15 minutos.' },
-      {
-        status: 429,
-        headers: { 'Retry-After': '900' },
-      },
+      { error: 'Muitas tentativas. Aguarde 15 minutos.' },
+      { status: 429 },
     )
   }
 
-  // Validar body
   let body: unknown
   try {
     body = await req.json()
@@ -73,41 +52,27 @@ export async function POST(req: NextRequest) {
   }
 
   const { username, password } = parsed.data
-
-  // Buscar usuário — timing consistente para evitar user enumeration
   const user = findUserByUsername(username)
-  const dummyHash = '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LQv3c1yqBWVHxkd0L'
-  const hashToCompare = user?.passwordHash ?? dummyHash
 
-  // Sempre comparar (evita timing attack mesmo quando user não existe)
-  const passwordMatch = await compare(password, hashToCompare)
+  // Sempre verificar hash (evita timing attack / user enumeration)
+  const dummyHash =
+    '704fcea865f0c2eb89f925cadd2fa8a74b0fa5cd1170ea377849e8c53b18a842f643f65db22f7f4c14621834a6909addc4a8a18d97bcb151e209cc7ae015224d.a7f3d2e1c4b5a6f7d8e9c0b1a2f3d4e5'
+  const isValid = verifyPassword(password, user?.passwordHash ?? dummyHash)
 
-  if (!user || !passwordMatch) {
-    return NextResponse.json(
-      { error: 'Username ou senha incorretos' },
-      { status: 401 },
-    )
+  if (!user || !isValid) {
+    return NextResponse.json({ error: 'Username ou senha incorretos' }, { status: 401 })
   }
 
-  // Credenciais corretas — limpar rate limit e criar sessão
-  resetRateLimit(ip)
-
-  const token = await createSession({
+  await setSession({
     userId: user.id,
     username: user.username,
     name: user.name,
     role: user.role,
   })
 
-  const cookieStore = await cookies()
-  cookieStore.set(sessionCookieOptions(token))
-
   return NextResponse.json({
     ok: true,
-    user: {
-      username: user.username,
-      name: user.name,
-      role: user.role,
-    },
+    redirect: '/dashboard',
+    user: { username: user.username, name: user.name, role: user.role },
   })
 }
