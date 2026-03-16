@@ -1,37 +1,33 @@
+/**
+ * Middleware — Edge Runtime compatible.
+ *
+ * Responsabilidade: gate rápido de presença de cookie.
+ * A verificação criptográfica real do JWT ocorre no servidor
+ * via requireSession() nos layouts/pages (Node.js runtime).
+ */
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyToken } from '@/lib/auth/session'
 
-const PUBLIC_PATHS = ['/login', '/api/auth/login', '/api/auth/logout']
+const PUBLIC = ['/login', '/api/auth/login', '/api/auth/logout', '/_next', '/favicon']
+const ASSET_RE = /\.(png|jpg|jpeg|svg|ico|webp|woff2?|css|js|map)$/
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  // Deixar passar: rotas públicas, assets, _next
-  if (
-    PUBLIC_PATHS.some((p) => pathname.startsWith(p)) ||
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/favicon') ||
-    pathname.match(/\.(png|jpg|svg|ico|webp|css|js)$/)
-  ) {
+  if (PUBLIC.some((p) => pathname.startsWith(p)) || ASSET_RE.test(pathname)) {
     return NextResponse.next()
   }
 
-  // Verificar sessão
   const token = req.cookies.get('intra_session')?.value
-  const session = token ? verifyToken(token) : null
 
-  if (!session) {
-    const loginUrl = new URL('/login', req.url)
-    loginUrl.searchParams.set('from', pathname)
-    return NextResponse.redirect(loginUrl)
+  if (!token) {
+    const url = req.nextUrl.clone()
+    url.pathname = '/login'
+    url.searchParams.set('from', pathname)
+    return NextResponse.redirect(url)
   }
 
-  // Adicionar headers de sessão para server components
-  const res = NextResponse.next()
-  res.headers.set('x-user-id', session.userId)
-  res.headers.set('x-user-name', session.name)
-  res.headers.set('x-user-role', session.role)
-  return res
+  // Cookie presente → passa. Server component vai verificar JWT completo.
+  return NextResponse.next()
 }
 
 export const config = {
