@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --font-geist: 'Geist', system-ui, sans-serif;
+  --font-lora: 'Lora', serif;
+
+  /* Nobel Capital Brand */
+  --gold:          #B8963E;
+  --gold-light:    #D4A96A;
+  --gold-dim:      rgba(184,150,62,0.12);
+  --gold-dim2:     rgba(184,150,62,0.06);
+
+  /* Dark theme (login, sidebar) */
+  --dark-900:      #0C0C0C;
+  --dark-800:      #1A1209;
+  --dark-700:      #231A0D;
+  --dark-600:      #2E2010;
+  --dark-500:      #4A3520;
+  --cream:         #F5ECD7;
+  --gold-muted:    #C9A87C;
+
+  /* Light theme (main content) */
+  --surface:       #F5F4F0;
+  --surface-2:     #ECEAE4;
+  --white:         #FFFFFF;
+  --text:          #0A0A0A;
+  --text-2:        #3D3D3D;
+  --text-3:        #8A8A8A;
+  --text-4:        #B0B0B0;
+  --border:        rgba(0,0,0,0.08);
+
+  /* Shadows */
+  --shadow-sm:     0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow:        0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg:     0 12px 40px rgba(0,0,0,0.12);
+
+  /* Layout */
+  --sidebar-w:     248px;
+  --topbar-h:      64px;
+  --radius:        12px;
+  --radius-sm:     8px;
+}
+
+html, body {
+  height: 100%;
+  font-family: var(--font-geist);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface-2); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-4); }

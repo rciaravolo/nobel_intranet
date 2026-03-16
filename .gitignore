@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Environment — NUNCA commitar
+.env
+.env.*
+!.env.example
+
+# Next.js
+.next/
+out/
+
+# Cloudflare / Wrangler
+.wrangler/
+.dev.vars
+
+# Vercel
+.vercel/
+
+# Build outputs
+dist/
+build/
+
+# Testing
+coverage/
+.vitest/
+
+# Prisma
+prisma/migrations/*.db
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
