@@ -1,36 +1,14 @@
 'use client'
 
-/**
- * ComunicadoForm — Client Component
- *
- * Formulário de criação/edição de comunicado com:
- * - React Hook Form + Zod para validação
- * - Preview Markdown ao lado do textarea de conteúdo
- * - Loading state no submit
- * - Redirect para /comunicados/[id] após sucesso
- * - Toast de sucesso/erro
- *
- * TODO: instalar dependências de formulário:
- *   npm install react-hook-form @hookform/resolvers
- * TODO: instalar react-markdown + rehype-sanitize para o preview:
- *   npm install react-markdown rehype-sanitize
- *
- * Por ora, usa estado local para simular validação e preview como texto puro.
- */
-
 import type { Comunicado, ComunicadoCategoria, CriarComunicadoInput } from '@/lib/api/comunicados'
 import { comunicadosApi } from '@/lib/api/comunicados'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
+import { useForm } from 'react-hook-form'
+import ReactMarkdown from 'react-markdown'
+import rehypeSanitize from 'rehype-sanitize'
 import { z } from 'zod'
-
-// TODO: descomentar quando react-hook-form instalado:
-// import { useForm } from 'react-hook-form'
-// import { zodResolver } from '@hookform/resolvers/zod'
-
-// ---------------------------------------------------------------------------
-// Schema de validação do formulário (espelhando o server-side)
-// ---------------------------------------------------------------------------
 
 const comunicadoFormSchema = z.object({
   titulo: z
@@ -56,72 +34,42 @@ const comunicadoFormSchema = z.object({
 type FormData = z.infer<typeof comunicadoFormSchema>
 
 type Props = {
-  /** Se fornecido, o formulário opera em modo de edição */
   comunicadoInicial?: Comunicado
 }
-
-type FieldError = Partial<Record<keyof FormData, string>>
-
-// ---------------------------------------------------------------------------
-// Componente
-// ---------------------------------------------------------------------------
 
 export function ComunicadoForm({ comunicadoInicial }: Props) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-
-  const [values, setValues] = useState<FormData>({
-    titulo: comunicadoInicial?.titulo ?? '',
-    categoria: (comunicadoInicial?.categoria as ComunicadoCategoria) ?? 'RH',
-    conteudo: comunicadoInicial?.conteudo ?? '',
-    dataExpiracao: comunicadoInicial?.dataExpiracao?.slice(0, 16) ?? '',
-  })
-
-  const [errors, setErrors] = useState<FieldError>({})
   const [serverError, setServerError] = useState<string | null>(null)
   const [toastMsg, setToastMsg] = useState<string | null>(null)
 
   const modoEdicao = Boolean(comunicadoInicial)
 
-  // Validação inline de um campo
-  function validateField(name: keyof FormData, value: unknown) {
-    const partial = comunicadoFormSchema.shape[name]
-    const result = partial.safeParse(value)
-    setErrors((prev) => ({
-      ...prev,
-      [name]: result.success ? undefined : result.error.errors[0]?.message,
-    }))
-  }
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: zodResolver(comunicadoFormSchema),
+    defaultValues: {
+      titulo: comunicadoInicial?.titulo ?? '',
+      categoria: (comunicadoInicial?.categoria as ComunicadoCategoria) ?? 'RH',
+      conteudo: comunicadoInicial?.conteudo ?? '',
+      dataExpiracao: comunicadoInicial?.dataExpiracao?.slice(0, 16) ?? '',
+    },
+  })
 
-  function handleChange<K extends keyof FormData>(name: K, value: FormData[K]) {
-    setValues((prev) => ({ ...prev, [name]: value }))
-    validateField(name, value)
-  }
+  const conteudoAtual = watch('conteudo')
 
-  // Submit
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function onSubmit(values: FormData) {
     setServerError(null)
 
-    // Validação completa antes do submit
-    const result = comunicadoFormSchema.safeParse(values)
-    if (!result.success) {
-      const fieldErrors: FieldError = {}
-      for (const issue of result.error.issues) {
-        const key = issue.path[0] as keyof FormData
-        if (key) fieldErrors[key] = issue.message
-      }
-      setErrors(fieldErrors)
-      return
-    }
-
     const payload: CriarComunicadoInput = {
-      titulo: result.data.titulo,
-      conteudo: result.data.conteudo,
-      categoria: result.data.categoria,
-      dataExpiracao: result.data.dataExpiracao
-        ? new Date(result.data.dataExpiracao).toISOString()
-        : null,
+      titulo: values.titulo,
+      conteudo: values.conteudo,
+      categoria: values.categoria,
+      dataExpiracao: values.dataExpiracao ? new Date(values.dataExpiracao).toISOString() : null,
     }
 
     startTransition(async () => {
@@ -137,7 +85,6 @@ export function ComunicadoForm({ comunicadoInicial }: Props) {
           modoEdicao ? 'Comunicado atualizado com sucesso!' : 'Comunicado publicado com sucesso!',
         )
 
-        // Redireciona para o detalhe após breve delay para o toast ser visto
         setTimeout(() => {
           router.push(`/comunicados/${comunicado.id}`)
         }, 1200)
@@ -184,7 +131,6 @@ export function ComunicadoForm({ comunicadoInicial }: Props) {
         boxShadow: '0 1px 4px rgba(26,18,9,0.05)',
       }}
     >
-      {/* Toast de sucesso */}
       {toastMsg && (
         <output
           aria-live="polite"
@@ -203,7 +149,6 @@ export function ComunicadoForm({ comunicadoInicial }: Props) {
         </output>
       )}
 
-      {/* Erro de servidor */}
       {serverError && (
         <div
           role="alert"
@@ -221,7 +166,7 @@ export function ComunicadoForm({ comunicadoInicial }: Props) {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
         {/* Título */}
         <div style={{ marginBottom: 20 }}>
           <label htmlFor="titulo" style={labelStyle}>
@@ -234,8 +179,7 @@ export function ComunicadoForm({ comunicadoInicial }: Props) {
             id="titulo"
             type="text"
             placeholder="Ex: Atualização de política de benefícios"
-            value={values.titulo}
-            onChange={(e) => handleChange('titulo', e.target.value)}
+            {...register('titulo')}
             style={{
               ...inputStyle,
               borderColor: errors.titulo ? '#fca5a5' : 'rgba(184,150,62,0.25)',
@@ -246,7 +190,7 @@ export function ComunicadoForm({ comunicadoInicial }: Props) {
           />
           {errors.titulo && (
             <p id="titulo-error" style={errorStyle} role="alert">
-              {errors.titulo}
+              {errors.titulo.message}
             </p>
           )}
         </div>
@@ -261,8 +205,7 @@ export function ComunicadoForm({ comunicadoInicial }: Props) {
           </label>
           <select
             id="categoria"
-            value={values.categoria}
-            onChange={(e) => handleChange('categoria', e.target.value as ComunicadoCategoria)}
+            {...register('categoria')}
             style={{
               ...inputStyle,
               cursor: 'pointer',
@@ -277,12 +220,12 @@ export function ComunicadoForm({ comunicadoInicial }: Props) {
           </select>
           {errors.categoria && (
             <p id="categoria-error" style={errorStyle} role="alert">
-              {errors.categoria}
+              {errors.categoria.message}
             </p>
           )}
         </div>
 
-        {/* Conteúdo + Preview */}
+        {/* Conteúdo + Preview Markdown */}
         <div style={{ marginBottom: 20 }}>
           <label htmlFor="conteudo" style={labelStyle}>
             Conteúdo (Markdown){' '}
@@ -296,8 +239,7 @@ export function ComunicadoForm({ comunicadoInicial }: Props) {
                 id="conteudo"
                 placeholder="Escreva o comunicado em Markdown..."
                 rows={12}
-                value={values.conteudo}
-                onChange={(e) => handleChange('conteudo', e.target.value)}
+                {...register('conteudo')}
                 style={{
                   ...inputStyle,
                   resize: 'vertical',
@@ -310,12 +252,11 @@ export function ComunicadoForm({ comunicadoInicial }: Props) {
               />
               {errors.conteudo && (
                 <p id="conteudo-error" style={errorStyle} role="alert">
-                  {errors.conteudo}
+                  {errors.conteudo.message}
                 </p>
               )}
             </div>
 
-            {/* Preview — TODO: substituir por ReactMarkdown quando instalado */}
             <div
               aria-label="Preview do conteúdo"
               style={{
@@ -327,15 +268,15 @@ export function ComunicadoForm({ comunicadoInicial }: Props) {
                 lineHeight: 1.7,
                 background: '#fafaf8',
                 minHeight: 120,
-                whiteSpace: 'pre-wrap',
                 wordBreak: 'break-word',
                 overflowY: 'auto',
               }}
             >
-              {values.conteudo || (
+              {conteudoAtual ? (
+                <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{conteudoAtual}</ReactMarkdown>
+              ) : (
                 <span style={{ color: 'rgba(26,18,9,0.25)', fontStyle: 'italic' }}>
                   Preview aparecerá aqui…
-                  {/* TODO: renderizar como Markdown com react-markdown */}
                 </span>
               )}
             </div>
@@ -351,8 +292,7 @@ export function ComunicadoForm({ comunicadoInicial }: Props) {
           <input
             id="dataExpiracao"
             type="datetime-local"
-            value={values.dataExpiracao ?? ''}
-            onChange={(e) => handleChange('dataExpiracao', e.target.value || undefined)}
+            {...register('dataExpiracao')}
             style={{
               ...inputStyle,
               maxWidth: 280,
@@ -363,7 +303,7 @@ export function ComunicadoForm({ comunicadoInicial }: Props) {
           />
           {errors.dataExpiracao && (
             <p id="expiracao-error" style={errorStyle} role="alert">
-              {errors.dataExpiracao}
+              {errors.dataExpiracao.message}
             </p>
           )}
         </div>
@@ -419,7 +359,6 @@ export function ComunicadoForm({ comunicadoInicial }: Props) {
         </div>
       </form>
 
-      {/* Spinner animation (sem Tailwind aqui pois usa keyframes) */}
       <style>{`
         @keyframes spin {
           from { transform: rotate(0deg); }

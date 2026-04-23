@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Geist, Lora } from 'next/font/google'
+import { Providers } from '@/components/providers'
 import './globals.css'
 
 const geist = Geist({
@@ -22,7 +23,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body className={`${geist.variable} ${lora.variable}`}>{children}</body>
+      <body className={`${geist.variable} ${lora.variable}`}>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   )
 }

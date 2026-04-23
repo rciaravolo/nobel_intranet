@@ -1,12 +1,10 @@
 /**
  * /comunicados/[id] — Página de detalhe de comunicado.
  * Server Component: faz fetch pelo ID, exibe conteúdo Markdown e banners de status.
- *
- * TODO: instalar react-markdown + rehype-sanitize para renderização Markdown:
- *   npm install react-markdown rehype-sanitize
- * Por ora, exibe o conteúdo como texto puro com quebras de linha preservadas.
  */
 import Link from 'next/link'
+import ReactMarkdown from 'react-markdown'
+import rehypeSanitize from 'rehype-sanitize'
 import { notFound } from 'next/navigation'
 import { comunicadosApi } from '@/lib/api/comunicados'
 import { getSessionUser, podeEditarComunicado } from '@/lib/auth/cf-session'
@@ -140,7 +138,7 @@ export default async function ComunicadoDetailPage({ params }: Props) {
           boxShadow: '0 1px 4px rgba(26,18,9,0.05)',
         }}
       >
-        {/* Categoria + Fixado */}
+        {/* Categoria */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
           <span
             style={{
@@ -156,19 +154,6 @@ export default async function ComunicadoDetailPage({ params }: Props) {
           >
             {comunicado.categoria}
           </span>
-          {comunicado.fixado && (
-            <span
-              style={{
-                fontSize: 9,
-                fontWeight: 600,
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                color: '#B8963E',
-              }}
-            >
-              📌 Fixado
-            </span>
-          )}
         </div>
 
         {/* Título */}
@@ -227,27 +212,15 @@ export default async function ComunicadoDetailPage({ params }: Props) {
         </div>
 
         {/* Conteúdo Markdown */}
-        {/*
-          TODO: substituir pelo componente de renderização Markdown quando
-          react-markdown + rehype-sanitize estiverem instalados:
-
-          import ReactMarkdown from 'react-markdown'
-          import rehypeSanitize from 'rehype-sanitize'
-
-          <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
-            {comunicado.conteudo}
-          </ReactMarkdown>
-        */}
         <div
           style={{
             fontSize: 15,
             lineHeight: 1.75,
             color: 'rgba(26,18,9,0.8)',
-            whiteSpace: 'pre-wrap',
             wordBreak: 'break-word',
           }}
         >
-          {comunicado.conteudo}
+          <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{comunicado.conteudo}</ReactMarkdown>
         </div>
 
         {/* Ações: Editar / Arquivar — só para quem tem permissão */}
