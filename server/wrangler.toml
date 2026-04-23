@@ -1,0 +1,13 @@
+name = "intra-api"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "intra-db"
+database_id = "448fb0a7-f020-4eb7-a9a2-b00b9e993e52"
+
+[vars]
+CF_ACCESS_AUD = ""
+CF_ACCESS_TEAM_DOMAIN = "nobelcapital.cloudflareaccess.com"
