@@ -12,7 +12,6 @@ export type Comunicado = {
   titulo: string
   conteudo: string
   categoria: ComunicadoCategoria
-  fixado: boolean
   autorEmail: string
   autorNome: string
   criadoEm: string
@@ -25,7 +24,6 @@ export type CriarComunicadoInput = {
   titulo: string
   conteudo: string
   categoria: ComunicadoCategoria
-  fixado?: boolean
   dataExpiracao?: string | null
 }
 

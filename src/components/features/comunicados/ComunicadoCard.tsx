@@ -1,6 +1,5 @@
 import { Avatar } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
-import { Pin } from 'lucide-react'
 import { type Categoria, CategoriaBadge } from './CategoriaBadge'
 
 export type ComunicadoCardProps = {
@@ -8,7 +7,6 @@ export type ComunicadoCardProps = {
   titulo: string
   conteudo: string
   categoria: Categoria
-  fixado: boolean
   autorNome: string
   autorEmail: string
   criadoEm: string
@@ -75,7 +73,7 @@ function diasRestantes(isoString: string): number | null {
  * - Badge de expiração próxima (< 3 dias)
  */
 export function ComunicadoCard(props: ComunicadoCardProps) {
-  const { titulo, conteudo, categoria, fixado, autorNome, criadoEm, dataExpiracao } = props
+  const { titulo, conteudo, categoria, autorNome, criadoEm, dataExpiracao } = props
 
   const preview = stripMarkdown(conteudo).slice(0, 120)
   const dataFormatada = formatarData(criadoEm)
@@ -87,30 +85,13 @@ export function ComunicadoCard(props: ComunicadoCardProps) {
       className={cn(
         'relative bg-white rounded-xl border transition-all duration-150 cursor-pointer overflow-hidden',
         'hover:shadow-md hover:-translate-y-px',
-        fixado
-          ? 'border-[#B8963E]/40 shadow-[0_1px_6px_rgba(184,150,62,0.15)]'
-          : 'border-[rgba(0,0,0,0.08)] shadow-[0_1px_3px_rgba(0,0,0,0.06)]',
+        'border-[rgba(0,0,0,0.08)] shadow-[0_1px_3px_rgba(0,0,0,0.06)]',
       )}
     >
-      {/* Barra dourada no topo para fixados */}
-      {fixado && (
-        <div
-          aria-hidden="true"
-          className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-[#B8963E] to-[#D4AF6A]"
-        />
-      )}
-
       <div className="p-5">
-        {/* Linha superior: categoria + indicador fixado + expiração */}
+        {/* Linha superior: categoria + expiração */}
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           <CategoriaBadge categoria={categoria} />
-
-          {fixado && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold tracking-[0.12em] uppercase text-[#B8963E] bg-[rgba(184,150,62,0.1)] rounded-sm px-2 py-0.5 leading-none">
-              <Pin size={10} aria-label="Comunicado fixado" className="flex-shrink-0" />
-              Fixado
-            </span>
-          )}
 
           {expiraEmBreve && diasParaExpirar !== null && (
             <span className="inline-flex items-center rounded-sm px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] leading-none bg-yellow-100 text-yellow-700">

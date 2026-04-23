@@ -28,3 +28,7 @@ CREATE TABLE IF NOT EXISTS `user_roles` (
   `role`       TEXT NOT NULL DEFAULT 'Membro' CHECK(`role` IN ('RH', 'Diretoria', 'Membro')),
   `criado_em`  TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- Seed: admin da plataforma
+INSERT OR IGNORE INTO `user_roles` (`email`, `role`, `criado_em`) VALUES
+  ('rafael.brandao@nobelcapital.com.br', 'Diretoria', datetime('now'));

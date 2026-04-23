@@ -51,7 +51,6 @@ const comunicadoFormSchema = z.object({
       },
       { message: 'A data de expiração deve ser futura' },
     ),
-  fixado: z.boolean().default(false),
 })
 
 type FormData = z.infer<typeof comunicadoFormSchema>
@@ -76,7 +75,6 @@ export function ComunicadoForm({ comunicadoInicial }: Props) {
     categoria: (comunicadoInicial?.categoria as ComunicadoCategoria) ?? 'RH',
     conteudo: comunicadoInicial?.conteudo ?? '',
     dataExpiracao: comunicadoInicial?.dataExpiracao?.slice(0, 16) ?? '',
-    fixado: comunicadoInicial?.fixado ?? false,
   })
 
   const [errors, setErrors] = useState<FieldError>({})
@@ -121,7 +119,6 @@ export function ComunicadoForm({ comunicadoInicial }: Props) {
       titulo: result.data.titulo,
       conteudo: result.data.conteudo,
       categoria: result.data.categoria,
-      fixado: result.data.fixado,
       dataExpiracao: result.data.dataExpiracao
         ? new Date(result.data.dataExpiracao).toISOString()
         : null,
@@ -369,28 +366,6 @@ export function ComunicadoForm({ comunicadoInicial }: Props) {
               {errors.dataExpiracao}
             </p>
           )}
-        </div>
-
-        {/* Fixado */}
-        <div style={{ marginBottom: 28 }}>
-          <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              cursor: 'pointer',
-              fontSize: 14,
-              color: '#1A1209',
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={values.fixado}
-              onChange={(e) => handleChange('fixado', e.target.checked)}
-              style={{ width: 16, height: 16, cursor: 'pointer' }}
-            />
-            📌 Fixar no topo da listagem
-          </label>
         </div>
 
         {/* Ações */}
