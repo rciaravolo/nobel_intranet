@@ -57,10 +57,16 @@ export function ArquivarButton({ comunicadoId }: Props) {
   }
 
   return (
-    <div
-      role="group"
+    <fieldset
       aria-label="Confirmar arquivamento"
-      style={{ display: 'flex', gap: 8, alignItems: 'center' }}
+      style={{
+        display: 'flex',
+        gap: 8,
+        alignItems: 'center',
+        border: 'none',
+        padding: 0,
+        margin: 0,
+      }}
     >
       {error && (
         <span role="alert" style={{ fontSize: 12, color: '#dc2626' }}>
@@ -103,6 +109,6 @@ export function ArquivarButton({ comunicadoId }: Props) {
       >
         Cancelar
       </button>
-    </div>
+    </fieldset>
   )
 }

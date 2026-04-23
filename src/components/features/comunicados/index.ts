@@ -1,0 +1,5 @@
+export { CategoriaBadge, type Categoria } from './CategoriaBadge'
+export { ComunicadoCard, type ComunicadoCardProps } from './ComunicadoCard'
+export { FiltrosComunicados } from './FiltrosComunicados'
+export { ComunicadoSkeleton } from './ComunicadoSkeleton'
+export { EmptyState } from './EmptyState'

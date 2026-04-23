@@ -63,11 +63,11 @@ export function ComunicadosList({ initialData, podeNovo }: Props) {
     }
   }, [])
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fetchComunicados é estável (useCallback vazio); comunicados/initialData são usados apenas como early-return no mount
   useEffect(() => {
     // No mount, já temos initialData para 'Todos'; só busca ao trocar filtro
     if (filtro === 'Todos' && comunicados === initialData) return
     fetchComunicados(filtro)
-    // biome-ignore lint/correctness/useExhaustiveDependencies: dependências intencionalmente omitidas — fetchComunicados é estável (useCallback sem deps) e comunicados/initialData são usados apenas como condição de skip no mount
   }, [filtro])
 
   const fixados = comunicados.filter((c) => c.fixado)

@@ -189,10 +189,10 @@ export function ComunicadoForm({ comunicadoInicial }: Props) {
     >
       {/* Toast de sucesso */}
       {toastMsg && (
-        <div
-          role="status"
+        <output
           aria-live="polite"
           style={{
+            display: 'block',
             padding: '10px 16px',
             background: '#dcfce7',
             border: '1px solid #86efac',
@@ -203,7 +203,7 @@ export function ComunicadoForm({ comunicadoInicial }: Props) {
           }}
         >
           {toastMsg}
-        </div>
+        </output>
       )}
 
       {/* Erro de servidor */}
