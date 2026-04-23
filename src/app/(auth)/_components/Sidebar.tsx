@@ -2,7 +2,9 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
+import type { SessionPayload } from '@/lib/auth/session'
 
 const NAV = [
   {
@@ -10,13 +12,11 @@ const NAV = [
     items: [
       {
         href: '/dashboard',
-        label: 'Dashboard',
+        label: 'Início',
         icon: (
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-            <rect x="14" y="14" width="7" height="7" rx="1" />
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
         ),
       },
@@ -79,24 +79,13 @@ const NAV = [
         ),
       },
       {
-        href: '/agenda',
-        label: 'Agenda',
-        icon: (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <rect x="3" y="4" width="18" height="18" rx="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-        ),
-      },
-      {
         href: '/comunicados',
         label: 'Comunicados',
-        badge: 7,
+        badge: 2,
         icon: (
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.01 1.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z" />
+            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 01-3.46 0" />
           </svg>
         ),
       },
@@ -114,9 +103,20 @@ const NAV = [
   },
 ]
 
-export function Sidebar() {
+interface Props {
+  session: SessionPayload
+}
+
+export function Sidebar({ session }: Props) {
+  const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
+
+  const initials = session.name
+    .split(' ')
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join('')
 
   async function handleLogout() {
     await fetch('/api/auth/logout', { method: 'POST' })
@@ -127,74 +127,148 @@ export function Sidebar() {
   return (
     <aside
       style={{
-        width: 248,
+        width: collapsed ? 64 : 248,
         flexShrink: 0,
-        background: '#0C0C0C',
+        background: '#FDFAF5',
         display: 'flex',
         flexDirection: 'column',
-        borderRight: '1px solid rgba(255,255,255,0.06)',
+        borderRight: '1px solid rgba(184,150,62,0.15)',
+        transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)',
+        overflow: 'hidden',
+        position: 'relative',
+        zIndex: 10,
       }}
     >
-      {/* Logo */}
+      {/* Logo / Header */}
       <div
         style={{
-          padding: '24px 20px',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          padding: collapsed ? '18px 0' : '20px 16px 16px',
+          borderBottom: '1px solid rgba(184,150,62,0.12)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: collapsed ? 'center' : 'space-between',
+          minHeight: 72,
+          flexShrink: 0,
+          transition: 'padding 0.25s',
         }}
       >
-        <Image
-          src="/logo-dark.png"
-          alt="Nobel Capital"
-          width={160}
-          height={34}
-          priority
-          style={{ height: 34, width: 'auto' }}
-        />
-        <div
-          style={{
-            height: 1,
-            background: 'linear-gradient(90deg, #D4A96A 0%, transparent 100%)',
-            marginTop: 14,
-            opacity: 0.5,
-          }}
-        />
+        {collapsed ? (
+          <button
+            onClick={() => setCollapsed(false)}
+            title="Expandir menu"
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #B8963E, #8B6914)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 14,
+              fontWeight: 700,
+              color: '#fff',
+              fontFamily: 'var(--font-lora, serif)',
+              border: 'none',
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            N
+          </button>
+        ) : (
+          <>
+            <div style={{ overflow: 'hidden' }}>
+              <Image
+                src="/logo-light.png"
+                alt="Nobel Capital"
+                width={140}
+                height={30}
+                priority
+                style={{ height: 30, width: 'auto', display: 'block' }}
+              />
+              <div
+                style={{
+                  height: 1,
+                  background: 'linear-gradient(90deg, #B8963E 0%, transparent 100%)',
+                  marginTop: 10,
+                  opacity: 0.3,
+                }}
+              />
+            </div>
+            <button
+              onClick={() => setCollapsed(true)}
+              title="Recolher menu"
+              style={{
+                width: 26,
+                height: 26,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'rgba(184,150,62,0.07)',
+                border: '1px solid rgba(184,150,62,0.15)',
+                borderRadius: 6,
+                cursor: 'pointer',
+                color: 'rgba(26,18,9,0.4)',
+                flexShrink: 0,
+                marginLeft: 8,
+                transition: 'background 0.15s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(184,150,62,0.14)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(184,150,62,0.07)')}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="11" height="11">
+                <polyline points="11 17 6 12 11 7" />
+                <polyline points="18 17 13 12 18 7" />
+              </svg>
+            </button>
+          </>
+        )}
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, padding: '12px 10px', overflowY: 'auto' }}>
+      <nav style={{ flex: 1, padding: collapsed ? '8px 10px' : '8px 10px', overflowY: 'auto', overflowX: 'hidden' }}>
         {NAV.map((group) => (
           <div key={group.section}>
-            <p
-              style={{
-                fontSize: 9,
-                letterSpacing: '0.18em',
-                color: '#555',
-                textTransform: 'uppercase',
-                padding: '14px 12px 6px',
-                fontWeight: 500,
-              }}
-            >
-              {group.section}
-            </p>
+            {/* Section label */}
+            <div style={{ height: collapsed ? 10 : 0, transition: 'height 0.2s' }} />
+            {!collapsed && (
+              <p
+                style={{
+                  fontSize: 9,
+                  letterSpacing: '0.18em',
+                  color: 'rgba(26,18,9,0.28)',
+                  textTransform: 'uppercase',
+                  padding: '12px 10px 5px',
+                  fontWeight: 600,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {group.section}
+              </p>
+            )}
+
             {group.items.map((item) => {
               const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
               return (
                 <Link
                   key={item.href}
                   href={item.href}
+                  title={collapsed ? item.label : undefined}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: 10,
-                    padding: '9px 12px',
-                    borderRadius: 8,
+                    padding: collapsed ? '9px 0' : '8px 10px',
+                    borderRadius: 6,
                     textDecoration: 'none',
-                    marginBottom: 2,
+                    marginBottom: 1,
                     position: 'relative',
-                    background: active ? 'rgba(184,150,62,0.12)' : 'transparent',
+                    background: active ? 'rgba(184,150,62,0.1)' : 'transparent',
                     transition: 'background 0.15s',
+                    justifyContent: collapsed ? 'center' : 'flex-start',
                   }}
                 >
+                  {/* Active indicator */}
                   {active && (
                     <div
                       style={{
@@ -209,49 +283,73 @@ export function Sidebar() {
                       }}
                     />
                   )}
+
+                  {/* Icon */}
                   <div
                     style={{
                       width: 16,
                       height: 16,
-                      opacity: active ? 1 : 0.4,
                       flexShrink: 0,
-                      color: active ? '#B8963E' : '#fff',
+                      color: active ? '#B8963E' : 'rgba(26,18,9,0.35)',
                     }}
                   >
                     {item.icon}
                   </div>
-                  <span
-                    style={{
-                      fontSize: 13,
-                      color: active ? '#fff' : 'rgba(255,255,255,0.45)',
-                      fontWeight: active ? 500 : 400,
-                    }}
-                  >
-                    {item.label}
-                  </span>
-                  {item.badge && (
-                    <span
+
+                  {/* Label + badge (expanded only) */}
+                  {!collapsed && (
+                    <>
+                      <span
+                        style={{
+                          fontSize: 13,
+                          color: active ? '#1A1209' : 'rgba(26,18,9,0.5)',
+                          fontWeight: active ? 500 : 400,
+                          whiteSpace: 'nowrap',
+                          flex: 1,
+                        }}
+                      >
+                        {item.label}
+                      </span>
+                      {item.badge && (
+                        <span
+                          style={{
+                            background: '#B8963E',
+                            color: '#fff',
+                            fontSize: 10,
+                            fontWeight: 700,
+                            padding: '1px 6px',
+                            borderRadius: 20,
+                          }}
+                        >
+                          {item.badge}
+                        </span>
+                      )}
+                    </>
+                  )}
+
+                  {/* Badge dot (collapsed only) */}
+                  {collapsed && item.badge && (
+                    <div
                       style={{
-                        marginLeft: 'auto',
+                        position: 'absolute',
+                        top: 6,
+                        right: 6,
+                        width: 5,
+                        height: 5,
+                        borderRadius: '50%',
                         background: '#B8963E',
-                        color: '#0A0A0A',
-                        fontSize: 10,
-                        fontWeight: 600,
-                        padding: '2px 7px',
-                        borderRadius: 20,
                       }}
-                    >
-                      {item.badge}
-                    </span>
+                    />
                   )}
                 </Link>
               )
             })}
+
             <div
               style={{
                 height: 1,
-                background: 'linear-gradient(90deg, rgba(184,150,62,0.2) 0%, transparent 100%)',
-                margin: '8px 12px',
+                background: 'rgba(184,150,62,0.09)',
+                margin: collapsed ? '8px 4px' : '8px 10px',
               }}
             />
           </div>
@@ -260,43 +358,55 @@ export function Sidebar() {
         {/* Config */}
         <Link
           href="/configuracoes"
+          title={collapsed ? 'Configurações' : undefined}
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: 10,
-            padding: '9px 12px',
-            borderRadius: 8,
+            padding: collapsed ? '9px 0' : '8px 10px',
+            borderRadius: 6,
             textDecoration: 'none',
+            justifyContent: collapsed ? 'center' : 'flex-start',
           }}
         >
-          <div style={{ width: 16, height: 16, opacity: 0.4, color: '#fff' }}>
+          <div style={{ width: 16, height: 16, color: 'rgba(26,18,9,0.3)', flexShrink: 0 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <circle cx="12" cy="12" r="3" />
               <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
             </svg>
           </div>
-          <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)' }}>Configurações</span>
+          {!collapsed && (
+            <span style={{ fontSize: 13, color: 'rgba(26,18,9,0.45)' }}>Configurações</span>
+          )}
         </Link>
       </nav>
 
       {/* User footer */}
-      <div style={{ padding: '12px 10px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <div
+        style={{
+          padding: collapsed ? '10px 10px' : '10px 10px',
+          borderTop: '1px solid rgba(184,150,62,0.12)',
+          flexShrink: 0,
+        }}
+      >
         <button
           onClick={handleLogout}
+          title={collapsed ? `${session.name} — clique para sair` : undefined}
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: 10,
-            padding: '10px 12px',
-            borderRadius: 8,
+            padding: collapsed ? '8px 0' : '9px 10px',
+            borderRadius: 6,
             background: 'none',
             border: 'none',
             cursor: 'pointer',
             width: '100%',
             textAlign: 'left',
             transition: 'background 0.15s',
+            justifyContent: collapsed ? 'center' : 'flex-start',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(184,150,62,0.07)')}
           onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
         >
           <div
@@ -315,24 +425,48 @@ export function Sidebar() {
               fontFamily: 'var(--font-lora, serif)',
             }}
           >
-            RB
+            {initials}
           </div>
-          <div>
-            <div style={{ fontSize: 12, color: '#fff', fontWeight: 500 }}>Rafael Brandão</div>
-            <div style={{ fontSize: 10, color: '#555', marginTop: 1 }}>Admin · Nobel Capital</div>
-          </div>
-          <div style={{ marginLeft: 'auto', opacity: 0.25 }}>
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="white"
-              strokeWidth="1.5"
-              width="14"
-              height="14"
-            >
-              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
-            </svg>
-          </div>
+          {!collapsed && (
+            <>
+              <div style={{ overflow: 'hidden', flex: 1 }}>
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: '#1A1209',
+                    fontWeight: 500,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {session.name}
+                </div>
+                <div
+                  style={{
+                    fontSize: 10,
+                    color: 'rgba(26,18,9,0.4)',
+                    marginTop: 1,
+                    textTransform: 'capitalize',
+                  }}
+                >
+                  {session.role} · Nobel Capital
+                </div>
+              </div>
+              <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="rgba(26,18,9,0.28)"
+                  strokeWidth="1.5"
+                  width="13"
+                  height="13"
+                >
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
+                </svg>
+              </div>
+            </>
+          )}
         </button>
       </div>
     </aside>

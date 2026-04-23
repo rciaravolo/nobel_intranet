@@ -59,3 +59,92 @@ html, body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--surface-2); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-4); }
+
+/* ─── Responsive layout ──────────────────────────────────────────────────── */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px;
+}
+
+/* KPI cards — 4 cols → 2 → 1 */
+.grid-kpi {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+/* News hero split — featured + list */
+.grid-news-hero {
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  gap: 0;
+}
+
+/* Links úteis row — 4 cols → 3 → 2 → 1 */
+.grid-links-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+/* Header row */
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* ── 1280px breakpoint ─────────────────────────────────────────────────── */
+@media (max-width: 1280px) {
+  .grid-links-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ── 1024px breakpoint ─────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .grid-kpi {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .grid-news-hero {
+    grid-template-columns: 1fr;
+  }
+  .grid-links-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ── 768px breakpoint ──────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 16px;
+  }
+  .grid-kpi {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .grid-links-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* ── 480px breakpoint ──────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .main-content {
+    padding: 12px;
+  }
+  .grid-kpi {
+    grid-template-columns: 1fr;
+  }
+  .grid-links-row {
+    grid-template-columns: 1fr;
+  }
+}

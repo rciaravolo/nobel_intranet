@@ -7,18 +7,12 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   const session = await requireSession()
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#F5F4F0' }}>
-      <Sidebar />
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#F6F3ED' }}>
+      <Sidebar session={session} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <TickerBar />
         <Topbar session={session} />
-        <main
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '32px',
-          }}
-        >
+        <main className="main-content">
           {children}
         </main>
       </div>

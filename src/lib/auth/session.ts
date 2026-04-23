@@ -43,7 +43,7 @@ export function verifyToken(token: string): SessionPayload | null {
     const parts = token.split('.')
     if (parts.length !== 3) return null
 
-    const [header, body, sig] = parts
+    const [header, body, sig] = parts as [string, string, string]
     const expected = createHmac('sha256', SECRET).update(`${header}.${body}`).digest('base64url')
 
     // Comparação segura contra timing attacks
