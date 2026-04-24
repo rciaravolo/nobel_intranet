@@ -3,10 +3,18 @@ main = "src/index.ts"
 compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
 
+# Cron: atualiza notícias às 6h30 BRT (09h30 UTC) de seg a sex
+[triggers]
+crons = ["30 9 * * 1-5"]
+
 [[d1_databases]]
 binding = "DB"
 database_name = "intra-db"
 database_id = "448fb0a7-f020-4eb7-a9a2-b00b9e993e52"
+
+[[kv_namespaces]]
+binding = "NOTICIAS_KV"
+id = "097ee0db93f94617a16f90892e4e7ec8"
 
 [vars]
 CF_ACCESS_AUD = ""

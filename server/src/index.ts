@@ -3,6 +3,8 @@ import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import type { Env, Variables } from './types'
 import comunicadosRouter from './routes/comunicados'
+import noticiasRouter, { KV_KEY } from './routes/noticias'
+import { fetchAllNews } from './lib/rss'
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>()
 
@@ -30,6 +32,7 @@ app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOStri
 // Rotas da API
 // ---------------------------------------------------------------------------
 app.route('/comunicados', comunicadosRouter)
+app.route('/noticias', noticiasRouter)
 
 // ---------------------------------------------------------------------------
 // 404 catch-all
@@ -44,4 +47,26 @@ app.onError((err, c) => {
   return c.json({ error: 'Erro interno no servidor' }, 500)
 })
 
-export default app
+// ---------------------------------------------------------------------------
+// Scheduled handler — cron: "30 9 * * 1-5" (06h30 BRT, seg–sex)
+// ---------------------------------------------------------------------------
+async function handleScheduled(env: Env): Promise<void> {
+  console.log('[cron] Iniciando atualização de notícias...')
+  try {
+    const payload = await fetchAllNews()
+    await env.NOTICIAS_KV.put(KV_KEY, JSON.stringify(payload), {
+      // TTL de 28h: garante que sempre há dados mesmo se o cron falhar 1 dia
+      expirationTtl: 60 * 60 * 28,
+    })
+    console.log(`[cron] ${payload.noticias.length} notícias salvas em ${payload.atualizadoEm}`)
+  } catch (err) {
+    console.error('[cron] Falha ao atualizar notícias:', err)
+  }
+}
+
+export default {
+  fetch: app.fetch,
+  async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
+    ctx.waitUntil(handleScheduled(env))
+  },
+}

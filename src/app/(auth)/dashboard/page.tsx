@@ -1,6 +1,7 @@
 import { requireSession } from '@/lib/auth/session'
+import type { NoticiasPayload } from '@/../../server/src/lib/rss'
 
-/* ─── Dados mockados ────────────────────────────────────────────────────── */
+/* ─── Dados ─────────────────────────────────────────────────────────────── */
 
 const KPI_DATA = [
   { label: 'AUM Total',       value: 'R$ 2,4B', delta: '+12,4%', up: true,  sub: 'vs mês anterior' },
@@ -9,44 +10,36 @@ const KPI_DATA = [
   { label: 'Captação Mar.',   value: 'R$ 48M',  delta: '−8,2%',  up: false, sub: 'vs fevereiro'    },
 ]
 
-const NOTICIAS = [
-  {
-    id: 'n1', source: 'InfoMoney', sourceColor: '#e11d48',
-    category: 'Mercado', time: 'há 2h', featured: true,
-    headline: 'Ibovespa sobe 1,8% com alívio externo e alta das commodities',
-    summary: 'Índice encerra em 135.420 pontos, puxado por Vale e Petrobras. Dólar recua para R$ 5,09 após dados positivos dos EUA e alta do petróleo Brent acima de US$ 82.',
-  },
-  {
-    id: 'n2', source: 'Valor Econômico', sourceColor: '#1e40af',
-    category: 'Economia', time: 'há 4h', featured: false,
-    headline: 'Copom mantém Selic em 14,75% e sinaliza cautela para o segundo semestre',
-    summary: 'Ata reforça postura restritiva diante da inflação ainda acima da meta.',
-  },
-  {
-    id: 'n3', source: 'Reuters', sourceColor: '#b45309',
-    category: 'Internacional', time: 'há 6h', featured: false,
-    headline: 'Fed mantém juros; Powell descarta corte antes de julho',
-    summary: 'Dados de emprego e inflação ainda não justificam afrouxamento monetário.',
-  },
-  {
-    id: 'n4', source: 'Neofeed', sourceColor: '#7c3aed',
-    category: 'Mercado', time: 'há 8h', featured: false,
-    headline: 'XP amplia oferta de fundos offshore para clientes acima de R$ 5M',
-    summary: 'Nova plataforma permite alocação direta em fundos internacionais via conta no exterior.',
-  },
-  {
-    id: 'n5', source: 'Exame', sourceColor: '#059669',
-    category: 'Empresas', time: 'há 10h', featured: false,
-    headline: 'Petrobras anuncia dividendos extras de R$ 0,87 por ação para abril',
-    summary: 'Conselho aprova distribuição extraordinária após resultado recorde do Q4 2025.',
-  },
-  {
-    id: 'n6', source: 'ANBIMA', sourceColor: '#0369a1',
-    category: 'Regulatório', time: 'ontem', featured: false,
-    headline: 'ANBIMA publica novo guia de suitability para fundos de crédito privado',
-    summary: 'Critérios mais detalhados de classificação de risco para adequação ao perfil do investidor.',
-  },
-]
+async function getNoticias(): Promise<NoticiasPayload> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+  if (!apiUrl) return { noticias: [], atualizadoEm: null as unknown as string }
+
+  try {
+    const res = await fetch(`${apiUrl}/noticias`, { next: { revalidate: 3600 } })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const json = await res.json() as { data: NoticiasPayload }
+    return json.data
+  } catch {
+    return { noticias: [], atualizadoEm: null as unknown as string }
+  }
+}
+
+function formatAtualizadoEm(iso: string | null): string {
+  if (!iso) return 'Sem dados ainda'
+  const d = new Date(iso)
+  const data = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo' })
+  const hora = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })
+  return `${data} às ${hora}`
+}
+
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const h = Math.floor(diff / 3600000)
+  if (h < 1) return 'agora'
+  if (h === 1) return 'há 1h'
+  if (h < 24) return `há ${h}h`
+  return 'ontem'
+}
 
 const LINKS_UTEIS = [
   {
@@ -107,7 +100,10 @@ const sectionTitle: React.CSSProperties = {
 /* ─── Page ──────────────────────────────────────────────────────────────── */
 
 export default async function DashboardPage() {
-  const session = await requireSession()
+  const [session, { noticias, atualizadoEm }] = await Promise.all([
+    requireSession(),
+    getNoticias(),
+  ])
   const firstName = session.name.split(' ')[0]
 
   const now  = new Date()
@@ -115,8 +111,8 @@ export default async function DashboardPage() {
   const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite'
   const dataFmt  = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
-  const featured  = NOTICIAS.find((n) => n.featured)!
-  const secondary = NOTICIAS.filter((n) => !n.featured)
+  const featured  = noticias[0] ?? null
+  const secondary = noticias.slice(1, 6)
 
   return (
     <div style={{ maxWidth: 1400 }}>
@@ -164,7 +160,7 @@ export default async function DashboardPage() {
         <div style={cardHeader}>
           <span style={sectionTitle}>Notícias do Mercado</span>
           <span style={{ fontSize: 11, color: 'rgba(26,18,9,0.35)' }}>
-            Atualizado às {String(now.getHours()).padStart(2,'0')}:{String(now.getMinutes()).padStart(2,'0')}
+            Atualizado em {formatAtualizadoEm(atualizadoEm)}
           </span>
         </div>
 
@@ -172,23 +168,33 @@ export default async function DashboardPage() {
         <div className="grid-news-hero">
 
           {/* Destaque */}
-          <div style={{ padding: '20px 24px', borderRight: '1px solid rgba(184,150,62,0.09)', background: 'rgba(184,150,62,0.018)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: featured.sourceColor, background: `${featured.sourceColor}15`, padding: '2px 8px', borderRadius: 3 }}>
-                {featured.source}
-              </span>
-              <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(26,18,9,0.35)', background: 'rgba(26,18,9,0.05)', padding: '2px 8px', borderRadius: 3 }}>
-                {featured.category}
-              </span>
-              <span style={{ fontSize: 11, color: 'rgba(26,18,9,0.3)', marginLeft: 'auto' }}>{featured.time}</span>
+          {featured ? (
+            <div style={{ padding: '20px 24px', borderRight: '1px solid rgba(184,150,62,0.09)', background: 'rgba(184,150,62,0.018)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: featured.sourceColor, background: `${featured.sourceColor}15`, padding: '2px 8px', borderRadius: 3 }}>
+                  {featured.source}
+                </span>
+                <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(26,18,9,0.35)', background: 'rgba(26,18,9,0.05)', padding: '2px 8px', borderRadius: 3 }}>
+                  {featured.category}
+                </span>
+                <span style={{ fontSize: 11, color: 'rgba(26,18,9,0.3)', marginLeft: 'auto' }}>{timeAgo(featured.publishedAt)}</span>
+              </div>
+              <h2 style={{ fontFamily: 'var(--font-lora, serif)', fontSize: 18, fontWeight: 600, color: '#1A1209', lineHeight: 1.45, marginBottom: 12 }}>
+                {featured.url ? (
+                  <a href={featured.url} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>
+                    {featured.headline}
+                  </a>
+                ) : featured.headline}
+              </h2>
+              <p style={{ fontSize: 13, color: 'rgba(26,18,9,0.5)', lineHeight: 1.7 }}>
+                {featured.summary}
+              </p>
             </div>
-            <h2 style={{ fontFamily: 'var(--font-lora, serif)', fontSize: 18, fontWeight: 600, color: '#1A1209', lineHeight: 1.45, marginBottom: 12 }}>
-              {featured.headline}
-            </h2>
-            <p style={{ fontSize: 13, color: 'rgba(26,18,9,0.5)', lineHeight: 1.7 }}>
-              {featured.summary}
-            </p>
-          </div>
+          ) : (
+            <div style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(26,18,9,0.3)', fontSize: 13 }}>
+              Notícias serão exibidas após a primeira atualização (6h30)
+            </div>
+          )}
 
           {/* Lista secundária */}
           <div>
@@ -200,7 +206,6 @@ export default async function DashboardPage() {
                   gap: 14,
                   padding: '13px 20px',
                   borderBottom: i < secondary.length - 1 ? '1px solid rgba(184,150,62,0.07)' : 'none',
-                  cursor: 'pointer',
                 }}
               >
                 <div style={{ width: 3, borderRadius: 2, background: n.sourceColor, flexShrink: 0, alignSelf: 'stretch', opacity: 0.7 }} />
@@ -208,9 +213,15 @@ export default async function DashboardPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                     <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: n.sourceColor }}>{n.source}</span>
                     <span style={{ fontSize: 9, color: 'rgba(26,18,9,0.28)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{n.category}</span>
-                    <span style={{ fontSize: 11, color: 'rgba(26,18,9,0.3)', marginLeft: 'auto', flexShrink: 0 }}>{n.time}</span>
+                    <span style={{ fontSize: 11, color: 'rgba(26,18,9,0.3)', marginLeft: 'auto', flexShrink: 0 }}>{timeAgo(n.publishedAt)}</span>
                   </div>
-                  <p style={{ fontSize: 13, fontWeight: 500, color: '#1A1209', lineHeight: 1.4, marginBottom: 2 }}>{n.headline}</p>
+                  {n.url ? (
+                    <a href={n.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                      <p style={{ fontSize: 13, fontWeight: 500, color: '#1A1209', lineHeight: 1.4, marginBottom: 2 }}>{n.headline}</p>
+                    </a>
+                  ) : (
+                    <p style={{ fontSize: 13, fontWeight: 500, color: '#1A1209', lineHeight: 1.4, marginBottom: 2 }}>{n.headline}</p>
+                  )}
                   <p style={{ fontSize: 11, color: 'rgba(26,18,9,0.43)', lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.summary}</p>
                 </div>
               </div>
