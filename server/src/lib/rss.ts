@@ -1,6 +1,12 @@
 /**
- * Busca e parseia feeds RSS dos veículos de notícias financeiras.
- * Roda no Cloudflare Worker (sem DOMParser — parser manual via regex).
+ * Busca notícias de múltiplas fontes para o dashboard do INTRA.
+ *
+ * Fontes via news-sitemap (título + link):
+ *   - InfoMoney (news-sitemap.xml)
+ *
+ * Fontes via RSS (título + link + summary):
+ *   - Neofeed
+ *   - Exame
  */
 
 export type NoticiaRSS = {
@@ -14,110 +20,94 @@ export type NoticiaRSS = {
   publishedAt: string // ISO 8601
 }
 
-type RSSSource = {
-  name: string
-  color: string
-  category: string
-  feedUrl: string
+export type NoticiasPayload = {
+  noticias: NoticiaRSS[]
+  atualizadoEm: string
 }
 
-const SOURCES: RSSSource[] = [
-  {
-    name: 'InfoMoney',
-    color: '#e11d48',
-    category: 'Mercado',
-    feedUrl: 'https://www.infomoney.com.br/feed/',
-  },
-  {
-    name: 'Valor Econômico',
-    color: '#1e40af',
-    category: 'Economia',
-    feedUrl: 'https://valor.globo.com/rss/home/',
-  },
-  {
-    name: 'Reuters',
-    color: '#b45309',
-    category: 'Internacional',
-    feedUrl: 'https://feeds.reuters.com/reuters/BRTop',
-  },
-  {
-    name: 'Neofeed',
-    color: '#7c3aed',
-    category: 'Mercado',
-    feedUrl: 'https://neofeed.com.br/feed/',
-  },
-  {
-    name: 'Exame',
-    color: '#059669',
-    category: 'Empresas',
-    feedUrl: 'https://exame.com/feed/',
-  },
-]
-
 // ---------------------------------------------------------------------------
-// Parser XML mínimo (extrai conteúdo de tags do RSS)
+// Helpers XML genéricos
 // ---------------------------------------------------------------------------
 
 function extractTag(xml: string, tag: string): string {
-  // Tenta com CDATA primeiro, depois texto puro
   const cdataRe = new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]></${tag}>`, 'i')
   const plainRe = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i')
-
   const cdata = cdataRe.exec(xml)
   if (cdata?.[1]) return cdata[1].trim()
-
   const plain = plainRe.exec(xml)
   if (plain?.[1]) return plain[1].replace(/<[^>]+>/g, '').trim()
-
   return ''
 }
 
 function extractAttr(xml: string, tag: string, attr: string): string {
   const re = new RegExp(`<${tag}[^>]*\\s${attr}="([^"]*)"`, 'i')
-  const m = re.exec(xml)
-  return m?.[1] ?? ''
+  return re.exec(xml)?.[1] ?? ''
 }
 
-function parseItems(xml: string, source: RSSSource): NoticiaRSS[] {
-  const itemRe = /<item[\s>]([\s\S]*?)<\/item>/gi
+function cleanHtml(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+async function fetchXml(url: string): Promise<string | null> {
+  try {
+    const controller = new AbortController()
+    const t = setTimeout(() => controller.abort(), 8000)
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; INTRA-Nobel/1.0)' },
+    })
+    clearTimeout(t)
+    if (!res.ok) return null
+    return await res.text()
+  } catch {
+    return null
+  }
+}
+
+// ---------------------------------------------------------------------------
+// InfoMoney — news-sitemap.xml (título + link, sem summary)
+// ---------------------------------------------------------------------------
+
+async function fetchInfoMoney(): Promise<NoticiaRSS[]> {
+  const xml = await fetchXml('https://www.infomoney.com.br/news-sitemap.xml')
+  if (!xml) {
+    console.error('[news] InfoMoney: falha no fetch')
+    return []
+  }
+
+  // Cada entrada no news-sitemap tem <url>...<loc>...<news:title>...<news:publication_date>
+  const urlRe = /<url>([\s\S]*?)<\/url>/gi
   const items: NoticiaRSS[] = []
   let match: RegExpExecArray | null
 
-  while ((match = itemRe.exec(xml)) !== null && items.length < 3) {
+  while ((match = urlRe.exec(xml)) !== null && items.length < 5) {
     const block = match[1] ?? ''
+    const loc = extractTag(block, 'loc')
+    const title = extractTag(block, 'news:title')
+    const pubDate =
+      extractTag(block, 'news:publication_date') ||
+      extractTag(block, 'lastmod')
 
-    const title = extractTag(block, 'title')
-    if (!title) continue
-
-    const description = extractTag(block, 'description')
-    const pubDate = extractTag(block, 'pubDate')
-    const link =
-      extractTag(block, 'link') ||
-      extractAttr(block, 'link', 'href') ||
-      ''
+    if (!loc || !title) continue
 
     const publishedAt = pubDate ? new Date(pubDate).toISOString() : new Date().toISOString()
 
-    // Limpa HTML do summary e trunca em 200 chars
-    const summary = description
-      .replace(/<[^>]+>/g, '')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&#039;/g, "'")
-      .replace(/\s+/g, ' ')
-      .trim()
-      .slice(0, 200)
-
     items.push({
-      id: `${source.name.toLowerCase().replace(/\s+/g, '-')}-${items.length}`,
-      source: source.name,
-      sourceColor: source.color,
-      category: source.category,
+      id: `infomoney-${items.length}`,
+      source: 'InfoMoney',
+      sourceColor: '#e11d48',
+      category: 'Mercado',
       headline: title,
-      summary: summary || title,
-      url: link,
+      summary: '',
+      url: loc,
       publishedAt,
     })
   }
@@ -126,46 +116,75 @@ function parseItems(xml: string, source: RSSSource): NoticiaRSS[] {
 }
 
 // ---------------------------------------------------------------------------
-// Fetch de um feed com timeout
+// Fontes RSS (título + link + summary)
 // ---------------------------------------------------------------------------
 
-async function fetchFeed(source: RSSSource): Promise<NoticiaRSS[]> {
-  try {
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), 8000)
+type RSSSource = {
+  name: string
+  color: string
+  category: string
+  feedUrl: string
+  maxItems?: number
+}
 
-    const res = await fetch(source.feedUrl, {
-      signal: controller.signal,
-      headers: { 'User-Agent': 'INTRA-Nobel/1.0 (RSS reader)' },
+const RSS_SOURCES: RSSSource[] = [
+  { name: 'Neofeed', color: '#7c3aed', category: 'Mercado',   feedUrl: 'https://neofeed.com.br/feed/',  maxItems: 3 },
+  { name: 'Exame',   color: '#059669', category: 'Empresas',  feedUrl: 'https://exame.com/feed/',        maxItems: 3 },
+]
+
+function parseRssItems(xml: string, source: RSSSource): NoticiaRSS[] {
+  const itemRe = /<item[\s>]([\s\S]*?)<\/item>/gi
+  const items: NoticiaRSS[] = []
+  const max = source.maxItems ?? 3
+  let match: RegExpExecArray | null
+
+  while ((match = itemRe.exec(xml)) !== null && items.length < max) {
+    const block = match[1] ?? ''
+    const title = extractTag(block, 'title')
+    if (!title) continue
+
+    const description = extractTag(block, 'description')
+    const pubDate = extractTag(block, 'pubDate')
+    const link = extractTag(block, 'link') || extractAttr(block, 'link', 'href')
+
+    items.push({
+      id: `${source.name.toLowerCase()}-${items.length}`,
+      source: source.name,
+      sourceColor: source.color,
+      category: source.category,
+      headline: title,
+      summary: cleanHtml(description).slice(0, 200),
+      url: link,
+      publishedAt: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
     })
-    clearTimeout(timeout)
+  }
 
-    if (!res.ok) return []
+  return items
+}
 
-    const xml = await res.text()
-    return parseItems(xml, source)
-  } catch {
-    console.error(`[rss] falha ao buscar ${source.name}`)
+async function fetchRssSource(source: RSSSource): Promise<NoticiaRSS[]> {
+  const xml = await fetchXml(source.feedUrl)
+  if (!xml) {
+    console.error(`[rss] ${source.name}: falha no fetch`)
     return []
   }
+  return parseRssItems(xml, source)
 }
 
 // ---------------------------------------------------------------------------
 // Exportação principal
 // ---------------------------------------------------------------------------
 
-export type NoticiasPayload = {
-  noticias: NoticiaRSS[]
-  atualizadoEm: string // ISO 8601
-}
-
 export async function fetchAllNews(): Promise<NoticiasPayload> {
-  const results = await Promise.allSettled(SOURCES.map(fetchFeed))
+  const [infomoneyItems, ...rssResults] = await Promise.allSettled([
+    fetchInfoMoney(),
+    ...RSS_SOURCES.map(fetchRssSource),
+  ])
 
-  const noticias = results
-    .flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
-    // Ordena da mais recente para a mais antiga
-    .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+  const noticias = [
+    ...(infomoneyItems.status === 'fulfilled' ? infomoneyItems.value : []),
+    ...rssResults.flatMap((r) => (r.status === 'fulfilled' ? r.value : [])),
+  ].sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
 
   return {
     noticias,
