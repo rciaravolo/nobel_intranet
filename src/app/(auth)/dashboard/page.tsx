@@ -136,6 +136,11 @@ export default async function DashboardPage() {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="13" height="13"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             B3 Live
           </a>
+          <a href="https://credenciamento.ancord.org.br/login.html#" target="_blank" rel="noopener noreferrer"
+            style={{ display: 'flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: '#fff', border: '1px solid rgba(184,150,62,0.2)', borderRadius: 6, fontSize: 12, fontWeight: 500, color: '#1A1209', textDecoration: 'none' }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="13" height="13"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            ANCORD
+          </a>
         </div>
       </div>
 
