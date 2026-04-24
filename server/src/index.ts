@@ -3,8 +3,10 @@ import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import type { Env, Variables } from './types'
 import comunicadosRouter from './routes/comunicados'
-import noticiasRouter, { KV_KEY } from './routes/noticias'
+import noticiasRouter, { KV_KEY as NOTICIAS_KV_KEY } from './routes/noticias'
+import tickerRouter, { TICKER_KV_KEY } from './routes/ticker'
 import { fetchAllNews } from './lib/rss'
+import { fetchAllTickers } from './lib/ticker'
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>()
 
@@ -33,6 +35,7 @@ app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOStri
 // ---------------------------------------------------------------------------
 app.route('/comunicados', comunicadosRouter)
 app.route('/noticias', noticiasRouter)
+app.route('/ticker', tickerRouter)
 
 // ---------------------------------------------------------------------------
 // 404 catch-all
@@ -49,18 +52,34 @@ app.onError((err, c) => {
 
 // ---------------------------------------------------------------------------
 // Scheduled handler — cron: "30 9 * * 1-5" (06h30 BRT, seg–sex)
+// Atualiza notícias e ticker em paralelo
 // ---------------------------------------------------------------------------
 async function handleScheduled(env: Env): Promise<void> {
-  console.log('[cron] Iniciando atualização de notícias...')
-  try {
-    const payload = await fetchAllNews()
-    await env.NOTICIAS_KV.put(KV_KEY, JSON.stringify(payload), {
-      // TTL de 28h: garante que sempre há dados mesmo se o cron falhar 1 dia
-      expirationTtl: 60 * 60 * 28,
-    })
-    console.log(`[cron] ${payload.noticias.length} notícias salvas em ${payload.atualizadoEm}`)
-  } catch (err) {
-    console.error('[cron] Falha ao atualizar notícias:', err)
+  console.log('[cron] Iniciando atualização matinal...')
+
+  const [noticiasResult, tickerResult] = await Promise.allSettled([
+    fetchAllNews().then((payload) =>
+      env.NOTICIAS_KV.put(NOTICIAS_KV_KEY, JSON.stringify(payload), {
+        expirationTtl: 60 * 60 * 28,
+      }).then(() => payload),
+    ),
+    fetchAllTickers().then((payload) =>
+      env.NOTICIAS_KV.put(TICKER_KV_KEY, JSON.stringify(payload), {
+        expirationTtl: 60 * 60 * 28,
+      }).then(() => payload),
+    ),
+  ])
+
+  if (noticiasResult.status === 'fulfilled') {
+    console.log(`[cron] ${noticiasResult.value.noticias.length} notícias salvas`)
+  } else {
+    console.error('[cron] Falha nas notícias:', noticiasResult.reason)
+  }
+
+  if (tickerResult.status === 'fulfilled') {
+    console.log(`[cron] ${tickerResult.value.tickers.length} tickers salvos`)
+  } else {
+    console.error('[cron] Falha no ticker:', tickerResult.reason)
   }
 }
 

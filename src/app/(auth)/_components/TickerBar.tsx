@@ -1,15 +1,17 @@
-'use client'
+import type { TickerItem } from '@/../../server/src/lib/ticker'
 
-const TICKERS = [
-  { name: 'IBOV',    value: '128.457', change: '+0,84%',    up: true  },
-  { name: 'USD/BRL', value: '5,7340',  change: '−0,31%',    up: false },
-  { name: 'CDI',     value: '10,65%',  change: 'a.a.',      up: null  },
-  { name: 'IPCA',    value: '4,83%',   change: 'acum. 12m', up: null  },
-  { name: 'S&P 500', value: '5.614',   change: '−0,17%',    up: false },
-  { name: 'BTC',     value: '$83.240', change: '+2,14%',    up: true  },
+const FALLBACK: TickerItem[] = [
+  { name: 'IBOV',    value: '—', change: '—',        up: null },
+  { name: 'USD/BRL', value: '—', change: '—',        up: null },
+  { name: 'CDI',     value: '—', change: 'a.a.',     up: null },
+  { name: 'IPCA',    value: '—', change: 'acum. 12m', up: null },
+  { name: 'S&P 500', value: '—', change: '—',        up: null },
+  { name: 'BTC',     value: '—', change: '—',        up: null },
 ]
 
-export function TickerBar() {
+export function TickerBar({ tickers = FALLBACK }: { tickers?: TickerItem[] }) {
+  const items = tickers.length > 0 ? tickers : FALLBACK
+
   return (
     <div
       style={{
@@ -23,7 +25,7 @@ export function TickerBar() {
         flexShrink: 0,
       }}
     >
-      {TICKERS.map((t, i) => (
+      {items.map((t, i) => (
         <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 24, flexShrink: 0 }}>
           {i > 0 && (
             <div style={{ width: 1, height: 12, background: 'rgba(184,150,62,0.25)' }} />
