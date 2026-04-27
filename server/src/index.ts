@@ -5,6 +5,7 @@ import type { Env, Variables } from './types'
 import comunicadosRouter from './routes/comunicados'
 import noticiasRouter, { KV_KEY as NOTICIAS_KV_KEY } from './routes/noticias'
 import tickerRouter, { TICKER_KV_KEY } from './routes/ticker'
+import performanceRouter from './routes/performance'
 import { fetchAllNews } from './lib/rss'
 import { fetchAllTickers } from './lib/ticker'
 
@@ -18,7 +19,7 @@ app.use('*', logger())
 app.use(
   '*',
   cors({
-    origin: ['https://intra.nobelcapital.com.br', 'http://localhost:3000'],
+    origin: ['https://intra.nobelcapital.com.br', 'http://localhost:3000', 'http://localhost:3001'],
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization', 'Cf-Access-Jwt-Assertion'],
     maxAge: 86400,
@@ -36,6 +37,7 @@ app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOStri
 app.route('/comunicados', comunicadosRouter)
 app.route('/noticias', noticiasRouter)
 app.route('/ticker', tickerRouter)
+app.route('/performance', performanceRouter)
 
 // ---------------------------------------------------------------------------
 // 404 catch-all

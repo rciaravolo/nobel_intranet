@@ -1,14 +1,53 @@
 import { requireSession } from '@/lib/auth/session'
 import type { NoticiasPayload } from '@/../../server/src/lib/rss'
 
-/* ─── Dados ─────────────────────────────────────────────────────────────── */
+/* ─── Tipos ──────────────────────────────────────────────────────────────── */
 
-const KPI_DATA = [
-  { label: 'AUM Total',       value: 'R$ 2,4B', delta: '+12,4%', up: true,  sub: 'vs mês anterior' },
-  { label: 'Clientes Ativos', value: '1.847',   delta: '+34',    up: true,  sub: 'este mês'        },
-  { label: 'Retorno Médio',   value: '18,7%',   delta: '+2,1pp', up: true,  sub: 'vs CDI'          },
-  { label: 'Captação Mar.',   value: 'R$ 48M',  delta: '−8,2%',  up: false, sub: 'vs fevereiro'    },
-]
+type KpisPayload = {
+  aum: { value: number; dataRef: string | null }
+  clientesAtivos: { value: number }
+  captacao: { value: number; mesLabel: string }
+  receita: { value: number }
+}
+
+/* ─── Helpers de formatação ──────────────────────────────────────────────── */
+
+function formatBRL(val: number): string {
+  const abs = Math.abs(val)
+  const prefix = val < 0 ? '-R$ ' : 'R$ '
+  if (abs >= 1_000_000_000) return `${prefix}${(abs / 1_000_000_000).toFixed(2).replace('.', ',')}B`
+  if (abs >= 1_000_000) return `${prefix}${(abs / 1_000_000).toFixed(1).replace('.', ',')}M`
+  if (abs >= 1_000) return `${prefix}${Math.round(abs / 1_000)}K`
+  return `${prefix}${abs.toFixed(0)}`
+}
+
+function formatClientes(val: number): string {
+  return val.toLocaleString('pt-BR')
+}
+
+function formatDataRef(iso: string | null): string {
+  if (!iso) return ''
+  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo' })
+}
+
+/* ─── Fetch KPIs ─────────────────────────────────────────────────────────── */
+
+async function getKpis(): Promise<KpisPayload | null> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+  const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
+  if (!apiUrl) return null
+  try {
+    const res = await fetch(`${apiUrl}/performance/kpis`, {
+      next: { revalidate: 3600 },
+      headers: { Authorization: `Bearer ${secret}` },
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const json = await res.json() as { data: KpisPayload }
+    return json.data
+  } catch {
+    return null
+  }
+}
 
 async function getNoticias(): Promise<NoticiasPayload> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL
@@ -100,9 +139,10 @@ const sectionTitle: React.CSSProperties = {
 /* ─── Page ──────────────────────────────────────────────────────────────── */
 
 export default async function DashboardPage() {
-  const [session, { noticias, atualizadoEm }] = await Promise.all([
+  const [session, { noticias, atualizadoEm }, kpis] = await Promise.all([
     requireSession(),
     getNoticias(),
+    getKpis(),
   ])
   const firstName = session.name.split(' ')[0]
 
@@ -146,18 +186,70 @@ export default async function DashboardPage() {
 
       {/* ── KPIs ── */}
       <div className="grid-kpi">
-        {KPI_DATA.map((kpi, i) => (
-          <div key={kpi.label} style={{ ...card, position: 'relative' }}>
-            {i === 0 && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, #B8963E, #D4A96A)' }} />}
-            <div style={{ padding: '16px 18px' }}>
-              <p style={{ fontSize: 10, color: 'rgba(26,18,9,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>{kpi.label}</p>
-              <p style={{ fontFamily: 'var(--font-lora, serif)', fontSize: 26, fontWeight: 600, color: '#1A1209', marginBottom: 6, lineHeight: 1 }}>{kpi.value}</p>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 20, background: kpi.up ? 'rgba(22,163,74,0.1)' : 'rgba(220,38,38,0.1)', color: kpi.up ? '#16a34a' : '#dc2626' }}>
-                {kpi.up ? '↑' : '↓'} {kpi.delta} <span style={{ fontWeight: 400, opacity: 0.75 }}>{kpi.sub}</span>
+
+        {/* AUM Total */}
+        <div style={{ ...card, position: 'relative' }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, #B8963E, #D4A96A)' }} />
+          <div style={{ padding: '16px 18px' }}>
+            <p style={{ fontSize: 10, color: 'rgba(26,18,9,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>AUM Total</p>
+            <p style={{ fontFamily: 'var(--font-lora, serif)', fontSize: 26, fontWeight: 600, color: '#1A1209', marginBottom: 6, lineHeight: 1 }}>
+              {kpis ? formatBRL(kpis.aum.value) : '—'}
+            </p>
+            {kpis?.aum.dataRef && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 20, background: 'rgba(26,18,9,0.05)', color: 'rgba(26,18,9,0.45)' }}>
+                Posição {formatDataRef(kpis.aum.dataRef)}
               </span>
-            </div>
+            )}
           </div>
-        ))}
+        </div>
+
+        {/* Clientes Ativos */}
+        <div style={{ ...card, position: 'relative' }}>
+          <div style={{ padding: '16px 18px' }}>
+            <p style={{ fontSize: 10, color: 'rgba(26,18,9,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Clientes Ativos</p>
+            <p style={{ fontFamily: 'var(--font-lora, serif)', fontSize: 26, fontWeight: 600, color: '#1A1209', marginBottom: 6, lineHeight: 1 }}>
+              {kpis ? formatClientes(kpis.clientesAtivos.value) : '—'}
+            </p>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 20, background: 'rgba(26,18,9,0.05)', color: 'rgba(26,18,9,0.45)' }}>
+              status Ativo na base XP
+            </span>
+          </div>
+        </div>
+
+        {/* Captação Mês */}
+        {kpis && (() => {
+          const cap = kpis.captacao.value
+          const up = cap >= 0
+          return (
+            <div style={{ ...card, position: 'relative' }}>
+              <div style={{ padding: '16px 18px' }}>
+                <p style={{ fontSize: 10, color: 'rgba(26,18,9,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>
+                  Captação {kpis.captacao.mesLabel}
+                </p>
+                <p style={{ fontFamily: 'var(--font-lora, serif)', fontSize: 26, fontWeight: 600, color: '#1A1209', marginBottom: 6, lineHeight: 1 }}>
+                  {formatBRL(cap)}
+                </p>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 20, background: up ? 'rgba(22,163,74,0.1)' : 'rgba(220,38,38,0.1)', color: up ? '#16a34a' : '#dc2626' }}>
+                  {up ? '↑' : '↓'} captação líquida no mês
+                </span>
+              </div>
+            </div>
+          )
+        })()}
+
+        {/* Receita Total */}
+        <div style={{ ...card, position: 'relative' }}>
+          <div style={{ padding: '16px 18px' }}>
+            <p style={{ fontSize: 10, color: 'rgba(26,18,9,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Receita Total</p>
+            <p style={{ fontFamily: 'var(--font-lora, serif)', fontSize: 26, fontWeight: 600, color: '#1A1209', marginBottom: 6, lineHeight: 1 }}>
+              {kpis?.receita?.value != null ? formatBRL(kpis.receita.value) : '—'}
+            </p>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 20, background: 'rgba(26,18,9,0.05)', color: 'rgba(26,18,9,0.45)' }}>
+              receita
+            </span>
+          </div>
+        </div>
+
       </div>
 
       {/* ── Notícias ── */}

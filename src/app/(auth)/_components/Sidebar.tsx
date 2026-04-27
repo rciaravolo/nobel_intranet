@@ -56,7 +56,7 @@ const NAV = [
       },
       {
         href: '/analises',
-        label: 'Análises',
+        label: 'Onepage',
         icon: (
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
@@ -227,7 +227,7 @@ export function Sidebar({ session }: Props) {
 
       {/* Nav */}
       <nav style={{ flex: 1, padding: collapsed ? '8px 10px' : '8px 10px', overflowY: 'auto', overflowX: 'hidden' }}>
-        {NAV.map((group) => (
+        {NAV.filter((g) => g.section !== 'Operacional').map((group) => (
           <div key={group.section}>
             {/* Section label */}
             <div style={{ height: collapsed ? 10 : 0, transition: 'height 0.2s' }} />
@@ -355,8 +355,8 @@ export function Sidebar({ session }: Props) {
           </div>
         ))}
 
-        {/* Config */}
-        <Link
+        {/* Config — oculto por hora */}
+        {false && <Link
           href="/configuracoes"
           title={collapsed ? 'Configurações' : undefined}
           style={{
@@ -378,7 +378,7 @@ export function Sidebar({ session }: Props) {
           {!collapsed && (
             <span style={{ fontSize: 13, color: 'rgba(26,18,9,0.45)' }}>Configurações</span>
           )}
-        </Link>
+        </Link>}
       </nav>
 
       {/* User footer */}

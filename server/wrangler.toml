@@ -12,6 +12,11 @@ binding = "DB"
 database_name = "intra-db"
 database_id = "448fb0a7-f020-4eb7-a9a2-b00b9e993e52"
 
+[[d1_databases]]
+binding = "PERF_DB"
+database_name = "nobel-performance-db"
+database_id = "f4642f1c-653b-4e39-8ff2-dbfa3dc24532"
+
 [[kv_namespaces]]
 binding = "NOTICIAS_KV"
 id = "097ee0db93f94617a16f90892e4e7ec8"
@@ -19,3 +24,4 @@ id = "097ee0db93f94617a16f90892e4e7ec8"
 [vars]
 CF_ACCESS_AUD = ""
 CF_ACCESS_TEAM_DOMAIN = "nobelcapital.cloudflareaccess.com"
+INTERNAL_API_SECRET = "dev-perf-secret-2026"
