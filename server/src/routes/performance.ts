@@ -5,6 +5,39 @@ import { diasUteisDoMes } from '../lib/dias-uteis'
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>()
 
+/* ─── Filtro de assessor ────────────────────────────────────────────────────
+   Retorna:
+     null   → admin/diretoria → sem filtro (dados de toda a empresa)
+     string → id_assessor    → filtrar por esse assessor
+     false  → acesso negado  → email não encontrado na tabela assessores
+ ─────────────────────────────────────────────────────────────────────────── */
+async function resolveFilter(
+  db: D1Database,
+  email: string | undefined,
+  role: string | undefined,
+): Promise<string | null | false> {
+  if (role === 'admin') return null
+  if (!email) return false
+  const row = await db
+    .prepare('SELECT id_assessor FROM assessores WHERE mail_assessor = ?')
+    .bind(email)
+    .first<{ id_assessor: string }>()
+  return row ? row.id_assessor : false
+}
+
+// Helper: WHERE ou AND clause para filtro de assessor
+function andFilter(idAssessor: string | null, tableAlias?: string): string {
+  if (!idAssessor) return ''
+  const col = tableAlias ? `${tableAlias}.id_assessor` : 'id_assessor'
+  return ` AND ${col} = '${idAssessor}'`
+}
+
+function whereFilter(idAssessor: string | null, tableAlias?: string): string {
+  if (!idAssessor) return ''
+  const col = tableAlias ? `${tableAlias}.id_assessor` : 'id_assessor'
+  return ` WHERE ${col} = '${idAssessor}'`
+}
+
 // Auth: aceita internal secret (Next.js SSR) ou CF Access JWT (browser direto)
 app.use('*', async (c, next) => {
   const auth = c.req.header('Authorization') ?? ''
@@ -80,31 +113,36 @@ app.get('/kpis', async (c) => {
 app.get('/historico', async (c) => {
   const db = c.env.PERF_DB
 
+  const idAssessor = await resolveFilter(db, c.req.header('X-User-Email'), c.req.header('X-User-Role'))
+  if (idAssessor === false) return c.json({ error: 'Forbidden' }, 403)
+
+  const f = andFilter(idAssessor)
+
   const [capRows, custRows, roa25Rows, roa26Rows] = await Promise.all([
     db.prepare(`
       SELECT strftime('%m', data) AS mes, strftime('%Y', data) AS ano, SUM(captacao) AS v
       FROM   cap_historica
-      WHERE  strftime('%Y', data) IN ('2025','2026')
+      WHERE  strftime('%Y', data) IN ('2025','2026')${f}
       GROUP  BY ano, mes ORDER BY ano, mes
     `).all<{ mes: string; ano: string; v: number }>(),
     db.prepare(`
       SELECT strftime('%m', data) AS mes, strftime('%Y', data) AS ano, SUM(total) AS v
       FROM   cust_historica
-      WHERE  strftime('%Y', data) IN ('2025','2026')
+      WHERE  strftime('%Y', data) IN ('2025','2026')${f}
       GROUP  BY ano, mes ORDER BY ano, mes
     `).all<{ mes: string; ano: string; v: number }>(),
     db.prepare(`
       SELECT CAST(SUBSTR(data, 1, INSTR(data,'/') - 1) AS INTEGER) AS mes,
              SUM(receita)       AS receita,
              SUM(receita) / NULLIF(SUM(media_receita_aum), 0) * 12 AS roa
-      FROM   roa_historico WHERE data LIKE '%/2025'
+      FROM   roa_historico WHERE data LIKE '%/2025'${f}
       GROUP  BY mes ORDER BY mes
     `).all<{ mes: number; receita: number; roa: number }>(),
     db.prepare(`
       SELECT CAST(SUBSTR(data, 6, 2) AS INTEGER) AS mes,
              SUM(receita)       AS receita,
              SUM(receita) / NULLIF(SUM(media_receita_aum), 0) * 12 AS roa
-      FROM   roa_historico WHERE data LIKE '2026%'
+      FROM   roa_historico WHERE data LIKE '2026%'${f}
       GROUP  BY mes ORDER BY mes
     `).all<{ mes: number; receita: number; roa: number }>(),
   ])
@@ -153,16 +191,21 @@ app.get('/historico', async (c) => {
 app.get('/onepage', async (c) => {
   const db = c.env.PERF_DB
 
+  const idAssessor = await resolveFilter(db, c.req.header('X-User-Email'), c.req.header('X-User-Role'))
+  if (idAssessor === false) return c.json({ error: 'Forbidden' }, 403)
+
+  const f = andFilter(idAssessor)
+
   const [aumRow, clientesRow, capRow, receitaRows] = await Promise.all([
     db
-      .prepare('SELECT SUM(net_em_m) AS aum, MAX(data_posicao) AS data_ref FROM tb_positivador')
+      .prepare(`SELECT SUM(net_em_m) AS aum, MAX(data_posicao) AS data_ref FROM tb_positivador${whereFilter(idAssessor)}`)
       .first<{ aum: number; data_ref: string }>(),
     db
       .prepare(`
         SELECT
           COUNT(DISTINCT CASE WHEN status = 'ATIVO'   THEN id_cliente END) AS ativos,
           COUNT(DISTINCT CASE WHEN status = 'INATIVO' THEN id_cliente END) AS inativos
-        FROM tb_positivador
+        FROM tb_positivador${whereFilter(idAssessor)}
       `)
       .first<{ ativos: number; inativos: number }>(),
     db
@@ -172,19 +215,19 @@ app.get('/onepage', async (c) => {
           SUM(CASE WHEN aux = 'D' THEN captacao ELSE 0 END) AS resgates,
           SUM(captacao)                                      AS liquida
         FROM tb_cap
-        WHERE strftime('%Y-%m', data) = strftime('%Y-%m', 'now')
+        WHERE strftime('%Y-%m', data) = strftime('%Y-%m', 'now')${f}
       `)
       .first<{ bruta: number; resgates: number; liquida: number }>(),
     Promise.all([
-      db.prepare('SELECT COALESCE(SUM(receita),0) AS v FROM receita_rv').first<{ v: number }>(),
-      db.prepare('SELECT COALESCE(SUM(receita),0) AS v FROM receita_rf').first<{ v: number }>(),
-      db.prepare('SELECT COALESCE(SUM(receita),0) AS v FROM receita_coe').first<{ v: number }>(),
-      db.prepare('SELECT COALESCE(SUM(receita),0) AS v FROM receita_cambio').first<{ v: number }>(),
-      db.prepare('SELECT COALESCE(SUM(receita),0) AS v FROM receita_feefixo').first<{ v: number }>(),
-      db.prepare('SELECT COALESCE(SUM(receita),0) AS v FROM receita_seguros').first<{ v: number }>(),
-      db.prepare('SELECT COALESCE(SUM(receita),0) AS v FROM receita_consorcio').first<{ v: number }>(),
-      db.prepare('SELECT COALESCE(SUM(receita),0) AS v FROM receita_dominion').first<{ v: number }>(),
-      db.prepare('SELECT COALESCE(SUM(receita),0) AS v FROM receita_oferta_fundos').first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_rv${whereFilter(idAssessor)}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_rf${whereFilter(idAssessor)}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_coe${whereFilter(idAssessor)}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_cambio${whereFilter(idAssessor)}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_feefixo${whereFilter(idAssessor)}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_seguros${whereFilter(idAssessor)}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_consorcio${whereFilter(idAssessor)}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_dominion${whereFilter(idAssessor)}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_oferta_fundos${whereFilter(idAssessor)}`).first<{ v: number }>(),
     ]),
   ])
 
@@ -242,6 +285,9 @@ app.get('/metas', async (c) => {
   const db    = c.env.PERF_DB
   const agora = new Date()
 
+  const idAssessor = await resolveFilter(db, c.req.header('X-User-Email'), c.req.header('X-User-Role'))
+  if (idAssessor === false) return c.json({ error: 'Forbidden' }, 403)
+
   // Mês corrente em BRT (UTC-3)
   const brt    = new Date(agora.getTime() - 3 * 60 * 60 * 1000)
   const mesISO = `${brt.getUTCFullYear()}-${String(brt.getUTCMonth() + 1).padStart(2, '0')}`
@@ -253,7 +299,7 @@ app.get('/metas', async (c) => {
 
   const receitaRows = await Promise.all(
     PRODUTOS_METAS.map(p =>
-      db.prepare(`SELECT COALESCE(SUM(receita), 0) AS v FROM ${p.tabela}`)
+      db.prepare(`SELECT COALESCE(SUM(receita), 0) AS v FROM ${p.tabela}${whereFilter(idAssessor)}`)
         .first<{ v: number }>()
     )
   )
@@ -299,6 +345,11 @@ app.get('/metas', async (c) => {
 app.get('/deepdive/captacao', async (c) => {
   const db = c.env.PERF_DB
 
+  const idAssessor = await resolveFilter(db, c.req.header('X-User-Email'), c.req.header('X-User-Role'))
+  if (idAssessor === false) return c.json({ error: 'Forbidden' }, 403)
+
+  const f = andFilter(idAssessor, 'c')
+
   const [aportesRows, resgatesRows] = await Promise.all([
     db.prepare(`
       SELECT c.id_cliente,
@@ -307,7 +358,7 @@ app.get('/deepdive/captacao', async (c) => {
       FROM   tb_cap c
       LEFT JOIN base_clientes bc ON CAST(c.id_cliente AS INTEGER) = bc.id_cliente
       WHERE  c.aux = 'C'
-        AND  strftime('%Y-%m', c.data) = strftime('%Y-%m', 'now')
+        AND  strftime('%Y-%m', c.data) = strftime('%Y-%m', 'now')${f}
       GROUP  BY c.id_cliente
       ORDER  BY valor DESC
       LIMIT  20
@@ -320,7 +371,7 @@ app.get('/deepdive/captacao', async (c) => {
       FROM   tb_cap c
       LEFT JOIN base_clientes bc ON CAST(c.id_cliente AS INTEGER) = bc.id_cliente
       WHERE  c.aux = 'D'
-        AND  strftime('%Y-%m', c.data) = strftime('%Y-%m', 'now')
+        AND  strftime('%Y-%m', c.data) = strftime('%Y-%m', 'now')${f}
       GROUP  BY c.id_cliente
       ORDER  BY valor ASC
       LIMIT  20
@@ -359,12 +410,18 @@ app.get('/deepdive/receita/:produto', async (c) => {
   const info = PRODUTO_MAP[produto]
   if (!info) return c.json({ error: 'produto inválido' }, 400)
 
+  const idAssessor = await resolveFilter(db, c.req.header('X-User-Email'), c.req.header('X-User-Role'))
+  if (idAssessor === false) return c.json({ error: 'Forbidden' }, 403)
+
+  const f = andFilter(idAssessor, 'r')
+
   const rows = await db.prepare(`
     SELECT r.id_cliente,
            bc.nome_cliente,
            SUM(r.receita) AS valor
     FROM   ${info.tabela} r
     LEFT JOIN base_clientes bc ON r.id_cliente = bc.id_cliente
+    ${idAssessor ? `WHERE r.id_assessor = '${idAssessor}'` : ''}
     GROUP  BY r.id_cliente
     ORDER  BY valor DESC
     LIMIT  20

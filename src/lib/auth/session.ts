@@ -15,6 +15,7 @@ export interface SessionPayload {
   username: string
   name: string
   role: 'admin' | 'member'
+  email: string
   exp: number
 }
 

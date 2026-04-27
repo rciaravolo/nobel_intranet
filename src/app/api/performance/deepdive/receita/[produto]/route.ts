@@ -23,7 +23,13 @@ export async function GET(
 
   const res = await fetch(
     `${apiUrl}/performance/deepdive/receita/${encodeURIComponent(produto)}`,
-    { headers: { Authorization: `Bearer ${secret}` } },
+    {
+      headers: {
+        Authorization: `Bearer ${secret}`,
+        'X-User-Email': session.email,
+        'X-User-Role':  session.role,
+      },
+    },
   )
 
   const json = await res.json()

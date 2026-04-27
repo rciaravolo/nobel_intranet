@@ -115,14 +115,22 @@ function varRoaBp(cur: number | null, prev: number | null): { label: string; up:
 
 /* ─── Fetch ──────────────────────────────────────────────────────────────── */
 
-async function getOnepage(): Promise<OnepagePayload | null> {
+function perfHeaders(email: string, role: string, secret: string) {
+  return {
+    Authorization:  `Bearer ${secret}`,
+    'X-User-Email': email,
+    'X-User-Role':  role,
+  }
+}
+
+async function getOnepage(email: string, role: string): Promise<OnepagePayload | null> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL
   const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
   if (!apiUrl) return null
   try {
     const res = await fetch(`${apiUrl}/performance/onepage`, {
       next: { revalidate: 3600 },
-      headers: { Authorization: `Bearer ${secret}` },
+      headers: perfHeaders(email, role, secret),
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const json = await res.json() as { data: OnepagePayload }
@@ -132,13 +140,13 @@ async function getOnepage(): Promise<OnepagePayload | null> {
   }
 }
 
-async function getMetas(): Promise<MetasPayload | null> {
+async function getMetas(email: string, role: string): Promise<MetasPayload | null> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL
   const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
   if (!apiUrl) return null
   try {
     const res = await fetch(`${apiUrl}/performance/metas`, {
-      headers: { Authorization: `Bearer ${secret}` },
+      headers: perfHeaders(email, role, secret),
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const json = await res.json() as { data: MetasPayload }
@@ -148,14 +156,14 @@ async function getMetas(): Promise<MetasPayload | null> {
   }
 }
 
-async function getHistorico(): Promise<HistoricoPayload | null> {
+async function getHistorico(email: string, role: string): Promise<HistoricoPayload | null> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL
   const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
   if (!apiUrl) return null
   try {
     const res = await fetch(`${apiUrl}/performance/historico`, {
       next: { revalidate: 3600 },
-      headers: { Authorization: `Bearer ${secret}` },
+      headers: perfHeaders(email, role, secret),
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const json = await res.json() as { data: HistoricoPayload }
@@ -336,7 +344,12 @@ function HistTable({ title, subtitle, rows, getValue, format, varFn, total25, to
 /* ─── Page ───────────────────────────────────────────────────────────────── */
 
 export default async function AnalisesPage() {
-  const [session, data, metas, hist] = await Promise.all([requireSession(), getOnepage(), getMetas(), getHistorico()])
+  const session = await requireSession()
+  const [data, metas, hist] = await Promise.all([
+    getOnepage(session.email, session.role),
+    getMetas(session.email, session.role),
+    getHistorico(session.email, session.role),
+  ])
   const firstName = session.name.split(' ')[0]
 
   const aum       = data?.aum ?? 0
