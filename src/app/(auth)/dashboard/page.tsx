@@ -32,14 +32,18 @@ function formatDataRef(iso: string | null): string {
 
 /* ─── Fetch KPIs ─────────────────────────────────────────────────────────── */
 
-async function getKpis(): Promise<KpisPayload | null> {
+async function getKpis(email: string, role: string): Promise<KpisPayload | null> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL
   const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
   if (!apiUrl) return null
   try {
     const res = await fetch(`${apiUrl}/performance/kpis`, {
       next: { revalidate: 3600 },
-      headers: { Authorization: `Bearer ${secret}` },
+      headers: {
+        Authorization:  `Bearer ${secret}`,
+        'X-User-Email': email,
+        'X-User-Role':  role,
+      },
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const json = await res.json() as { data: KpisPayload }
@@ -139,10 +143,10 @@ const sectionTitle: React.CSSProperties = {
 /* ─── Page ──────────────────────────────────────────────────────────────── */
 
 export default async function DashboardPage() {
-  const [session, { noticias, atualizadoEm }, kpis] = await Promise.all([
-    requireSession(),
+  const session = await requireSession()
+  const [{ noticias, atualizadoEm }, kpis] = await Promise.all([
     getNoticias(),
-    getKpis(),
+    getKpis(session.email, session.role),
   ])
   const firstName = session.name.split(' ')[0]
 

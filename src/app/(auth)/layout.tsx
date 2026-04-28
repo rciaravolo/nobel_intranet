@@ -1,6 +1,5 @@
 import { requireSession } from '@/lib/auth/session'
 import { Sidebar } from './_components/Sidebar'
-import { Topbar } from './_components/Topbar'
 import { TickerBar } from './_components/TickerBar'
 import type { TickerPayload } from '@/../../server/src/lib/ticker'
 
@@ -28,7 +27,6 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
       <Sidebar session={session} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <TickerBar tickers={tickers} />
-        <Topbar session={session} />
         <main className="main-content">
           {children}
         </main>

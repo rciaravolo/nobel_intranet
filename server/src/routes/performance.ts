@@ -61,29 +61,36 @@ app.use('*', async (c, next) => {
 app.get('/kpis', async (c) => {
   const db = c.env.PERF_DB
 
-  const [aumRow, clientesRow, capRow, receitaRow] = await Promise.all([
+  const idAssessor = await resolveFilter(db, c.req.header('X-User-Email'), c.req.header('X-User-Role'))
+  if (idAssessor === false) return c.json({ error: 'Forbidden' }, 403)
+
+  const w  = whereFilter(idAssessor)
+  const wf = idAssessor ? `WHERE id_assessor = '${idAssessor}'` : ''
+
+  const [aumRow, clientesRow, capRow, receitaRows] = await Promise.all([
     db
-      .prepare('SELECT SUM(net_em_m) as aum, MAX(data_posicao) as data_ref FROM tb_positivador')
+      .prepare(`SELECT SUM(net_em_m) as aum, MAX(data_posicao) as data_ref FROM tb_positivador${w}`)
       .first<{ aum: number; data_ref: string }>(),
     db
-      .prepare("SELECT COUNT(DISTINCT id_cliente) as clientes FROM tb_positivador WHERE status = 'ATIVO'")
+      .prepare(`SELECT COUNT(DISTINCT id_cliente) as clientes FROM tb_positivador WHERE status = 'ATIVO'${andFilter(idAssessor)}`)
       .first<{ clientes: number }>(),
     db
-      .prepare("SELECT SUM(captacao) as cap FROM tb_cap WHERE strftime('%Y-%m', data) = strftime('%Y-%m', 'now')")
+      .prepare(`SELECT SUM(captacao) as cap FROM tb_cap WHERE strftime('%Y-%m', data) = strftime('%Y-%m', 'now')${andFilter(idAssessor)}`)
       .first<{ cap: number | null }>(),
-    db
-      .prepare(`SELECT
-        (SELECT COALESCE(SUM(receita),0) FROM receita_rv) +
-        (SELECT COALESCE(SUM(receita),0) FROM receita_rf) +
-        (SELECT COALESCE(SUM(receita),0) FROM receita_coe) +
-        (SELECT COALESCE(SUM(receita),0) FROM receita_cambio) +
-        (SELECT COALESCE(SUM(receita),0) FROM receita_feefixo) +
-        (SELECT COALESCE(SUM(receita),0) FROM receita_seguros) +
-        (SELECT COALESCE(SUM(receita),0) FROM receita_consorcio) +
-        (SELECT COALESCE(SUM(receita),0) FROM receita_dominion) +
-        (SELECT COALESCE(SUM(receita),0) FROM receita_oferta_fundos) AS total`)
-      .first<{ total: number }>(),
+    Promise.all([
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_rv${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_rf${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_coe${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_cambio${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_feefixo${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_seguros${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_consorcio${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_dominion${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_oferta_fundos${w}`).first<{ v: number }>(),
+    ]),
   ])
+
+  const receitaTotal = (receitaRows as Array<{ v: number } | null>).reduce((s, r) => s + (r?.v ?? 0), 0)
 
   const mesLabel = new Date()
     .toLocaleDateString('pt-BR', { month: 'short', timeZone: 'America/Sao_Paulo' })
@@ -104,7 +111,7 @@ app.get('/kpis', async (c) => {
         mesLabel,
       },
       receita: {
-        value: receitaRow?.total ?? 0,
+        value: receitaTotal,
       },
     },
   })
