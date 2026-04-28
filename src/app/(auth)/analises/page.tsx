@@ -129,7 +129,7 @@ async function getOnepage(email: string, role: string): Promise<OnepagePayload |
   if (!apiUrl) return null
   try {
     const res = await fetch(`${apiUrl}/performance/onepage`, {
-      next: { revalidate: 3600 },
+      cache: 'no-store',
       headers: perfHeaders(email, role, secret),
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -162,7 +162,7 @@ async function getHistorico(email: string, role: string): Promise<HistoricoPaylo
   if (!apiUrl) return null
   try {
     const res = await fetch(`${apiUrl}/performance/historico`, {
-      next: { revalidate: 3600 },
+      cache: 'no-store',
       headers: perfHeaders(email, role, secret),
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)

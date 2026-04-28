@@ -38,7 +38,7 @@ async function getKpis(email: string, role: string): Promise<KpisPayload | null>
   if (!apiUrl) return null
   try {
     const res = await fetch(`${apiUrl}/performance/kpis`, {
-      next: { revalidate: 3600 },
+      cache: 'no-store',
       headers: {
         Authorization:  `Bearer ${secret}`,
         'X-User-Email': email,
