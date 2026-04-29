@@ -265,7 +265,8 @@ export default function Landing() {
       {/* NAV */}
       <nav ref={navRef} className={styles.nav}>
         <Link href="/" className={styles.navLogo}>
-          <div className={styles.navMark}>N</div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-monogram.png" alt="Nobel Capital" className={styles.navMark} />
           INTRA
         </Link>
         <ul className={styles.navLinks}>
@@ -416,7 +417,8 @@ export default function Landing() {
       <footer className={styles.footer}>
         <span className={styles.footerWordmark}>Nobel Capital</span>
         <div className={styles.footerCenter}>
-          <div className={styles.footerMark}>N</div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-monogram.png" alt="" aria-hidden="true" className={styles.footerMark} />
           <span className={styles.footerCopy}>© 2026 — Sistema Interno INTRA</span>
         </div>
         <ul className={styles.footerLinks}>

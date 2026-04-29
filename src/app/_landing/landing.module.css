@@ -84,15 +84,8 @@
 .navMark {
   width: 28px;
   height: 28px;
-  border: 1.5px solid #b8963e;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
-  color: #b8963e;
   flex-shrink: 0;
-  letter-spacing: 0;
+  object-fit: contain;
 }
 
 .navLinks {
@@ -729,14 +722,8 @@
 .footerMark {
   width: 30px;
   height: 30px;
-  border: 1px solid rgba(184, 150, 62, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-lora), "Lora", serif;
-  font-size: 10px;
-  font-weight: 600;
-  color: rgba(212, 169, 106, 0.6);
+  object-fit: contain;
+  opacity: 0.7;
 }
 
 .footerCopy {

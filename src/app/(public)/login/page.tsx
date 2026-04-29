@@ -56,18 +56,8 @@ export default function LoginPage() {
         <div className="left-bg" />
 
         {/* Nobel lockup */}
-        <div className="lockup">
-          {/* Monogram */}
-          <div className="mono">
-            <div className="mono-hairline" />
-            <span className="mono-n">N</span>
-          </div>
-          {/* Wordmark */}
-          <div className="word">
-            <span className="word-nobel">NOBEL</span>
-            <span className="word-capital">CAPITAL</span>
-          </div>
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/logo-lockup.png" alt="Nobel Capital" className="lockup-img" />
 
         {/* Display headline */}
         <h1 className="headline">
@@ -242,72 +232,13 @@ export default function LoginPage() {
         }
 
         /* Nobel lockup */
-        .lockup {
-          display: inline-flex;
-          align-items: center;
-          gap: 14px;
+        .lockup-img {
+          height: 52px;
+          width: auto;
           margin-bottom: 60px;
           position: relative;
           z-index: 1;
-        }
-
-        .mono {
-          width: 44px;
-          height: 44px;
-          border: 1.5px solid var(--c-gold);
-          display: grid;
-          place-items: center;
-          position: relative;
-          flex-shrink: 0;
-        }
-
-        .mono-hairline {
-          position: absolute;
-          top: 10%; bottom: 10%;
-          left: 50%;
-          width: 1px;
-          background: var(--c-gold);
-          transform: translateX(-50%);
-          opacity: 0.45;
-        }
-
-        .mono-n {
-          font-family: var(--f-display);
-          font-weight: 500;
-          font-size: 34px;
-          line-height: 1;
-          color: var(--fg);
-          position: relative;
-          z-index: 1;
-        }
-
-        .word {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 5px;
-        }
-
-        .word-nobel {
-          font-family: var(--f-display);
-          font-weight: 500;
-          font-size: 18px;
-          letter-spacing: .30em;
-          line-height: 1;
-          color: var(--fg);
-          padding-bottom: 6px;
-          border-bottom: 1px solid var(--c-gold);
-          text-indent: .30em;
-        }
-
-        .word-capital {
-          font-family: var(--f-display);
-          font-weight: 400;
-          font-size: 10px;
-          letter-spacing: .34em;
-          line-height: 1;
-          color: var(--fg-mute);
-          text-indent: .34em;
+          display: block;
         }
 
         /* Display headline */
