@@ -15,6 +15,8 @@ type ReceitaProduto = { produto: string; receita: number }
 type Props = {
   porProduto:   ReceitaProduto[]
   receitaTotal: number
+  filterType?:  string
+  filterValue?: string
 }
 
 const PRODUTO_SLUG: Record<string, string> = {
@@ -58,7 +60,7 @@ function rColor(p: string): string {
   return RECEITA_COLOR[p] ?? '#B8963E'
 }
 
-export function BlocoReceita({ porProduto, receitaTotal }: Props) {
+export function BlocoReceita({ porProduto, receitaTotal, filterType, filterValue }: Props) {
   const [produtoAberto, setProdutoAberto] = useState<string | null>(null)
   const [loading, setLoading]             = useState<string | null>(null)
   const [cache, setCache]                 = useState<Record<string, DeepDiveReceita>>({})
@@ -79,7 +81,11 @@ export function BlocoReceita({ porProduto, receitaTotal }: Props) {
     setLoading(produto)
     setErro(null)
     try {
-      const res = await fetch(`/api/performance/deepdive/receita/${slug}`)
+      const qs = new URLSearchParams()
+      if (filterType)  qs.set('filter_type',  filterType)
+      if (filterValue) qs.set('filter_value', filterValue)
+      const url = `/api/performance/deepdive/receita/${slug}${qs.size ? `?${qs}` : ''}`
+      const res = await fetch(url)
       if (!res.ok) throw new Error()
       const json = await res.json() as { data: DeepDiveReceita }
       setCache(prev => ({ ...prev, [produto]: json.data }))
@@ -92,21 +98,21 @@ export function BlocoReceita({ porProduto, receitaTotal }: Props) {
 
   return (
     <div style={{
-      background: '#fff', borderRadius: 10, marginBottom: 20,
-      border: '1px solid rgba(184,150,62,0.12)',
-      boxShadow: '0 1px 4px rgba(26,18,9,0.05)',
+      background: 'var(--bg-elev)', borderRadius: 8, marginBottom: 20,
+      border: '1px solid var(--line)',
+      boxShadow: '0 1px 4px var(--n-50)',
     }}>
       {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '14px 20px 12px',
-        borderBottom: '1px solid rgba(184,150,62,0.09)', background: '#FDFAF5',
-        borderRadius: '10px 10px 0 0',
+        borderBottom: '1px solid var(--line)', background: 'var(--bg-deep)',
+        borderRadius: '8px 8px 0 0',
       }}>
-        <span style={{ fontFamily: 'var(--font-lora, serif)', fontSize: 14, fontWeight: 500, color: '#1A1209' }}>
+        <span style={{ fontFamily: 'var(--f-text)', fontSize: 13, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em' }}>
           Receita por Produto
         </span>
-        <span style={{ fontSize: 11, color: 'rgba(26,18,9,0.35)' }}>
+        <span style={{ fontSize: 11, color: 'var(--fg-faint)' }}>
           {fBRL(receitaTotal)} total · clique para detalhar
         </span>
       </div>
@@ -132,14 +138,14 @@ export function BlocoReceita({ porProduto, receitaTotal }: Props) {
                   alignItems: 'center',
                   gap: 12,
                   padding: '9px 16px',
-                  borderBottom: (!isOpen && i < porProduto.length - 1) ? '1px solid rgba(184,150,62,0.06)' : 'none',
+                  borderBottom: (!isOpen && i < porProduto.length - 1) ? '1px solid var(--line)' : 'none',
                   cursor: 'pointer',
                   borderLeft: isOpen ? `3px solid ${color}` : '3px solid transparent',
                   background: isOpen ? `rgba(${hexToRgb(color)}, 0.03)` : 'transparent',
                   transition: 'background 0.15s',
                 }}
                 onMouseEnter={e => {
-                  if (!isOpen) e.currentTarget.style.background = 'rgba(184,150,62,0.03)'
+                  if (!isOpen) e.currentTarget.style.background = 'var(--n-50)'
                 }}
                 onMouseLeave={e => {
                   if (!isOpen) e.currentTarget.style.background = 'transparent'
@@ -147,18 +153,18 @@ export function BlocoReceita({ porProduto, receitaTotal }: Props) {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ width: 10, height: 10, borderRadius: 3, background: color, flexShrink: 0 }} />
-                  <span style={{ fontSize: 13, fontWeight: 500, color: '#1A1209' }}>{item.produto}</span>
+                  <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--fg)' }}>{item.produto}</span>
                 </div>
-                <div style={{ height: 8, background: 'rgba(26,18,9,0.06)', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{ height: 8, background: 'var(--n-100)', borderRadius: 3, overflow: 'hidden' }}>
                   <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 3, opacity: 0.85 }} />
                 </div>
-                <span style={{ fontSize: 13, fontWeight: 500, color: '#1A1209', textAlign: 'right' }}>
+                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--fg)', textAlign: 'right', fontFamily: 'var(--f-mono)' }}>
                   {fBRL(item.receita)}
                 </span>
                 <span style={{ fontSize: 13, fontWeight: 600, color, textAlign: 'right' }}>
                   {fPct(item.receita, receitaTotal)}
                 </span>
-                <span style={{ fontSize: 12, color: isOpen ? color : 'rgba(26,18,9,0.25)', textAlign: 'center' }}>
+                <span style={{ fontSize: 12, color: isOpen ? color : 'var(--fg-faint)', textAlign: 'center' }}>
                   {isLoading ? '·' : isOpen ? '▲' : '▼'}
                 </span>
               </div>
@@ -166,18 +172,18 @@ export function BlocoReceita({ porProduto, receitaTotal }: Props) {
               {/* Painel deepdive inline */}
               {isOpen && (
                 <div style={{
-                  background: '#FDFAF5',
+                  background: 'var(--bg-deep)',
                   borderTop: `1px solid rgba(${hexToRgb(color)}, 0.12)`,
-                  borderBottom: i < porProduto.length - 1 ? '1px solid rgba(184,150,62,0.06)' : 'none',
+                  borderBottom: i < porProduto.length - 1 ? '1px solid var(--line)' : 'none',
                   padding: '16px 24px 20px',
                 }}>
                   {isLoading && (
-                    <p style={{ fontSize: 12, color: 'rgba(26,18,9,0.38)', textAlign: 'center', padding: '8px 0' }}>
+                    <p style={{ fontSize: 12, color: 'var(--fg-faint)', textAlign: 'center', padding: '8px 0' }}>
                       Carregando…
                     </p>
                   )}
                   {hasErro && (
-                    <p style={{ fontSize: 12, color: '#dc2626' }}>
+                    <p style={{ fontSize: 12, color: 'var(--color-negative)' }}>
                       Erro ao carregar detalhes. Tente novamente.
                     </p>
                   )}
@@ -192,16 +198,16 @@ export function BlocoReceita({ porProduto, receitaTotal }: Props) {
                       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                           <tr>
-                            <th style={{ fontSize: 10, color: 'rgba(26,18,9,0.38)', textAlign: 'left', paddingBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                            <th style={{ fontSize: 11, color: 'var(--fg-faint)', textAlign: 'left', paddingBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.14em', fontFamily: 'var(--f-mono)' }}>
                               #
                             </th>
-                            <th style={{ fontSize: 10, color: 'rgba(26,18,9,0.38)', textAlign: 'left', paddingBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                            <th style={{ fontSize: 11, color: 'var(--fg-faint)', textAlign: 'left', paddingBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.14em', fontFamily: 'var(--f-mono)' }}>
                               Cliente
                             </th>
-                            <th style={{ fontSize: 10, color: 'rgba(26,18,9,0.38)', textAlign: 'right', paddingBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                            <th style={{ fontSize: 11, color: 'var(--fg-faint)', textAlign: 'right', paddingBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.14em', fontFamily: 'var(--f-mono)' }}>
                               Receita
                             </th>
-                            <th style={{ fontSize: 10, color: 'rgba(26,18,9,0.38)', textAlign: 'right', paddingBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                            <th style={{ fontSize: 11, color: 'var(--fg-faint)', textAlign: 'right', paddingBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.14em', fontFamily: 'var(--f-mono)' }}>
                               % do produto
                             </th>
                           </tr>
@@ -210,22 +216,22 @@ export function BlocoReceita({ porProduto, receitaTotal }: Props) {
                           {deepdive.clientes.map((cli, idx) => {
                             const totalProd = deepdive.clientes.reduce((s, c) => s + c.valor, 0)
                             return (
-                              <tr key={cli.id_cliente} style={{ borderTop: '1px solid rgba(184,150,62,0.07)' }}>
-                                <td style={{ padding: '7px 8px 7px 0', fontSize: 11, color: 'rgba(26,18,9,0.35)', width: 24 }}>
+                              <tr key={cli.id_cliente} style={{ borderTop: '1px solid var(--line)' }}>
+                                <td style={{ padding: '7px 8px 7px 0', fontSize: 11, color: 'var(--fg-faint)', width: 24 }}>
                                   {idx + 1}
                                 </td>
                                 <td style={{ padding: '7px 0' }}>
-                                  <span style={{ fontSize: 12, fontWeight: 500, color: '#1A1209', display: 'block' }}>
+                                  <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--fg)', display: 'block' }}>
                                     {cli.nome_cliente ?? `Cliente ${cli.id_cliente}`}
                                   </span>
-                                  <span style={{ fontSize: 10, color: 'rgba(26,18,9,0.35)' }}>
+                                  <span style={{ fontSize: 10, color: 'var(--fg-faint)' }}>
                                     #{cli.id_cliente}
                                   </span>
                                 </td>
-                                <td style={{ padding: '7px 0', textAlign: 'right', fontSize: 13, fontWeight: 600, color }}>
+                                <td style={{ padding: '7px 0', textAlign: 'right', fontSize: 13, fontWeight: 600, color, fontFamily: 'var(--f-mono)' }}>
                                   {fBRL(cli.valor)}
                                 </td>
-                                <td style={{ padding: '7px 0', textAlign: 'right', fontSize: 12, color: 'rgba(26,18,9,0.45)' }}>
+                                <td style={{ padding: '7px 0', textAlign: 'right', fontSize: 12, color: 'var(--fg-mute)', fontFamily: 'var(--f-mono)' }}>
                                   {fPct(cli.valor, totalProd)}
                                 </td>
                               </tr>

@@ -71,17 +71,24 @@ function sinal(pctMeta: number | null, meta: number): Sinal {
 }
 
 const SINAL_COR: Record<Sinal, string> = {
-  verde:    '#16a34a',
+  verde:    'var(--color-positive)',
   amarelo:  '#d97706',
-  vermelho: '#dc2626',
-  'sem-meta': 'rgba(26,18,9,0.25)',
+  vermelho: 'var(--color-negative)',
+  'sem-meta': 'var(--fg-faint)',
 }
 
 const SINAL_BG: Record<Sinal, string> = {
-  verde:    'rgba(22,163,74,0.12)',
+  verde:    'transparent',
   amarelo:  'rgba(217,119,6,0.12)',
-  vermelho: 'rgba(220,38,38,0.12)',
-  'sem-meta': 'rgba(26,18,9,0.05)',
+  vermelho: 'transparent',
+  'sem-meta': 'var(--n-50)',
+}
+
+const SINAL_BORDER: Record<Sinal, string> = {
+  verde:    '1px solid var(--color-positive)',
+  amarelo:  '1px solid #d97706',
+  vermelho: '1px solid var(--color-negative)',
+  'sem-meta': '1px solid var(--fg-faint)',
 }
 
 const SINAL_LABEL: Record<Sinal, string> = {
@@ -94,18 +101,20 @@ const SINAL_LABEL: Record<Sinal, string> = {
 /* ─── Estilos base ───────────────────────────────────────────────────────── */
 
 const th: React.CSSProperties = {
-  fontSize: 9, fontWeight: 700, color: 'rgba(26,18,9,0.38)',
-  textTransform: 'uppercase', letterSpacing: '0.1em',
-  padding: '8px 10px', textAlign: 'right', background: '#FDFAF5',
-  borderBottom: '1px solid rgba(184,150,62,0.09)', whiteSpace: 'nowrap',
+  fontSize: 11, fontWeight: 700, color: 'var(--fg-faint)',
+  fontFamily: 'var(--f-mono)',
+  textTransform: 'uppercase', letterSpacing: '0.14em',
+  padding: '8px 10px', textAlign: 'right', background: 'var(--bg-deep)',
+  borderBottom: '1px solid var(--line)', whiteSpace: 'nowrap',
 }
 const thLeft: React.CSSProperties = { ...th, textAlign: 'left' }
 
 const td: React.CSSProperties = {
   fontSize: 12, padding: '9px 10px', textAlign: 'right',
-  borderBottom: '1px solid rgba(184,150,62,0.06)', color: '#1A1209',
+  fontFamily: 'var(--f-mono)',
+  borderBottom: '1px solid var(--line)', color: 'var(--fg)',
 }
-const tdLeft: React.CSSProperties = { ...td, textAlign: 'left' }
+const tdLeft: React.CSSProperties = { ...td, textAlign: 'left', fontFamily: 'inherit' }
 
 /* ─── Componente ─────────────────────────────────────────────────────────── */
 
@@ -116,25 +125,25 @@ export function BlocoMetas({ dados, compact = false }: Props) {
   if (dados.semMeta) {
     return (
       <div style={{
-        background: '#fff', borderRadius: 10, marginBottom: 20,
-        border: '1px solid rgba(184,150,62,0.12)',
-        boxShadow: '0 1px 4px rgba(26,18,9,0.05)',
+        background: 'var(--bg-elev)', borderRadius: 8, marginBottom: 20,
+        border: '1px solid var(--line)',
+        boxShadow: '0 1px 4px var(--n-50)',
         padding: '20px 24px',
         display: 'flex', alignItems: 'center', gap: 14,
       }}>
         <div style={{
           width: 36, height: 36, borderRadius: 8,
-          background: 'rgba(184,150,62,0.08)',
+          background: 'var(--line)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           flexShrink: 0, fontSize: 18,
         }}>🎯</div>
         <div>
-          <p style={{ fontSize: 13, fontWeight: 600, color: '#1A1209', marginBottom: 3 }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg)', marginBottom: 3 }}>
             Metas — {mesLabel(dados.mesISO)}
           </p>
-          <p style={{ fontSize: 12, color: 'rgba(26,18,9,0.45)' }}>
+          <p style={{ fontSize: 12, color: 'var(--fg-mute)' }}>
             Configure os valores em{' '}
-            <code style={{ fontSize: 11, background: 'rgba(26,18,9,0.06)', padding: '1px 5px', borderRadius: 4 }}>
+            <code style={{ fontSize: 11, background: 'var(--n-50)', padding: '1px 5px', borderRadius: 4 }}>
               server/src/data/metas.json
             </code>{' '}
             e faça o deploy para ativar os indicadores de pace.
@@ -152,49 +161,50 @@ export function BlocoMetas({ dados, compact = false }: Props) {
     const sinalTotalC = sinal(total.pctMeta, total.meta)
     return (
       <div style={{
-        background: '#fff', borderRadius: 10,
-        border: '1px solid rgba(184,150,62,0.12)',
-        boxShadow: '0 1px 4px rgba(26,18,9,0.05)',
+        background: 'var(--bg-elev)', borderRadius: 8,
+        border: '1px solid var(--line)',
+        boxShadow: '0 1px 4px var(--n-50)',
         overflow: 'hidden',
       }}>
         {/* Header compacto */}
         <div style={{
-          padding: '14px 18px 12px', background: '#FDFAF5',
-          borderBottom: '1px solid rgba(184,150,62,0.09)',
+          padding: '14px 18px 12px', background: 'var(--bg-deep)',
+          borderBottom: '1px solid var(--line)',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ fontFamily: 'var(--font-lora, serif)', fontSize: 14, fontWeight: 500, color: '#1A1209' }}>
+            <span style={{ fontFamily: 'var(--f-text)', fontSize: 13, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em' }}>
               Metas — {mesLabel(dados.mesISO)}
             </span>
-            <span style={{ fontSize: 11, color: 'rgba(26,18,9,0.38)' }}>
+            <span style={{ fontSize: 11, color: 'var(--fg-faint)' }}>
               {dias.passados}/{dias.total} dias úteis
             </span>
           </div>
           {/* Barra dias */}
-          <div style={{ height: 4, background: 'rgba(26,18,9,0.07)', borderRadius: 2, overflow: 'hidden', marginBottom: 10 }}>
-            <div style={{ height: '100%', width: `${pctDiasC}%`, background: 'linear-gradient(90deg, #B8963E, #D4A96A)', borderRadius: 2 }} />
+          <div style={{ height: 4, background: 'var(--n-100)', borderRadius: 2, overflow: 'hidden', marginBottom: 10 }}>
+            <div style={{ height: '100%', width: `${pctDiasC}%`, background: 'var(--c-gold)', borderRadius: 2 }} />
           </div>
           {/* Total */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <p style={{ fontSize: 9, color: 'rgba(26,18,9,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 2 }}>Total realizado</p>
-              <p style={{ fontFamily: 'var(--font-lora, serif)', fontSize: 19, fontWeight: 700, color: '#1A1209', lineHeight: 1 }}>
+              <p style={{ fontSize: 9, color: 'var(--fg-faint)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 2 }}>Total realizado</p>
+              <p style={{ fontFamily: 'var(--f-mono)', fontSize: 20, fontWeight: 500, color: 'var(--fg)', lineHeight: 1, fontFeatureSettings: '"tnum"' }}>
                 {fBRL(total.realizado)}
               </p>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <p style={{ fontSize: 9, color: 'rgba(26,18,9,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 2 }}>Meta</p>
-              <p style={{ fontSize: 13, fontWeight: 600, color: 'rgba(26,18,9,0.45)', lineHeight: 1 }}>{fBRL(total.meta)}</p>
+              <p style={{ fontSize: 9, color: 'var(--fg-faint)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 2 }}>Meta</p>
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg-mute)', lineHeight: 1 }}>{fBRL(total.meta)}</p>
             </div>
             <span style={{
-              fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
+              fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 'var(--r-pill)',
               background: SINAL_BG[sinalTotalC], color: SINAL_COR[sinalTotalC],
+              border: SINAL_BORDER[sinalTotalC],
             }}>
               {fPct(total.pctAtingido)}
             </span>
           </div>
           {/* Barra receita */}
-          <div style={{ height: 5, background: 'rgba(26,18,9,0.06)', borderRadius: 3, overflow: 'hidden', marginTop: 8 }}>
+          <div style={{ height: 5, background: 'var(--n-100)', borderRadius: 3, overflow: 'hidden', marginTop: 8 }}>
             <div style={{
               height: '100%',
               width: `${total.meta > 0 ? Math.min((total.realizado / total.meta) * 100, 100) : 0}%`,
@@ -213,32 +223,33 @@ export function BlocoMetas({ dados, compact = false }: Props) {
             return (
               <div key={p.slug} style={{
                 padding: '10px 18px',
-                borderBottom: isLast ? 'none' : '1px solid rgba(184,150,62,0.06)',
+                borderBottom: isLast ? 'none' : '1px solid var(--line)',
               }}>
                 {/* Linha principal */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 }}>
-                  <span style={{ fontSize: 12, fontWeight: 500, color: '#1A1209' }}>{p.label}</span>
+                  <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--fg)' }}>{p.label}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <span style={{ fontSize: 12, fontWeight: 700, color: cor }}>{fPct(p.pctAtingido)}</span>
                     <span style={{
-                      fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 20,
+                      fontSize: 9, fontWeight: 700, padding: '1px 6px', borderRadius: 'var(--r-pill)',
                       background: SINAL_BG[s], color: cor, whiteSpace: 'nowrap',
+                      border: SINAL_BORDER[s],
                     }}>
                       {SINAL_LABEL[s]}
                     </span>
                   </div>
                 </div>
                 {/* Barra */}
-                <div style={{ height: 4, background: 'rgba(26,18,9,0.06)', borderRadius: 2, overflow: 'hidden', marginBottom: 4 }}>
+                <div style={{ height: 4, background: 'var(--n-100)', borderRadius: 2, overflow: 'hidden', marginBottom: 4 }}>
                   <div style={{ height: '100%', width: `${pctBar}%`, background: cor, borderRadius: 2 }} />
                 </div>
                 {/* Sub-linha: realizado / meta | pace */}
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 10, color: 'rgba(26,18,9,0.45)' }}>
-                    {fBRL(p.realizado)} <span style={{ color: 'rgba(26,18,9,0.28)' }}>/ {p.meta > 0 ? fBRL(p.meta) : '—'}</span>
+                  <span style={{ fontSize: 10, color: 'var(--fg-mute)' }}>
+                    {fBRL(p.realizado)} <span style={{ color: 'var(--fg-faint)' }}>/ {p.meta > 0 ? fBRL(p.meta) : '—'}</span>
                   </span>
                   {p.realizado > 0 && (
-                    <span style={{ fontSize: 10, color: 'rgba(26,18,9,0.38)' }}>
+                    <span style={{ fontSize: 10, color: 'var(--fg-faint)' }}>
                       proj. <span style={{ color: cor, fontWeight: 600 }}>{fBRL(p.projecao)}</span>
                     </span>
                   )}
@@ -260,36 +271,36 @@ export function BlocoMetas({ dados, compact = false }: Props) {
 
   return (
     <div style={{
-      background: '#fff', borderRadius: 10, marginBottom: 20,
-      border: '1px solid rgba(184,150,62,0.12)',
-      boxShadow: '0 1px 4px rgba(26,18,9,0.05)',
+      background: 'var(--bg-elev)', borderRadius: 8, marginBottom: 20,
+      border: '1px solid var(--line)',
+      boxShadow: '0 1px 4px var(--n-50)',
       overflow: 'hidden',
     }}>
       {/* ── Header ── */}
       <div style={{
         padding: '14px 20px 12px',
-        borderBottom: '1px solid rgba(184,150,62,0.09)',
-        background: '#FDFAF5',
+        borderBottom: '1px solid var(--line)',
+        background: 'var(--bg-deep)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <span style={{ fontFamily: 'var(--font-lora, serif)', fontSize: 14, fontWeight: 500, color: '#1A1209' }}>
+          <span style={{ fontFamily: 'var(--f-text)', fontSize: 13, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em' }}>
             Metas — {mesLabel(dados.mesISO)}
           </span>
-          <span style={{ fontSize: 11, color: 'rgba(26,18,9,0.38)' }}>
+          <span style={{ fontSize: 11, color: 'var(--fg-faint)' }}>
             {dias.passados} dias úteis passados · {dias.restantes} restantes · {dias.total} total
           </span>
         </div>
 
         {/* Barra de progresso dos dias */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ flex: 1, height: 5, background: 'rgba(26,18,9,0.07)', borderRadius: 3, overflow: 'hidden' }}>
+          <div style={{ flex: 1, height: 5, background: 'var(--n-100)', borderRadius: 3, overflow: 'hidden' }}>
             <div style={{
               height: '100%', width: `${pctDias}%`,
-              background: 'linear-gradient(90deg, #B8963E, #D4A96A)',
+              background: 'var(--c-gold)',
               borderRadius: 3, transition: 'width 0.4s',
             }} />
           </div>
-          <span style={{ fontSize: 10, color: 'rgba(26,18,9,0.38)', whiteSpace: 'nowrap' }}>
+          <span style={{ fontSize: 10, color: 'var(--fg-faint)', whiteSpace: 'nowrap' }}>
             {pctDias.toFixed(0)}% do mês
           </span>
         </div>
@@ -297,24 +308,24 @@ export function BlocoMetas({ dados, compact = false }: Props) {
         {/* Consolidado total */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginTop: 12 }}>
           <div>
-            <p style={{ fontSize: 9, color: 'rgba(26,18,9,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>
+            <p style={{ fontSize: 9, color: 'var(--fg-faint)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>
               Realizado total
             </p>
-            <p style={{ fontFamily: 'var(--font-lora, serif)', fontSize: 20, fontWeight: 700, color: '#1A1209', lineHeight: 1 }}>
+            <p style={{ fontFamily: 'var(--f-mono)', fontSize: 20, fontWeight: 500, color: 'var(--fg)', lineHeight: 1, fontFeatureSettings: '"tnum"' }}>
               {fBRL(total.realizado)}
             </p>
           </div>
-          <div style={{ fontSize: 18, color: 'rgba(26,18,9,0.15)' }}>/</div>
+          <div style={{ fontSize: 18, color: 'var(--line-strong)' }}>/</div>
           <div>
-            <p style={{ fontSize: 9, color: 'rgba(26,18,9,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>
+            <p style={{ fontSize: 9, color: 'var(--fg-faint)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>
               Meta total
             </p>
-            <p style={{ fontFamily: 'var(--font-lora, serif)', fontSize: 20, fontWeight: 700, color: 'rgba(26,18,9,0.45)', lineHeight: 1 }}>
+            <p style={{ fontFamily: 'var(--f-mono)', fontSize: 20, fontWeight: 500, color: 'var(--fg-mute)', lineHeight: 1, fontFeatureSettings: '"tnum"' }}>
               {fBRL(total.meta)}
             </p>
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ height: 6, background: 'rgba(26,18,9,0.06)', borderRadius: 3, overflow: 'hidden' }}>
+            <div style={{ height: 6, background: 'var(--n-100)', borderRadius: 3, overflow: 'hidden' }}>
               <div style={{
                 height: '100%', width: `${pctRealTotal}%`,
                 background: SINAL_COR[sinalTotal],
@@ -326,8 +337,9 @@ export function BlocoMetas({ dados, compact = false }: Props) {
             </p>
           </div>
           <span style={{
-            fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20,
+            fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 'var(--r-pill)',
             background: SINAL_BG[sinalTotal], color: SINAL_COR[sinalTotal],
+            border: SINAL_BORDER[sinalTotal],
           }}>
             {SINAL_LABEL[sinalTotal]}
           </span>
@@ -357,12 +369,12 @@ export function BlocoMetas({ dados, compact = false }: Props) {
               const isLast = i === produtos.length - 1
               const pctBar = p.meta > 0 ? Math.min((p.realizado / p.meta) * 100, 100) : 0
               return (
-                <tr key={p.slug} style={{ background: i % 2 === 0 ? '#fff' : 'rgba(184,150,62,0.015)' }}>
+                <tr key={p.slug}>
                   {/* Produto */}
                   <td style={{ ...tdLeft, borderBottom: isLast ? 'none' : td.borderBottom }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                       <span style={{ fontWeight: 500 }}>{p.label}</span>
-                      <div style={{ height: 3, background: 'rgba(26,18,9,0.06)', borderRadius: 2, width: 100, overflow: 'hidden' }}>
+                      <div style={{ height: 3, background: 'var(--n-100)', borderRadius: 2, width: 100, overflow: 'hidden' }}>
                         <div style={{ height: '100%', width: `${pctBar}%`, background: cor, borderRadius: 2 }} />
                       </div>
                     </div>
@@ -372,7 +384,7 @@ export function BlocoMetas({ dados, compact = false }: Props) {
                     {fBRL(p.realizado)}
                   </td>
                   {/* Meta */}
-                  <td style={{ ...td, borderBottom: isLast ? 'none' : td.borderBottom, color: 'rgba(26,18,9,0.5)' }}>
+                  <td style={{ ...td, borderBottom: isLast ? 'none' : td.borderBottom, color: 'var(--fg-mute)' }}>
                     {p.meta > 0 ? fBRL(p.meta) : '—'}
                   </td>
                   {/* % Atingido */}
@@ -382,7 +394,7 @@ export function BlocoMetas({ dados, compact = false }: Props) {
                   {/* Gap */}
                   <td style={{
                     ...td, borderBottom: isLast ? 'none' : td.borderBottom,
-                    color: p.gap <= 0 ? '#16a34a' : '#dc2626', fontWeight: 500,
+                    color: p.gap <= 0 ? 'var(--color-positive)' : 'var(--color-negative)', fontWeight: 500,
                   }}>
                     {p.meta > 0 ? (p.gap <= 0 ? `+${fBRL(Math.abs(p.gap))}` : fBRL(p.gap)) : '—'}
                   </td>
@@ -393,7 +405,7 @@ export function BlocoMetas({ dados, compact = false }: Props) {
                   {/* Pace Necessário */}
                   <td style={{
                     ...td, borderBottom: isLast ? 'none' : td.borderBottom,
-                    color: p.paceNecessario > p.paceRealizado ? '#dc2626' : 'rgba(26,18,9,0.7)',
+                    color: p.paceNecessario > p.paceRealizado ? 'var(--color-negative)' : 'var(--fg)',
                   }}>
                     {p.meta > 0 ? fBRL(p.paceNecessario) : '—'}
                   </td>
@@ -402,11 +414,12 @@ export function BlocoMetas({ dados, compact = false }: Props) {
                     {p.realizado > 0 ? fBRL(p.projecao) : '—'}
                   </td>
                   {/* Status */}
-                  <td style={{ ...td, borderBottom: isLast ? 'none' : td.borderBottom, textAlign: 'center' }}>
+                  <td style={{ ...td, borderBottom: isLast ? 'none' : td.borderBottom, textAlign: 'center', fontFamily: 'inherit' }}>
                     <span style={{
                       fontSize: 10, fontWeight: 600, padding: '2px 8px',
-                      borderRadius: 20, whiteSpace: 'nowrap',
+                      borderRadius: 'var(--r-pill)', whiteSpace: 'nowrap',
                       background: SINAL_BG[s], color: cor,
+                      border: SINAL_BORDER[s],
                     }}>
                       {SINAL_LABEL[s]}
                     </span>
@@ -417,16 +430,16 @@ export function BlocoMetas({ dados, compact = false }: Props) {
           </tbody>
           {/* Rodapé totais */}
           <tfoot>
-            <tr style={{ borderTop: '2px solid rgba(184,150,62,0.15)', background: '#FDFAF5' }}>
+            <tr style={{ borderTop: '2px solid var(--line-strong)', background: 'var(--bg-deep)' }}>
               <td style={{ ...tdLeft, fontWeight: 700, fontSize: 12, borderBottom: 'none' }}>Total</td>
               <td style={{ ...td, fontWeight: 700, fontSize: 12, borderBottom: 'none' }}>{fBRL(total.realizado)}</td>
-              <td style={{ ...td, color: 'rgba(26,18,9,0.5)', fontSize: 12, borderBottom: 'none' }}>{fBRL(total.meta)}</td>
+              <td style={{ ...td, color: 'var(--fg-mute)', fontSize: 12, borderBottom: 'none' }}>{fBRL(total.meta)}</td>
               <td style={{ ...td, fontWeight: 700, fontSize: 12, color: SINAL_COR[sinalTotal], borderBottom: 'none' }}>
                 {fPct(total.pctAtingido)}
               </td>
               <td style={{
                 ...td, fontWeight: 700, fontSize: 12, borderBottom: 'none',
-                color: total.gap <= 0 ? '#16a34a' : '#dc2626',
+                color: total.gap <= 0 ? 'var(--color-positive)' : 'var(--color-negative)',
               }}>
                 {total.meta > 0 ? (total.gap <= 0 ? `+${fBRL(Math.abs(total.gap))}` : fBRL(total.gap)) : '—'}
               </td>
@@ -435,10 +448,11 @@ export function BlocoMetas({ dados, compact = false }: Props) {
               <td style={{ ...td, fontWeight: 700, fontSize: 12, color: SINAL_COR[sinalTotal], borderBottom: 'none' }}>
                 {fBRL(total.projecao)}
               </td>
-              <td style={{ ...td, textAlign: 'center', borderBottom: 'none' }}>
+              <td style={{ ...td, textAlign: 'center', borderBottom: 'none', fontFamily: 'inherit' }}>
                 <span style={{
-                  fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 20,
+                  fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 'var(--r-pill)',
                   background: SINAL_BG[sinalTotal], color: SINAL_COR[sinalTotal],
+                  border: SINAL_BORDER[sinalTotal],
                 }}>
                   {SINAL_LABEL[sinalTotal]}
                 </span>

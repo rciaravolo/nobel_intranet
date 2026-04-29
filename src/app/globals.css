@@ -1,150 +1,561 @@
 @import "tailwindcss";
 
+/* ─────────────────────────────────────────────────────────────
+   NOBEL DESIGN SYSTEM — Tailwind v4 tokens
+   Gera utilities automáticas: bg-midnight, text-gold, font-mono, etc.
+   ───────────────────────────────────────────────────────────── */
+@theme {
+  /* Brand */
+  --color-midnight:        oklch(0.20 0.030 250);
+  --color-midnight-deep:   oklch(0.14 0.028 250);
+  --color-midnight-soft:   oklch(0.27 0.028 250);
+  --color-ivory:           oklch(0.957 0.017 80);
+  --color-ivory-soft:      oklch(0.92 0.017 80);
+  --color-gold:            oklch(0.76 0.10 80);
+  --color-gold-deep:       oklch(0.66 0.10 75);
+  --color-gold-soft:       oklch(0.86 0.06 85);
+
+  /* Neutrals */
+  --color-n-0:   #FFFFFF;
+  --color-n-25:  #FBFAF8;
+  --color-n-50:  #F6F4F0;
+  --color-n-100: #EEEAE2;
+  --color-n-150: #E2DDD3;
+  --color-n-200: #D4CEC1;
+  --color-n-300: #B8B1A2;
+  --color-n-400: #8E8775;
+  --color-n-500: #65604F;
+  --color-n-600: #4A463A;
+  --color-n-700: #2E2C24;
+  --color-n-800: #1A1812;
+  --color-n-900: #0E0D08;
+
+  /* System blue (UI accent) — fonte de verdade: Nobel Operational System */
+  --color-b-50:  #EEF3FA;
+  --color-b-100: #D9E4F4;
+  --color-b-300: #6E94C9;
+  --color-b-500: #2D5FA0;
+  --color-b-600: #244C82;
+  --color-b-700: #1B3A65;
+
+  /* Semantic */
+  --color-positive:    #3E8C5C;
+  --color-positive-bg: #E8F1EA;
+  --color-negative:    #C4453A;
+  --color-negative-bg: #FBE9E7;
+  --color-warning:     #8A5A12;
+  --color-warning-bg:  #FBF1DE;
+
+  /* Type */
+  --font-display: "Cormorant Garamond", "Times New Roman", serif;
+  --font-sans:    "Inter Tight", "Inter", system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+
+  /* Radius */
+  --radius-xs:   2px;
+  --radius-sm:   4px;
+  --radius-md:   6px;
+  --radius-lg:   8px;
+  --radius-pill: 999px;
+
+  /* Shadows — valores estáticos (Tailwind v4 não aceita var() em @theme) */
+  --shadow-e1: 0 1px 2px rgba(14,26,43,.04), 0 0 0 1px #E2DDD3;
+  --shadow-e2: 0 4px 12px rgba(14,26,43,.06), 0 0 0 1px #E2DDD3;
+  --shadow-e3: 0 8px 28px rgba(14,26,43,.08), 0 0 0 1px #E2DDD3;
+  --shadow-float:       0 1px 2px rgba(14,26,43,.06), 0 6px 14px rgba(14,26,43,.07), 0 18px 32px rgba(14,26,43,.06);
+  --shadow-float-hover: 0 2px 4px rgba(14,26,43,.08), 0 10px 22px rgba(14,26,43,.10), 0 28px 48px rgba(14,26,43,.10);
+
+  /* Aliases de superfície — Tailwind utils: bg-bg, text-fg */
+  --color-bg:          #FBFAF8;
+  --color-fg:          #1A1812;
+  --color-fg-mute:     #65604F;
+  --color-fg-faint:    #8E8775;
+  --color-line:        #E2DDD3;
+  --color-line-strong: #D4CEC1;
+
+  /* Aliases de marca — estáticos */
+  --color-brand-gold:     #C9A961;
+  --color-brand-midnight: #111827;
+
+  /* Raio semântico */
+  --radius-card: 8px;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+/* ═══════════════════════════════════════════════════════════
+   NOBEL CAPITAL — DESIGN SYSTEM TOKENS (Ivory / Light Theme)
+   ═══════════════════════════════════════════════════════════ */
 :root {
-  --font-geist: 'Geist', system-ui, sans-serif;
-  --font-lora: 'Lora', serif;
+  /* ── shadcn/ui contract ─────────────────────────────────── */
+  --background:         var(--color-n-25);
+  --foreground:         var(--color-n-800);
+  --card:               var(--color-n-0);
+  --card-foreground:    var(--color-n-800);
+  --popover:            var(--color-n-0);
+  --popover-foreground: var(--color-n-800);
+  --primary:            var(--color-b-500);
+  --primary-foreground: #FFFFFF;
+  --secondary:          var(--color-n-100);
+  --secondary-foreground: var(--color-n-700);
+  --muted:              var(--color-n-50);
+  --muted-foreground:   var(--color-n-500);
+  --accent:             var(--color-b-50);
+  --accent-foreground:  var(--color-b-700);
+  --destructive:        var(--color-negative);
+  --destructive-foreground: #FFFFFF;
+  --border:             var(--line);
+  --input:              var(--line-strong);
+  --ring:               var(--color-b-500);
+  --radius:             0.5rem;             /* 8px — per NOBEL_DESIGN_GUIDELINES §9.3 */
 
-  /* Nobel Capital Brand */
-  --gold:          #B8963E;
-  --gold-light:    #D4A96A;
-  --gold-dim:      rgba(184,150,62,0.12);
-  --gold-dim2:     rgba(184,150,62,0.06);
+  /* ── Brand colors (legacy names mantidos) ───────────────── */
+  --c-midnight:       var(--color-midnight);
+  --c-midnight-deep:  var(--color-midnight-deep);
+  --c-midnight-soft:  var(--color-midnight-soft);
+  --c-midnight-line:  oklch(0.34 0.022 250);
 
-  /* Dark theme (login, sidebar) */
-  --dark-900:      #0C0C0C;
-  --dark-800:      #1A1209;
-  --dark-700:      #231A0D;
-  --dark-600:      #2E2010;
-  --dark-500:      #4A3520;
-  --cream:         #F5ECD7;
-  --gold-muted:    #C9A87C;
+  --c-ivory:          var(--color-ivory);
+  --c-ivory-soft:     var(--color-ivory-soft);
+  --c-ivory-line:     oklch(0.86 0.014 80);
+  --c-ivory-mute:     oklch(0.74 0.012 80);
 
-  /* Light theme (main content) */
-  --surface:       #F5F4F0;
-  --surface-2:     #ECEAE4;
-  --white:         #FFFFFF;
-  --text:          #0A0A0A;
-  --text-2:        #3D3D3D;
-  --text-3:        #8A8A8A;
-  --text-4:        #B0B0B0;
-  --border:        rgba(0,0,0,0.08);
+  --c-gold:           var(--color-gold);
+  --c-gold-deep:      var(--color-gold-deep);
+  --c-gold-soft:      var(--color-gold-soft);
 
-  /* Shadows */
-  --shadow-sm:     0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow:        0 4px 16px rgba(0,0,0,0.08);
-  --shadow-lg:     0 12px 40px rgba(0,0,0,0.12);
+  /* ── Functional ─────────────────────────────────────────── */
+  --c-positive:       var(--color-positive);
+  --c-negative:       var(--color-negative);
+  --c-info:           var(--color-b-500);
 
-  /* Layout */
-  --sidebar-w:     248px;
-  --topbar-h:      64px;
-  --radius:        12px;
-  --radius-sm:     8px;
+  /* ── Neutral scale aliases (shorthand para inline styles) ── */
+  --n-25:  var(--color-n-25);
+  --n-150: var(--color-n-150);
+  --n-50:  var(--color-n-50);
+  --n-100: var(--color-n-100);
+  --n-200: var(--color-n-200);
+  --n-300: var(--color-n-300);
+  --n-400: var(--color-n-400);
+  --n-500: var(--color-n-500);
+  --n-600: var(--color-n-600);
+  --n-700: var(--color-n-700);
+  --n-800: var(--color-n-800);
+  --n-900: var(--color-n-900);
+
+  /* ── Surface tokens — Operacional (neutros quentes) ─────── */
+  /* Fonte de verdade: DESIGN_GUIDELINES §2.5 */
+  --bg:          var(--color-n-25);   /* paper-white #FAFAF7 */
+  --bg-elev:     #FFFFFF;             /* card, painel elevado */
+  --bg-deep:     var(--color-n-50);   /* sidebar, contexto */
+  --fg:          var(--color-n-800);  /* texto principal */
+  --fg-mute:     var(--color-n-500);  /* texto secundário */
+  --fg-faint:    var(--color-n-400);  /* meta, captions */
+  --line:        var(--color-n-150);  /* hairlines */
+  --line-strong: var(--color-n-200);  /* hairlines hover/foco */
+
+  /* ── Typography aliases ─────────────────────────────────── */
+  --f-display: var(--font-display);
+  --f-text:    var(--font-sans);
+  --f-mono:    var(--font-mono);
+
+  /* ── Spacing scale (base-4) ─────────────────────────────── */
+  --s-1: 4px;   --s-2: 8px;   --s-3: 12px;  --s-4: 16px;
+  --s-5: 24px;  --s-6: 32px;  --s-7: 48px;  --s-8: 64px;
+  --s-9: 96px;  --s-10: 128px;
+
+  /* ── Radii ───────────────────────────────────────────────── */
+  --r-0:    0;
+  --r-1:    var(--radius-xs);
+  --r-2:    var(--radius-sm);
+  --r-3:    var(--radius-lg);
+  --r-pill: var(--radius-pill);
+
+  /* ── Elevation — DESIGN_GUIDELINES §4.3 ─────────────────── */
+  --e-1: 0 1px 2px rgba(14,26,43,.04), 0 1px 3px rgba(14,26,43,.05), 0 0 0 1px var(--line);
+  --e-2: 0 2px 4px rgba(14,26,43,.05), 0 8px 18px rgba(14,26,43,.08), 0 0 0 1px var(--line);
+  --e-3: 0 4px 8px rgba(14,26,43,.06), 0 16px 36px rgba(14,26,43,.12), 0 0 0 1px var(--line);
+
+  /* Float — cards descolam da página */
+  --e-float:       0 1px 2px rgba(14,26,43,.06), 0 6px 14px rgba(14,26,43,.07), 0 18px 32px rgba(14,26,43,.06);
+  --e-float-hover: 0 2px 4px rgba(14,26,43,.08), 0 10px 22px rgba(14,26,43,.10), 0 28px 48px rgba(14,26,43,.10);
+
+  /* ── Layout ─────────────────────────────────────────────── */
+  --sidebar-w:           248px;
+  --sidebar-w-collapsed: 64px;
 }
 
-html, body {
-  height: 100%;
-  font-family: var(--font-geist);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* ── Dark theme (dashboards de mercado) ─────────────────────── */
+.dark {
+  --background:         var(--color-midnight);
+  --foreground:         #E8ECF2;
+  --card:               #14223A;
+  --card-foreground:    #E8ECF2;
+  --popover:            #14223A;
+  --popover-foreground: #E8ECF2;
+  --primary:            #6094D6;
+  --primary-foreground: #0B1424;
+  --secondary:          #1F304B;
+  --secondary-foreground: #E8ECF2;
+  --muted:              var(--color-midnight-deep);
+  --muted-foreground:   #8E99AE;
+  --accent:             #1A3257;
+  --accent-foreground:  #A8C2E8;
+  --destructive:        #D75A4F;
+  --destructive-foreground: #FFFFFF;
+  --border:             #1F304B;
+  --input:              #2A3D5C;
+  --ring:               #6094D6;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--surface-2); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-4); }
+/* ── Density (dashboards operacionais) ──────────────────────── */
+[data-density="compact"]  { --row-h: 30px; --pad-x: 12px; --pad-y: 6px; }
+[data-density="balanced"] { --row-h: 36px; --pad-x: 14px; --pad-y: 8px; }
+[data-density="cozy"]     { --row-h: 44px; --pad-x: 16px; --pad-y: 12px; }
 
-/* ─── Responsive layout ──────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   BASE
+   ═══════════════════════════════════════════════════════════ */
+@layer base {
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.55;
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  html { height: 100%; }
+  body { height: 100%; }
+
+  code, kbd, samp, pre, [data-mono="true"], .font-mono {
+    font-feature-settings: "tnum", "zero";
+  }
+
+  .display {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.02;
+  }
+}
+
+img { max-width: 100%; display: block; }
+a   { color: inherit; }
+
+/* ── Nobel utilities ─────────────────────────────────────────── */
+@utility eyebrow-mono {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+@utility num-xl {
+  font-family: var(--font-mono);
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  font-feature-settings: "tnum";
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCROLLBAR
+   ═══════════════════════════════════════════════════════════ */
+::-webkit-scrollbar         { width: 5px; height: 5px; }
+::-webkit-scrollbar-track   { background: transparent; }
+::-webkit-scrollbar-thumb   { background: var(--line-strong); border-radius: var(--r-pill); }
+::-webkit-scrollbar-thumb:hover { background: var(--fg-faint); }
+
+/* ═══════════════════════════════════════════════════════════
+   LAYOUT SHELL
+   ═══════════════════════════════════════════════════════════ */
 .main-content {
   flex: 1;
   overflow-y: auto;
-  padding: 32px;
+  padding: var(--s-6);          /* 32px */
 }
 
-/* KPI cards — 4 cols → 2 → 1 */
+/* ═══════════════════════════════════════════════════════════
+   SHARED GRIDS
+   ═══════════════════════════════════════════════════════════ */
+
+/* KPI stats — 4 → 2 → 1 */
 .grid-kpi {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-bottom: 20px;
+  gap: 0;
+  border: 1px solid var(--line);
+  margin-bottom: var(--s-5);
 }
 
-/* News hero split — featured + list */
+/* Notícias hero split */
 .grid-news-hero {
   display: grid;
   grid-template-columns: 2fr 3fr;
   gap: 0;
 }
 
-/* Links úteis row — 4 cols → 3 → 2 → 1 */
+/* Links úteis — 4 → 3 → 2 → 1 */
 .grid-links-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: var(--s-2);
 }
 
-/* Header row */
+/* Page header row */
 .page-header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: var(--s-5);
   flex-wrap: wrap;
-  gap: 12px;
+  gap: var(--s-3);
 }
 
-/* ── 1280px breakpoint ─────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   TYPOGRAPHY HELPERS
+   ═══════════════════════════════════════════════════════════ */
+.eyebrow {
+  font-family: var(--f-text);
+  font-size: 10px;
+  letter-spacing: .20em;
+  text-transform: uppercase;
+  color: var(--c-gold);
+  font-weight: 500;
+}
+
+.display-label {
+  font-family: var(--f-display);
+  font-weight: 400;
+}
+
+.mono-data {
+  font-family: var(--f-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DS CARD PRIMITIVES
+   ═══════════════════════════════════════════════════════════ */
+
+/* Flat card with hairline border — default Nobel card */
+.ds-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+}
+
+.ds-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s-3) var(--s-5);
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+
+/* KPI stat cell — border-right dividers */
+.ds-stat {
+  padding: var(--s-5) var(--s-5);
+  border-right: 1px solid var(--line);
+  position: relative;
+}
+.ds-stat:last-child { border-right: 0; }
+.ds-stat .num {
+  font-family: var(--f-mono);
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: -.01em;
+  font-feature-settings: 'tnum';
+  color: var(--fg);
+}
+.ds-stat .lbl {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+  margin-bottom: var(--s-2);
+}
+.ds-stat .sub {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  color: var(--fg-faint);
+  margin-top: var(--s-1);
+  letter-spacing: .04em;
+}
+
+/* Gold accent bar at top of stat — cor sólida, sem gradiente (§7) */
+.ds-stat-accent::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--c-gold);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DS BADGE
+   ═══════════════════════════════════════════════════════════ */
+.ds-badge {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid var(--line-strong);
+  color: var(--fg-mute);
+  border-radius: var(--r-pill);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.ds-badge.gold   { border-color: var(--c-gold); color: var(--c-gold-deep); }
+.ds-badge.pos    { border-color: var(--c-positive); color: var(--c-positive); }
+.ds-badge.neg    { border-color: var(--c-negative); color: var(--c-negative); }
+
+/* ═══════════════════════════════════════════════════════════
+   DS BUTTON
+   ═══════════════════════════════════════════════════════════ */
+.ds-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  font-family: var(--f-text);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 9px 18px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background .18s ease, color .18s ease, border-color .18s ease;
+  border-radius: var(--r-1);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.ds-btn-primary  { background: var(--color-b-500); color: #ffffff; border-color: var(--color-b-500); transition: background .15s ease, transform .15s ease, box-shadow .15s ease; }
+.ds-btn-primary:hover { background: var(--color-b-600); border-color: var(--color-b-600); transform: translateY(-1px); box-shadow: var(--e-2); }
+.ds-btn-secondary { border-color: var(--line-strong); color: var(--fg); background: transparent; }
+.ds-btn-secondary:hover { background: color-mix(in oklch, var(--line-strong) 15%, transparent); }
+.ds-btn-ghost { border-color: var(--line-strong); color: var(--fg-mute); background: transparent; }
+.ds-btn-ghost:hover { border-color: var(--fg-mute); color: var(--fg); }
+.ds-btn-editorial { background: var(--c-gold); color: var(--c-midnight); border: none; }
+.ds-btn-editorial:hover { background: var(--c-gold-deep, var(--c-gold)); opacity: 0.92; }
+
+.link-card {
+  transition: transform .25s ease, box-shadow .25s ease, border-color .15s ease;
+  border-radius: var(--r-2);
+}
+.link-card:hover {
+  border-color: var(--line-strong) !important;
+  transform: translateY(-2px);
+  box-shadow: var(--e-float-hover);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════ */
 @media (max-width: 1280px) {
-  .grid-links-row {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  .grid-links-row { grid-template-columns: repeat(3, 1fr); }
 }
 
-/* ── 1024px breakpoint ─────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
-  .grid-kpi {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .grid-news-hero {
-    grid-template-columns: 1fr;
-  }
-  .grid-links-row {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .grid-kpi       { grid-template-columns: repeat(2, 1fr); }
+  .grid-news-hero { grid-template-columns: 1fr; }
+  .grid-links-row { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* ── 768px breakpoint ──────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .main-content {
-    padding: 16px;
-  }
-  .grid-kpi {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .grid-links-row {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+  .main-content   { padding: var(--s-4); }
+  .grid-kpi       { grid-template-columns: repeat(2, 1fr); }
+  .grid-links-row { grid-template-columns: repeat(2, 1fr); }
+  .page-header    { flex-direction: column; align-items: flex-start; }
+  .ds-stat        { border-right: 0; border-bottom: 1px solid var(--line); }
+  .ds-stat:last-child { border-bottom: 0; }
 }
 
-/* ── 480px breakpoint ──────────────────────────────────────────────────── */
 @media (max-width: 480px) {
-  .main-content {
-    padding: 12px;
-  }
-  .grid-kpi {
-    grid-template-columns: 1fr;
-  }
-  .grid-links-row {
-    grid-template-columns: 1fr;
-  }
+  .main-content   { padding: var(--s-3); }
+  .grid-kpi       { grid-template-columns: 1fr; }
+  .grid-links-row { grid-template-columns: 1fr; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DS BUTTON — Active states (§5.1 obrigatório)
+   ═══════════════════════════════════════════════════════════ */
+.ds-btn:active          { transform: translateY(1px); opacity: 0.88; }
+.ds-btn-primary:active  { transform: translateY(1px); box-shadow: none; }
+.ds-btn-secondary:active{ transform: translateY(1px); opacity: 0.85; }
+.ds-btn-ghost:active    { transform: translateY(1px); opacity: 0.80; }
+.ds-btn-editorial:active{ transform: translateY(1px); opacity: 0.88; }
+
+/* ═══════════════════════════════════════════════════════════
+   GEOMETRIC PATTERNS
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Padrão P-01: Grid ──────────────────────────────────────── */
+.pattern-grid {
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.06;
+}
+
+/* wrapper para aplicar o padrão como overlay */
+.pattern-grid-overlay {
+  position: relative;
+}
+.pattern-grid-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--line-strong) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-strong) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.06;
+  pointer-events: none;
+  z-index: 0;
+}
+.pattern-grid-overlay > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Padrão P-02: Dot Grid ──────────────────────────────────── */
+.pattern-dots {
+  background-image: radial-gradient(circle, var(--line-strong) 1px, transparent 1px);
+  background-size: 16px 16px;
+  opacity: 0.08;
+}
+
+.pattern-dots-overlay {
+  position: relative;
+}
+.pattern-dots-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, var(--line-strong) 1.5px, transparent 1.5px);
+  background-size: 16px 16px;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
+}
+.pattern-dots-overlay > * {
+  position: relative;
+  z-index: 1;
 }

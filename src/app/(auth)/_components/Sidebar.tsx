@@ -1,11 +1,11 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import type { SessionPayload } from '@/lib/auth/session'
 
+/* ─── Navigation config ───────────────────────────────────────────────────── */
 const NAV = [
   {
     section: 'Principal',
@@ -21,15 +21,11 @@ const NAV = [
         ),
       },
       {
-        href: '/relatorios',
-        label: 'Relatórios',
-        badge: 3,
+        href: '/analises',
+        label: 'Onepage',
         icon: (
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="16" y1="13" x2="8" y2="13" />
-            <line x1="16" y1="17" x2="8" y2="17" />
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
           </svg>
         ),
       },
@@ -55,11 +51,14 @@ const NAV = [
         ),
       },
       {
-        href: '/analises',
-        label: 'Onepage',
+        href: '/relatorios',
+        label: 'Relatórios',
         icon: (
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
           </svg>
         ),
       },
@@ -68,6 +67,16 @@ const NAV = [
   {
     section: 'Operacional',
     items: [
+      {
+        href: '/comunicados',
+        label: 'Comunicados',
+        icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+            <path d="M13.73 21a2 2 0 01-3.46 0" />
+          </svg>
+        ),
+      },
       {
         href: '/documentos',
         label: 'Documentos',
@@ -78,31 +87,93 @@ const NAV = [
           </svg>
         ),
       },
-      {
-        href: '/comunicados',
-        label: 'Comunicados',
-        badge: 2,
-        icon: (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
-            <path d="M13.73 21a2 2 0 01-3.46 0" />
-          </svg>
-        ),
-      },
-      {
-        href: '/automacoes',
-        label: 'Automações',
-        icon: (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-          </svg>
-        ),
-      },
     ],
   },
 ]
 
+/* ─── Nobel monogram ──────────────────────────────────────────────────────── */
+function NobelMono({ size = 32 }: { size?: number }) {
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        border: '1.5px solid var(--c-gold)',
+        display: 'grid',
+        placeItems: 'center',
+        position: 'relative',
+        flexShrink: 0,
+      }}
+    >
+      {/* vertical hairline */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '10%',
+          bottom: '10%',
+          left: '50%',
+          width: 1,
+          background: 'var(--c-gold)',
+          transform: 'translateX(-50%)',
+          opacity: 0.5,
+        }}
+      />
+      <span
+        style={{
+          fontFamily: 'var(--f-display)',
+          fontWeight: 500,
+          fontSize: size * 0.76,
+          lineHeight: 1,
+          color: 'var(--fg)',
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
+        N
+      </span>
+    </div>
+  )
+}
+
+/* ─── Nobel wordmark ──────────────────────────────────────────────────────── */
+function NobelWordmark({ size = 'sm' }: { size?: 'sm' | 'md' }) {
+  const lvl1 = size === 'sm' ? 15 : 20
+  const lvl2 = size === 'sm' ? 8 : 10
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 4 }}>
+      <span
+        style={{
+          fontFamily: 'var(--f-display)',
+          fontWeight: 500,
+          fontSize: lvl1,
+          letterSpacing: '.30em',
+          lineHeight: 1,
+          color: 'var(--fg)',
+          paddingBottom: 5,
+          borderBottom: '1px solid var(--c-gold)',
+          textIndent: '.30em',
+        }}
+      >
+        NOBEL
+      </span>
+      <span
+        style={{
+          fontFamily: 'var(--f-display)',
+          fontWeight: 400,
+          fontSize: lvl2,
+          letterSpacing: '.34em',
+          lineHeight: 1,
+          color: 'var(--fg-mute)',
+          textIndent: '.34em',
+        }}
+      >
+        CAPITAL
+      </span>
+    </div>
+  )
+}
+
+/* ─── Sidebar ─────────────────────────────────────────────────────────────── */
 interface Props {
   session: SessionPayload
 }
@@ -129,94 +200,72 @@ export function Sidebar({ session }: Props) {
       style={{
         width: collapsed ? 64 : 248,
         flexShrink: 0,
-        background: '#FDFAF5',
+        background: 'var(--bg-elev)',
         display: 'flex',
         flexDirection: 'column',
-        borderRight: '1px solid rgba(184,150,62,0.15)',
-        transition: 'width 0.25s cubic-bezier(0.4,0,0.2,1)',
+        borderRight: '1px solid var(--line)',
+        transition: 'width 0.22s cubic-bezier(0.4,0,0.2,1)',
         overflow: 'hidden',
         position: 'relative',
         zIndex: 10,
       }}
     >
-      {/* Logo / Header */}
+      {/* ── Logo / header ───────────────────────────────────── */}
       <div
         style={{
-          padding: collapsed ? '18px 0' : '20px 16px 16px',
-          borderBottom: '1px solid rgba(184,150,62,0.12)',
+          padding: collapsed ? '18px 0' : '20px 20px 18px',
+          borderBottom: '1px solid var(--line)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: collapsed ? 'center' : 'space-between',
-          minHeight: 72,
+          minHeight: 68,
           flexShrink: 0,
-          transition: 'padding 0.25s',
         }}
       >
         {collapsed ? (
           <button
             onClick={() => setCollapsed(false)}
             title="Expandir menu"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #B8963E, #8B6914)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 14,
-              fontWeight: 700,
-              color: '#fff',
-              fontFamily: 'var(--font-lora, serif)',
-              border: 'none',
-              cursor: 'pointer',
-              flexShrink: 0,
-            }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
           >
-            N
+            <NobelMono size={32} />
           </button>
         ) : (
           <>
-            <div style={{ overflow: 'hidden' }}>
-              <Image
-                src="/logo-light.png"
-                alt="Nobel Capital"
-                width={140}
-                height={30}
-                priority
-                style={{ height: 30, width: 'auto', display: 'block' }}
-              />
-              <div
-                style={{
-                  height: 1,
-                  background: 'linear-gradient(90deg, #B8963E 0%, transparent 100%)',
-                  marginTop: 10,
-                  opacity: 0.3,
-                }}
-              />
+            {/* Nobel lockup: monogram + wordmark */}
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, overflow: 'hidden' }}>
+              <NobelMono size={30} />
+              <NobelWordmark size="sm" />
             </div>
+            {/* Collapse button */}
             <button
               onClick={() => setCollapsed(true)}
               title="Recolher menu"
               style={{
-                width: 26,
-                height: 26,
+                width: 24,
+                height: 24,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: 'rgba(184,150,62,0.07)',
-                border: '1px solid rgba(184,150,62,0.15)',
-                borderRadius: 6,
+                background: 'transparent',
+                border: '1px solid var(--line)',
+                borderRadius: 'var(--r-2)',
                 cursor: 'pointer',
-                color: 'rgba(26,18,9,0.4)',
+                color: 'var(--fg-faint)',
                 flexShrink: 0,
-                marginLeft: 8,
-                transition: 'background 0.15s',
+                marginLeft: 6,
+                transition: 'border-color .15s, color .15s',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(184,150,62,0.14)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(184,150,62,0.07)')}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--line-strong)'
+                e.currentTarget.style.color = 'var(--fg-mute)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--line)'
+                e.currentTarget.style.color = 'var(--fg-faint)'
+              }}
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="11" height="11">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="10" height="10">
                 <polyline points="11 17 6 12 11 7" />
                 <polyline points="18 17 13 12 18 7" />
               </svg>
@@ -225,21 +274,20 @@ export function Sidebar({ session }: Props) {
         )}
       </div>
 
-      {/* Nav */}
-      <nav style={{ flex: 1, padding: collapsed ? '8px 10px' : '8px 10px', overflowY: 'auto', overflowX: 'hidden' }}>
-        {NAV.filter((g) => g.section !== 'Operacional').map((group) => (
+      {/* ── Nav ─────────────────────────────────────────────── */}
+      <nav style={{ flex: 1, padding: '8px 8px', overflowY: 'auto', overflowX: 'hidden' }}>
+        {NAV.map((group) => (
           <div key={group.section}>
-            {/* Section label */}
-            <div style={{ height: collapsed ? 10 : 0, transition: 'height 0.2s' }} />
             {!collapsed && (
               <p
                 style={{
                   fontSize: 9,
-                  letterSpacing: '0.18em',
-                  color: 'rgba(26,18,9,0.28)',
+                  letterSpacing: '.20em',
+                  color: 'var(--fg-faint)',
                   textTransform: 'uppercase',
-                  padding: '12px 10px 5px',
-                  fontWeight: 600,
+                  padding: '14px 8px 6px',
+                  fontFamily: 'var(--f-mono)',
+                  fontWeight: 500,
                   whiteSpace: 'nowrap',
                 }}
               >
@@ -258,134 +306,70 @@ export function Sidebar({ session }: Props) {
                     display: 'flex',
                     alignItems: 'center',
                     gap: 10,
-                    padding: collapsed ? '9px 0' : '8px 10px',
-                    borderRadius: 6,
+                    padding: collapsed ? '9px 0' : '7px 8px',
+                    borderRadius: 'var(--r-2)',
                     textDecoration: 'none',
                     marginBottom: 1,
                     position: 'relative',
-                    background: active ? 'rgba(184,150,62,0.1)' : 'transparent',
-                    transition: 'background 0.15s',
+                    background: active ? 'var(--fg)' : 'transparent',
+                    transition: 'background .12s',
                     justifyContent: collapsed ? 'center' : 'flex-start',
                   }}
+                  onMouseEnter={(e) => {
+                    if (!active) e.currentTarget.style.background = 'var(--bg)'
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!active) e.currentTarget.style.background = 'transparent'
+                  }}
                 >
-                  {/* Active indicator */}
-                  {active && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        left: 0,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        width: 2,
-                        height: 18,
-                        background: '#B8963E',
-                        borderRadius: '0 2px 2px 0',
-                      }}
-                    />
-                  )}
-
                   {/* Icon */}
                   <div
                     style={{
-                      width: 16,
-                      height: 16,
+                      width: 15,
+                      height: 15,
                       flexShrink: 0,
-                      color: active ? '#B8963E' : 'rgba(26,18,9,0.35)',
+                      color: active ? 'var(--bg)' : 'var(--fg-faint)',
                     }}
                   >
                     {item.icon}
                   </div>
 
-                  {/* Label + badge (expanded only) */}
+                  {/* Label (expanded only) */}
                   {!collapsed && (
-                    <>
-                      <span
-                        style={{
-                          fontSize: 13,
-                          color: active ? '#1A1209' : 'rgba(26,18,9,0.5)',
-                          fontWeight: active ? 500 : 400,
-                          whiteSpace: 'nowrap',
-                          flex: 1,
-                        }}
-                      >
-                        {item.label}
-                      </span>
-                      {item.badge && (
-                        <span
-                          style={{
-                            background: '#B8963E',
-                            color: '#fff',
-                            fontSize: 10,
-                            fontWeight: 700,
-                            padding: '1px 6px',
-                            borderRadius: 20,
-                          }}
-                        >
-                          {item.badge}
-                        </span>
-                      )}
-                    </>
-                  )}
-
-                  {/* Badge dot (collapsed only) */}
-                  {collapsed && item.badge && (
-                    <div
+                    <span
                       style={{
-                        position: 'absolute',
-                        top: 6,
-                        right: 6,
-                        width: 5,
-                        height: 5,
-                        borderRadius: '50%',
-                        background: '#B8963E',
+                        fontSize: 13,
+                        fontFamily: 'var(--f-text)',
+                        color: active ? 'var(--bg)' : 'var(--fg-mute)',
+                        fontWeight: active ? 500 : 400,
+                        whiteSpace: 'nowrap',
+                        flex: 1,
                       }}
-                    />
+                    >
+                      {item.label}
+                    </span>
                   )}
                 </Link>
               )
             })}
 
+            {/* Section divider */}
             <div
               style={{
                 height: 1,
-                background: 'rgba(184,150,62,0.09)',
-                margin: collapsed ? '8px 4px' : '8px 10px',
+                background: 'var(--line)',
+                margin: collapsed ? '10px 8px' : '8px 8px 2px',
               }}
             />
           </div>
         ))}
-
-        {/* Config — oculto por hora */}
-        {false && <Link
-          href="/configuracoes"
-          title={collapsed ? 'Configurações' : undefined}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: collapsed ? '9px 0' : '8px 10px',
-            borderRadius: 6,
-            textDecoration: 'none',
-            justifyContent: collapsed ? 'center' : 'flex-start',
-          }}
-        >
-          <div style={{ width: 16, height: 16, color: 'rgba(26,18,9,0.3)', flexShrink: 0 }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <circle cx="12" cy="12" r="3" />
-              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-            </svg>
-          </div>
-          {!collapsed && (
-            <span style={{ fontSize: 13, color: 'rgba(26,18,9,0.45)' }}>Configurações</span>
-          )}
-        </Link>}
       </nav>
 
-      {/* User footer */}
+      {/* ── User footer ─────────────────────────────────────── */}
       <div
         style={{
-          padding: collapsed ? '10px 10px' : '10px 10px',
-          borderTop: '1px solid rgba(184,150,62,0.12)',
+          padding: '10px 8px',
+          borderTop: '1px solid var(--line)',
           flexShrink: 0,
         }}
       >
@@ -396,44 +380,47 @@ export function Sidebar({ session }: Props) {
             display: 'flex',
             alignItems: 'center',
             gap: 10,
-            padding: collapsed ? '8px 0' : '9px 10px',
-            borderRadius: 6,
+            padding: collapsed ? '8px 0' : '8px 8px',
+            borderRadius: 'var(--r-2)',
             background: 'none',
             border: 'none',
             cursor: 'pointer',
             width: '100%',
             textAlign: 'left',
-            transition: 'background 0.15s',
+            transition: 'background .12s',
             justifyContent: collapsed ? 'center' : 'flex-start',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(184,150,62,0.07)')}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--line)')}
           onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
         >
+          {/* Avatar */}
           <div
             style={{
-              width: 32,
-              height: 32,
+              width: 28,
+              height: 28,
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, #B8963E 0%, #8B6914 100%)',
+              background: 'var(--color-b-500)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 600,
               color: '#fff',
               flexShrink: 0,
-              fontFamily: 'var(--font-lora, serif)',
+              fontFamily: 'var(--f-mono)',
             }}
           >
             {initials}
           </div>
+
           {!collapsed && (
             <>
               <div style={{ overflow: 'hidden', flex: 1 }}>
                 <div
                   style={{
                     fontSize: 12,
-                    color: '#1A1209',
+                    fontFamily: 'var(--f-text)',
+                    color: 'var(--fg)',
                     fontWeight: 500,
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
@@ -444,27 +431,28 @@ export function Sidebar({ session }: Props) {
                 </div>
                 <div
                   style={{
-                    fontSize: 10,
-                    color: 'rgba(26,18,9,0.4)',
-                    marginTop: 1,
-                    textTransform: 'capitalize',
+                    fontFamily: 'var(--f-mono)',
+                    fontSize: 9,
+                    color: 'var(--fg-faint)',
+                    marginTop: 2,
+                    letterSpacing: '.08em',
+                    textTransform: 'uppercase',
                   }}
                 >
-                  {session.role} · Nobel Capital
+                  {session.role}
                 </div>
               </div>
-              <div style={{ marginLeft: 'auto', flexShrink: 0 }}>
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="rgba(26,18,9,0.28)"
-                  strokeWidth="1.5"
-                  width="13"
-                  height="13"
-                >
-                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
-                </svg>
-              </div>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--fg-faint)"
+                strokeWidth="1.5"
+                width="12"
+                height="12"
+                style={{ flexShrink: 0 }}
+              >
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
+              </svg>
             </>
           )}
         </button>

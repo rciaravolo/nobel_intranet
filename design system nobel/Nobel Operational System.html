@@ -1,0 +1,893 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Nobel — Sistema Operacional (Dashboards & Intranet)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  /* ===== Brand carry-over ===== */
+  --c-midnight: #0E1A2B;
+  --c-midnight-deep: #08111E;
+  --c-gold: #C9A961;
+
+  /* ===== Neutrals (paper-leaning, slightly warm) ===== */
+  --n-0:  #FFFFFF;
+  --n-25: #FBFAF8;
+  --n-50: #F6F4F0;
+  --n-100:#EEEAE2;
+  --n-150:#E2DDD3;
+  --n-200:#D4CEC1;
+  --n-300:#B8B1A2;
+  --n-400:#8E8775;
+  --n-500:#65604F;
+  --n-600:#4A463A;
+  --n-700:#2E2C24;
+  --n-800:#1A1812;
+  --n-900:#0E0D08;
+
+  /* ===== System blue (UI accent — replaces gold for actions) ===== */
+  --b-50:  #EEF3FA;
+  --b-100: #D9E4F4;
+  --b-300: #6E94C9;
+  --b-500: #2D5FA0;
+  --b-600: #244C82;
+  --b-700: #1B3A65;
+
+  /* ===== Data semantic ===== */
+  --pos-bg:  #E8F1EA;
+  --pos-fg:  #2A6B43;
+  --pos-500: #3E8C5C;
+  --neg-bg:  #FBE9E7;
+  --neg-fg:  #9F2D24;
+  --neg-500: #C4453A;
+  --warn-fg: #8A5A12;
+  --warn-bg: #FBF1DE;
+
+  /* ===== Surfaces (light theme) ===== */
+  --bg:        var(--n-25);
+  --bg-elev:   var(--n-0);
+  --bg-deep:   var(--n-50);
+  --fg:        var(--n-800);
+  --fg-mute:   var(--n-500);
+  --fg-faint:  var(--n-400);
+  --line:      var(--n-150);
+  --line-strong: var(--n-200);
+  --accent:    var(--b-500);
+
+  /* ===== Type ===== */
+  --f-ui:   "Inter Tight", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* ===== Scale ===== */
+  --s-1:4px;  --s-2:8px; --s-3:12px; --s-4:16px;
+  --s-5:20px; --s-6:24px; --s-7:32px; --s-8:48px; --s-9:64px;
+
+  /* ===== Radii (operational = small) ===== */
+  --r-1:4px; --r-2:6px; --r-3:8px; --r-pill:999px;
+
+  /* ===== Elevation ===== */
+  --e-1: 0 1px 2px rgba(14,26,43,.04), 0 0 0 1px var(--line);
+  --e-2: 0 4px 12px rgba(14,26,43,.06), 0 0 0 1px var(--line);
+  --e-3: 0 8px 28px rgba(14,26,43,.08), 0 0 0 1px var(--line);
+
+  /* ===== Density (set on root via toggle) ===== */
+  --row-h: 36px;
+  --pad-x: 14px;
+  --pad-y: 8px;
+}
+
+/* dark theme override */
+[data-theme="dark"]{
+  --bg:        var(--c-midnight);
+  --bg-elev:   #14223A;
+  --bg-deep:   var(--c-midnight-deep);
+  --fg:        #E8ECF2;
+  --fg-mute:   #8E99AE;
+  --fg-faint:  #5B6577;
+  --line:      #1F304B;
+  --line-strong:#2A3D5C;
+  --pos-bg:  #16302A;
+  --pos-fg:  #6FCB94;
+  --pos-500: #4DA76F;
+  --neg-bg:  #36201D;
+  --neg-fg:  #E8857C;
+  --neg-500: #D75A4F;
+  --warn-bg: #382B14;
+  --warn-fg: #D9B36A;
+  --b-50: #142640;
+  --b-100:#1A3257;
+  --b-500:#6094D6;
+  --b-600:#4978B5;
+  --e-1: 0 1px 2px rgba(0,0,0,.4), 0 0 0 1px var(--line);
+  --e-2: 0 4px 16px rgba(0,0,0,.5), 0 0 0 1px var(--line);
+}
+[data-density="compact"]{ --row-h:30px; --pad-x:12px; --pad-y:6px; }
+[data-density="cozy"]{ --row-h:44px; --pad-x:16px; --pad-y:12px; }
+
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-ui);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:inherit}
+img{display:block;max-width:100%}
+
+/* ============== Page chrome ============== */
+.page{padding:32px 40px 80px}
+.wrap{max-width:1320px;margin:0 auto}
+@media (max-width:760px){.page{padding:20px 16px 60px}}
+
+/* ============== Top bar ============== */
+.app-top{
+  display:flex;align-items:center;justify-content:space-between;gap:24px;
+  padding:16px 0;border-bottom:1px solid var(--line);margin-bottom:24px;
+}
+.app-top .brand{display:flex;align-items:center;gap:14px}
+.app-top .brand img{height:28px}
+.app-top .brand .div{width:1px;height:18px;background:var(--line-strong)}
+.app-top .brand .scope{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;color:var(--fg-mute);text-transform:uppercase}
+.app-top .controls{display:flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:11px;color:var(--fg-mute);letter-spacing:.08em;text-transform:uppercase}
+.tg{display:inline-flex;border:1px solid var(--line-strong);border-radius:var(--r-1);padding:2px}
+.tg button{padding:6px 10px;border-radius:3px;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg-mute)}
+.tg button.on{background:var(--fg);color:var(--bg)}
+
+/* ============== Headings ============== */
+h1,h2,h3,h4{margin:0;font-family:var(--f-ui);font-weight:600;letter-spacing:-.01em}
+h1{font-size:32px;line-height:1.15}
+h2{font-size:22px;line-height:1.2}
+h3{font-size:16px;line-height:1.3}
+.eyebrow{font-family:var(--f-mono);font-size:11px;letter-spacing:.16em;color:var(--fg-mute);text-transform:uppercase;font-weight:500}
+
+/* ============== Section ============== */
+section.sec{padding:48px 0;border-bottom:1px solid var(--line)}
+section.sec .sec-head{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:28px;flex-wrap:wrap}
+section.sec .sec-head .num{font-family:var(--f-mono);font-size:11px;color:var(--accent);letter-spacing:.16em;display:block;margin-bottom:6px}
+section.sec .sec-head .lead{color:var(--fg-mute);max-width:60ch;font-size:13.5px}
+
+/* ============== Tokens grid ============== */
+.token-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+@media (max-width:1080px){.token-grid{grid-template-columns:repeat(4,1fr)}}
+@media (max-width:640px){.token-grid{grid-template-columns:repeat(2,1fr)}}
+.tok{
+  background:var(--bg-elev);border:1px solid var(--line);border-radius:var(--r-2);
+  padding:12px;display:flex;flex-direction:column;gap:8px;min-height:108px;
+}
+.tok .chip{height:42px;border-radius:var(--r-1);border:1px solid var(--line)}
+.tok .name{font-family:var(--f-mono);font-size:11px;color:var(--fg);font-weight:500}
+.tok .val{font-family:var(--f-mono);font-size:10.5px;color:var(--fg-mute)}
+
+/* ============== Type spec ============== */
+.type-spec{display:grid;grid-template-columns:160px 1fr 200px;gap:24px;padding:14px 0;border-bottom:1px solid var(--line);align-items:baseline}
+.type-spec:last-child{border-bottom:0}
+.type-spec .lbl{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;color:var(--fg-mute);text-transform:uppercase}
+.type-spec .specs{font-family:var(--f-mono);font-size:11px;color:var(--fg-mute);text-align:right}
+.type-spec .sample{font-family:var(--f-ui)}
+.type-spec .sample.mono{font-family:var(--f-mono)}
+@media (max-width:760px){.type-spec{grid-template-columns:1fr;gap:6px}.type-spec .specs{text-align:left}}
+
+/* ============== Buttons ============== */
+.btn{
+  display:inline-flex;align-items:center;gap:8px;font-family:var(--f-ui);font-weight:500;font-size:13px;
+  padding:8px 14px;border-radius:var(--r-1);border:1px solid transparent;cursor:pointer;line-height:1;height:34px;
+  transition:background .15s ease, border-color .15s ease, color .15s ease;
+}
+.btn-primary{background:var(--b-500);color:#fff}
+.btn-primary:hover{background:var(--b-600)}
+.btn-secondary{border-color:var(--line-strong);color:var(--fg);background:var(--bg-elev)}
+.btn-secondary:hover{border-color:var(--fg);background:var(--bg-deep)}
+.btn-ghost{color:var(--fg-mute)}
+.btn-ghost:hover{color:var(--fg);background:var(--bg-deep)}
+.btn-danger{background:var(--neg-500);color:#fff}
+.btn-icon{width:34px;padding:0;justify-content:center}
+.btn-sm{height:28px;padding:4px 10px;font-size:12px}
+.btn-lg{height:42px;padding:10px 18px;font-size:14px}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.kbd{font-family:var(--f-mono);font-size:10px;padding:2px 5px;border:1px solid var(--line-strong);border-radius:3px;color:var(--fg-mute)}
+
+/* ============== Inputs ============== */
+.input,.select{
+  display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;
+  border:1px solid var(--line-strong);border-radius:var(--r-1);background:var(--bg-elev);font:inherit;color:var(--fg);
+  outline:none;transition:border-color .15s, box-shadow .15s;width:100%;
+}
+.input:focus,.select:focus{border-color:var(--b-500);box-shadow:0 0 0 3px var(--b-50)}
+.input::placeholder{color:var(--fg-faint)}
+.field{display:flex;flex-direction:column;gap:6px;max-width:320px}
+.field label{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;color:var(--fg-mute);text-transform:uppercase}
+.field .hint{font-size:11px;color:var(--fg-faint)}
+
+/* segmented */
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:var(--r-1);padding:2px;background:var(--bg-elev)}
+.seg button{padding:5px 12px;font-size:12px;border-radius:3px;color:var(--fg-mute);font-weight:500}
+.seg button.on{background:var(--fg);color:var(--bg)}
+
+/* ============== Badges ============== */
+.bg{display:inline-flex;align-items:center;gap:6px;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:var(--r-pill);border:1px solid var(--line-strong);color:var(--fg-mute);background:var(--bg-elev);font-weight:500}
+.bg.pos{color:var(--pos-fg);background:var(--pos-bg);border-color:transparent}
+.bg.neg{color:var(--neg-fg);background:var(--neg-bg);border-color:transparent}
+.bg.warn{color:var(--warn-fg);background:var(--warn-bg);border-color:transparent}
+.bg.info{color:var(--b-600);background:var(--b-50);border-color:transparent}
+.bg.dot::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* ============== KPI card ============== */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media (max-width:1080px){.kpis{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.kpis{grid-template-columns:1fr}}
+.kpi{
+  background:var(--bg-elev);border:1px solid var(--line);border-radius:var(--r-3);
+  padding:16px 18px;display:flex;flex-direction:column;gap:10px;
+}
+.kpi .row{display:flex;justify-content:space-between;align-items:center}
+.kpi .lbl{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;color:var(--fg-mute);text-transform:uppercase}
+.kpi .val{font-family:var(--f-mono);font-size:30px;font-weight:500;letter-spacing:-.01em;line-height:1;color:var(--fg)}
+.kpi .val .unit{font-size:14px;color:var(--fg-mute);margin-left:4px;font-weight:400}
+.kpi .delta{font-family:var(--f-mono);font-size:12px;font-weight:500}
+.kpi .spark{height:34px;width:100%}
+
+/* ============== Table ============== */
+.table-wrap{border:1px solid var(--line);border-radius:var(--r-3);overflow:hidden;background:var(--bg-elev)}
+.table-top{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);gap:12px;flex-wrap:wrap}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+table.tbl th{
+  text-align:left;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--fg-mute);font-weight:500;padding:10px var(--pad-x);border-bottom:1px solid var(--line);background:var(--bg-deep);
+}
+table.tbl th.num,table.tbl td.num{text-align:right;font-family:var(--f-mono)}
+table.tbl tr td{padding:var(--pad-y) var(--pad-x);border-bottom:1px solid var(--line);height:var(--row-h)}
+table.tbl tr:last-child td{border-bottom:0}
+table.tbl tr:hover td{background:var(--bg-deep)}
+table.tbl td .ticker{font-family:var(--f-mono);font-weight:600;color:var(--fg)}
+table.tbl td .sub{color:var(--fg-mute);font-size:11.5px;display:block}
+.cell-pos{color:var(--pos-fg)}
+.cell-neg{color:var(--neg-fg)}
+
+/* ============== Sidebar (preview) ============== */
+.shell{
+  border:1px solid var(--line);border-radius:var(--r-3);background:var(--bg-elev);overflow:hidden;
+  display:grid;grid-template-columns:240px 1fr;min-height:560px;
+}
+.shell .side{background:var(--bg-deep);border-right:1px solid var(--line);padding:18px 12px;display:flex;flex-direction:column;gap:18px}
+.shell .side .brand-mini{display:flex;align-items:center;gap:10px;padding:0 6px 14px;border-bottom:1px solid var(--line)}
+.shell .side .brand-mini img{height:22px}
+.nav-grp{display:flex;flex-direction:column;gap:2px}
+.nav-grp .grp-lbl{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--fg-faint);padding:8px 8px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:var(--r-1);font-size:13px;color:var(--fg-mute);cursor:pointer}
+.nav-item:hover{background:var(--bg);color:var(--fg)}
+.nav-item.on{background:var(--fg);color:var(--bg);font-weight:500}
+.nav-item .ic{width:14px;height:14px;border:1px solid currentColor;border-radius:3px;flex-shrink:0;opacity:.7}
+.nav-item .ct{margin-left:auto;font-family:var(--f-mono);font-size:10px;background:var(--bg-elev);padding:1px 6px;border-radius:var(--r-pill);color:var(--fg-mute);border:1px solid var(--line)}
+.nav-item.on .ct{background:rgba(255,255,255,.15);color:inherit;border-color:transparent}
+
+.shell .body{display:flex;flex-direction:column;min-height:0}
+.shell .body-top{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line);gap:12px}
+.shell .crumbs{display:flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:11px;color:var(--fg-mute);letter-spacing:.06em;text-transform:uppercase}
+.shell .crumbs b{color:var(--fg);font-weight:500}
+.shell .body-top .right{display:flex;gap:8px;align-items:center}
+.searchbox{display:flex;align-items:center;gap:8px;background:var(--bg-deep);border:1px solid var(--line);border-radius:var(--r-1);padding:0 10px;height:30px;width:240px}
+.searchbox input{border:0;background:transparent;outline:none;width:100%;font:inherit;color:var(--fg);font-size:12.5px}
+.searchbox .cmd{font-family:var(--f-mono);font-size:10px;color:var(--fg-faint);border:1px solid var(--line);padding:1px 5px;border-radius:3px}
+.avatar{width:28px;height:28px;border-radius:50%;background:var(--b-500);color:#fff;font-family:var(--f-mono);font-weight:500;font-size:11px;display:grid;place-items:center}
+
+.shell .content{padding:20px;display:flex;flex-direction:column;gap:18px;overflow:auto}
+.row-2{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+@media (max-width:880px){.shell{grid-template-columns:1fr}.shell .side{display:none}.row-2{grid-template-columns:1fr}}
+
+/* ============== Chart (SVG mock) ============== */
+.chart-card{background:var(--bg-elev);border:1px solid var(--line);border-radius:var(--r-3);padding:16px;display:flex;flex-direction:column;gap:12px}
+.chart-card .ch-top{display:flex;justify-content:space-between;align-items:flex-start}
+.chart-card .ch-top h3{font-size:15px}
+.chart-card .ch-top .meta{font-family:var(--f-mono);font-size:10.5px;color:var(--fg-mute);letter-spacing:.06em}
+.chart-card .ch-bottom{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:10px;color:var(--fg-faint);letter-spacing:.06em}
+
+/* ============== Feed (intranet) ============== */
+.feed{display:flex;flex-direction:column;gap:0;background:var(--bg-elev);border:1px solid var(--line);border-radius:var(--r-3);overflow:hidden}
+.feed .item{display:grid;grid-template-columns:60px 1fr auto;gap:14px;padding:14px 16px;border-bottom:1px solid var(--line);align-items:start}
+.feed .item:last-child{border-bottom:0}
+.feed .item:hover{background:var(--bg-deep)}
+.feed .date{font-family:var(--f-mono);font-size:11px;color:var(--fg-mute);text-transform:uppercase;letter-spacing:.06em;line-height:1.3}
+.feed .date b{color:var(--fg);font-weight:600;display:block;font-size:18px;font-family:var(--f-mono)}
+.feed .ttl{font-weight:500;font-size:14px;line-height:1.3}
+.feed .meta{display:flex;gap:10px;margin-top:4px;font-family:var(--f-mono);font-size:11px;color:var(--fg-mute)}
+
+/* ============== Person card ============== */
+.people{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media (max-width:880px){.people{grid-template-columns:repeat(2,1fr)}}
+.pcard{background:var(--bg-elev);border:1px solid var(--line);border-radius:var(--r-3);padding:14px;display:flex;flex-direction:column;gap:10px}
+.pcard .av{width:40px;height:40px;border-radius:50%;background:var(--n-100);color:var(--fg);font-family:var(--f-mono);font-weight:600;font-size:13px;display:grid;place-items:center}
+[data-theme="dark"] .pcard .av{background:#22324F}
+.pcard .nm{font-weight:600;font-size:14px}
+.pcard .rl{color:var(--fg-mute);font-size:12px}
+.pcard .stat-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
+
+/* ============== Empty + states ============== */
+.state-card{background:var(--bg-elev);border:1px dashed var(--line-strong);border-radius:var(--r-3);padding:32px;text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center}
+.state-card .ic{width:36px;height:36px;border-radius:50%;border:1px solid var(--line-strong);display:grid;place-items:center;color:var(--fg-mute);font-family:var(--f-mono);font-size:14px}
+
+.skeleton{background:linear-gradient(90deg, var(--bg-deep) 0%, var(--n-100) 50%, var(--bg-deep) 100%);background-size:200% 100%;animation:sk 1.4s linear infinite;border-radius:var(--r-1);height:14px}
+[data-theme="dark"] .skeleton{background:linear-gradient(90deg, var(--bg-deep) 0%, #1B2A45 50%, var(--bg-deep) 100%);background-size:200% 100%}
+@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ============== Layout helpers ============== */
+.cols-2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.cols-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media (max-width:880px){.cols-2,.cols-3{grid-template-columns:1fr}}
+
+/* density display */
+.density-banner{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--b-50);border:1px solid var(--b-100);border-radius:var(--r-2);font-size:13px;color:var(--b-700)}
+[data-theme="dark"] .density-banner{color:#A8C2E8}
+.density-banner b{font-weight:600}
+
+</style>
+</head>
+<body data-theme="light" data-density="balanced">
+
+<div class="page">
+  <div class="wrap">
+
+    <!-- ============== Top bar ============== -->
+    <div class="app-top">
+      <div class="brand">
+        <img id="brand-logo" src="assets/logo-lockup.png" alt="Nobel">
+        <div class="div"></div>
+        <div class="scope">Sistema operacional · v1</div>
+      </div>
+      <div class="controls">
+        <span>Tema</span>
+        <div class="tg" id="theme-tg">
+          <button class="on" data-v="light">Light</button>
+          <button data-v="dark">Dark</button>
+        </div>
+        <span style="margin-left:14px">Densidade</span>
+        <div class="tg" id="density-tg">
+          <button data-v="compact">Compact</button>
+          <button class="on" data-v="balanced">Balanced</button>
+          <button data-v="cozy">Cozy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== Hero ============== -->
+    <section class="sec" style="padding-top:8px;border-bottom:1px solid var(--line)">
+      <div class="eyebrow">Nobel Capital · Operational</div>
+      <h1 style="margin-top:8px;font-size:40px;line-height:1.1;letter-spacing:-.015em;max-width:24ch">Sistema para uso diário<br>— sóbrio, denso, legível.</h1>
+      <p style="color:var(--fg-mute);max-width:64ch;margin-top:14px;font-size:15px">Uma camada operacional do design system Nobel para dashboards internos e intranet. Mantém a marca, troca a estética editorial por padrões SaaS contemporâneos: tipografia neutra, números retilíneos, hierarquia por peso, ouro reduzido a sinalizador de marca.</p>
+
+      <div class="density-banner" style="margin-top:24px">
+        <b>↑ Use os controles acima</b> para alternar entre temas (light/dark) e densidades (compact/balanced/cozy). Tudo nesta página responde aos tokens em tempo real.
+      </div>
+    </section>
+
+    <!-- ============== Color tokens ============== -->
+    <section class="sec">
+      <div class="sec-head">
+        <div>
+          <span class="num">01 / FOUNDATIONS</span>
+          <h2>Cor</h2>
+        </div>
+        <div class="lead">Neutros levemente quentes para herdar do papel marfim da marca. Azul de sistema substitui o ouro como cor de ação. Cores semânticas restritas a estado e dado financeiro.</div>
+      </div>
+
+      <div class="eyebrow" style="margin-bottom:10px">Neutros</div>
+      <div class="token-grid" style="margin-bottom:24px">
+        <div class="tok"><div class="chip" style="background:var(--n-0)"></div><div class="name">n-0</div><div class="val">#FFFFFF</div></div>
+        <div class="tok"><div class="chip" style="background:var(--n-25)"></div><div class="name">n-25</div><div class="val">#FBFAF8</div></div>
+        <div class="tok"><div class="chip" style="background:var(--n-50)"></div><div class="name">n-50</div><div class="val">#F6F4F0</div></div>
+        <div class="tok"><div class="chip" style="background:var(--n-100)"></div><div class="name">n-100</div><div class="val">#EEEAE2</div></div>
+        <div class="tok"><div class="chip" style="background:var(--n-200)"></div><div class="name">n-200</div><div class="val">#D4CEC1</div></div>
+        <div class="tok"><div class="chip" style="background:var(--n-300)"></div><div class="name">n-300</div><div class="val">#B8B1A2</div></div>
+        <div class="tok"><div class="chip" style="background:var(--n-400)"></div><div class="name">n-400</div><div class="val">#8E8775</div></div>
+        <div class="tok"><div class="chip" style="background:var(--n-500)"></div><div class="name">n-500</div><div class="val">#65604F</div></div>
+        <div class="tok"><div class="chip" style="background:var(--n-600)"></div><div class="name">n-600</div><div class="val">#4A463A</div></div>
+        <div class="tok"><div class="chip" style="background:var(--n-700)"></div><div class="name">n-700</div><div class="val">#2E2C24</div></div>
+        <div class="tok"><div class="chip" style="background:var(--n-800)"></div><div class="name">n-800</div><div class="val">#1A1812</div></div>
+        <div class="tok"><div class="chip" style="background:var(--n-900)"></div><div class="name">n-900</div><div class="val">#0E0D08</div></div>
+      </div>
+
+      <div class="eyebrow" style="margin-bottom:10px">Azul de sistema</div>
+      <div class="token-grid" style="margin-bottom:24px">
+        <div class="tok"><div class="chip" style="background:var(--b-50)"></div><div class="name">b-50</div><div class="val">focus ring</div></div>
+        <div class="tok"><div class="chip" style="background:var(--b-100)"></div><div class="name">b-100</div><div class="val">subtle bg</div></div>
+        <div class="tok"><div class="chip" style="background:var(--b-300)"></div><div class="name">b-300</div><div class="val">hover</div></div>
+        <div class="tok"><div class="chip" style="background:var(--b-500)"></div><div class="name">b-500</div><div class="val">action</div></div>
+        <div class="tok"><div class="chip" style="background:var(--b-600)"></div><div class="name">b-600</div><div class="val">action hover</div></div>
+        <div class="tok"><div class="chip" style="background:var(--b-700)"></div><div class="name">b-700</div><div class="val">pressed</div></div>
+      </div>
+
+      <div class="eyebrow" style="margin-bottom:10px">Semântica</div>
+      <div class="token-grid">
+        <div class="tok"><div class="chip" style="background:var(--pos-500)"></div><div class="name">positive</div><div class="val">ganho · subida</div></div>
+        <div class="tok"><div class="chip" style="background:var(--neg-500)"></div><div class="name">negative</div><div class="val">perda · queda</div></div>
+        <div class="tok"><div class="chip" style="background:var(--warn-fg)"></div><div class="name">warn</div><div class="val">aviso · revisão</div></div>
+        <div class="tok"><div class="chip" style="background:var(--c-gold)"></div><div class="name">brand-gold</div><div class="val">só para marca</div></div>
+        <div class="tok"><div class="chip" style="background:var(--c-midnight)"></div><div class="name">brand-midnight</div><div class="val">institucional</div></div>
+        <div class="tok"><div class="chip" style="background:var(--bg-elev)"></div><div class="name">bg-elev</div><div class="val">superfície card</div></div>
+      </div>
+    </section>
+
+    <!-- ============== Typography ============== -->
+    <section class="sec">
+      <div class="sec-head">
+        <div>
+          <span class="num">02 / FOUNDATIONS</span>
+          <h2>Tipografia</h2>
+        </div>
+        <div class="lead">Inter Tight para UI (rótulos, títulos curtos, ações) e JetBrains Mono para todo dado quantitativo. Números retilíneos: tabular nums por padrão.</div>
+      </div>
+
+      <div class="type-spec"><div class="lbl">Display</div><div class="sample" style="font-size:36px;font-weight:600;letter-spacing:-.015em">Patrimônio sob gestão</div><div class="specs">Inter Tight 600 · 36/40 · -1.5%</div></div>
+      <div class="type-spec"><div class="lbl">Heading</div><div class="sample" style="font-size:22px;font-weight:600;letter-spacing:-.01em">Visão geral · Outubro 2026</div><div class="specs">Inter Tight 600 · 22/28 · -1%</div></div>
+      <div class="type-spec"><div class="lbl">Subheading</div><div class="sample" style="font-size:16px;font-weight:600">Performance da carteira</div><div class="specs">Inter Tight 600 · 16/22</div></div>
+      <div class="type-spec"><div class="lbl">Body</div><div class="sample" style="font-size:14px">Resultado consolidado por classe de ativo nos últimos 30 dias úteis.</div><div class="specs">Inter Tight 400 · 14/21</div></div>
+      <div class="type-spec"><div class="lbl">Body small</div><div class="sample" style="font-size:12.5px;color:var(--fg-mute)">Atualizado há 4 minutos. Próxima sincronização em 15 minutos.</div><div class="specs">Inter Tight 400 · 12.5/18</div></div>
+      <div class="type-spec"><div class="lbl">Eyebrow / Label</div><div class="sample mono" style="font-size:11px;letter-spacing:.16em;color:var(--fg-mute);text-transform:uppercase">Posição consolidada</div><div class="specs">JetBrains Mono 500 · 11 · +16%</div></div>
+      <div class="type-spec"><div class="lbl">Number XL</div><div class="sample mono" style="font-size:36px;font-weight:500;letter-spacing:-.01em">R$ 2.834.221.480</div><div class="specs">JetBrains Mono 500 · 36/40 · tnum</div></div>
+      <div class="type-spec"><div class="lbl">Number M</div><div class="sample mono" style="font-size:18px;font-weight:500">+ 14,82%</div><div class="specs">JetBrains Mono 500 · 18/24</div></div>
+      <div class="type-spec"><div class="lbl">Number S</div><div class="sample mono" style="font-size:13px">R$ 482.910,55</div><div class="specs">JetBrains Mono 400 · 13/18</div></div>
+      <div class="type-spec"><div class="lbl">Caption / Code</div><div class="sample mono" style="font-size:11px;color:var(--fg-mute)">TICKER · ISIN BRPETR4 · b3:active</div><div class="specs">JetBrains Mono 400 · 11/16</div></div>
+    </section>
+
+    <!-- ============== Buttons / inputs ============== -->
+    <section class="sec">
+      <div class="sec-head">
+        <div>
+          <span class="num">03 / COMPONENTS</span>
+          <h2>Botões, inputs e controles</h2>
+        </div>
+        <div class="lead">Hierarquia clara para uso diário: primário (azul) é a ação principal por tela; secundário e ghost completam. Inputs com altura padrão de 34px no balanced.</div>
+      </div>
+
+      <div class="cols-2">
+        <div>
+          <div class="eyebrow" style="margin-bottom:10px">Botões</div>
+          <div class="btn-row" style="margin-bottom:14px">
+            <button class="btn btn-primary">Aprovar movimentação</button>
+            <button class="btn btn-secondary">Cancelar</button>
+            <button class="btn btn-ghost">Mais opções</button>
+            <button class="btn btn-danger">Cancelar ordem</button>
+          </div>
+          <div class="btn-row" style="margin-bottom:14px">
+            <button class="btn btn-primary btn-sm">Pequeno</button>
+            <button class="btn btn-primary">Padrão</button>
+            <button class="btn btn-primary btn-lg">Grande</button>
+            <button class="btn btn-secondary btn-icon" aria-label="filter">⌕</button>
+            <button class="btn btn-secondary">Filtros <span class="kbd">F</span></button>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" style="opacity:.5;cursor:not-allowed">Disabled</button>
+            <button class="btn btn-primary" style="background:var(--b-700)">Pressed</button>
+          </div>
+
+          <div class="eyebrow" style="margin:24px 0 10px">Segmented</div>
+          <div class="seg" id="seg-demo">
+            <button class="on">Diário</button>
+            <button>Semanal</button>
+            <button>Mensal</button>
+            <button>Anual</button>
+          </div>
+
+          <div class="eyebrow" style="margin:24px 0 10px">Badges</div>
+          <div class="btn-row">
+            <span class="bg pos dot">+ Ganho 4,82%</span>
+            <span class="bg neg dot">- Perda 1,14%</span>
+            <span class="bg warn">Em revisão</span>
+            <span class="bg info">Novo</span>
+            <span class="bg">Renda fixa</span>
+            <span class="bg">B3 · Ativo</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="eyebrow" style="margin-bottom:10px">Inputs</div>
+          <div style="display:flex;flex-direction:column;gap:14px;max-width:420px">
+            <div class="field">
+              <label>Cliente</label>
+              <input class="input" value="Ricardo Almeida" />
+              <span class="hint">Busca por nome, CPF ou código.</span>
+            </div>
+            <div class="field">
+              <label>Classe de ativo</label>
+              <select class="select">
+                <option>Renda Variável</option>
+                <option>Renda Fixa</option>
+                <option>Multimercado</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Valor</label>
+              <input class="input" value="R$ 250.000,00" />
+            </div>
+            <div class="field">
+              <label>Período</label>
+              <div class="seg" style="width:fit-content">
+                <button>1D</button><button>1S</button><button class="on">1M</button><button>YTD</button><button>1A</button><button>5A</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== KPI cards ============== -->
+    <section class="sec">
+      <div class="sec-head">
+        <div>
+          <span class="num">04 / COMPONENTS</span>
+          <h2>KPI cards</h2>
+        </div>
+        <div class="lead">Cards compactos para resumo em topo de dashboard. Número em mono, delta semântico, sparkline opcional. Sempre acompanhados de label e período.</div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi">
+          <div class="row"><span class="lbl">AUM</span><span class="bg pos dot">+ 2,41%</span></div>
+          <div class="val">R$ 2,84<span class="unit">BI</span></div>
+          <svg class="spark" viewBox="0 0 200 34" preserveAspectRatio="none">
+            <polyline fill="none" stroke="var(--pos-500)" stroke-width="1.5" points="0,24 20,22 40,18 60,20 80,14 100,16 120,11 140,13 160,8 180,10 200,5"/>
+          </svg>
+        </div>
+        <div class="kpi">
+          <div class="row"><span class="lbl">Captação líquida (MTD)</span><span class="bg pos dot">+ 18,2%</span></div>
+          <div class="val">R$ 142,8<span class="unit">MM</span></div>
+          <svg class="spark" viewBox="0 0 200 34" preserveAspectRatio="none">
+            <polyline fill="none" stroke="var(--pos-500)" stroke-width="1.5" points="0,28 20,24 40,26 60,20 80,22 100,16 120,18 140,12 160,14 180,8 200,10"/>
+          </svg>
+        </div>
+        <div class="kpi">
+          <div class="row"><span class="lbl">Clientes ativos</span><span class="bg dot" style="color:var(--fg-mute)">— 0,0%</span></div>
+          <div class="val">1.482</div>
+          <svg class="spark" viewBox="0 0 200 34" preserveAspectRatio="none">
+            <polyline fill="none" stroke="var(--fg-faint)" stroke-width="1.5" points="0,17 20,16 40,18 60,15 80,17 100,16 120,18 140,16 160,17 180,15 200,16"/>
+          </svg>
+        </div>
+        <div class="kpi">
+          <div class="row"><span class="lbl">Drawdown 30d</span><span class="bg neg dot">- 1,14%</span></div>
+          <div class="val">-1,14<span class="unit">%</span></div>
+          <svg class="spark" viewBox="0 0 200 34" preserveAspectRatio="none">
+            <polyline fill="none" stroke="var(--neg-500)" stroke-width="1.5" points="0,8 20,12 40,10 60,16 80,14 100,20 120,18 140,24 160,22 180,28 200,26"/>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== Table ============== -->
+    <section class="sec">
+      <div class="sec-head">
+        <div>
+          <span class="num">05 / COMPONENTS</span>
+          <h2>Tabela de dados</h2>
+        </div>
+        <div class="lead">Densidade primária do produto. Cabeçalho mono em maiúsculas com tracking, colunas numéricas alinhadas à direita em mono com tabular nums. Hover sutil; sem zebra.</div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-top">
+          <div class="btn-row" style="gap:6px">
+            <span class="bg info">42 ativos</span>
+            <div class="searchbox" style="width:200px"><span style="color:var(--fg-faint)">⌕</span><input placeholder="Buscar ticker, nome…"></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-secondary btn-sm">Filtros</button>
+            <button class="btn btn-secondary btn-sm">Exportar</button>
+            <button class="btn btn-primary btn-sm">+ Posição</button>
+          </div>
+        </div>
+        <table class="tbl">
+          <thead><tr>
+            <th style="width:30%">Ativo</th>
+            <th>Classe</th>
+            <th class="num">Posição</th>
+            <th class="num">Cota</th>
+            <th class="num">Valor</th>
+            <th class="num">% carteira</th>
+            <th class="num">Var. dia</th>
+            <th class="num">Var. mês</th>
+          </tr></thead>
+          <tbody>
+            <tr><td><span class="ticker">PETR4</span><span class="sub">Petróleo Brasileiro PN</span></td><td>Ações BR</td><td class="num">2.400</td><td class="num">38,42</td><td class="num">92.208,00</td><td class="num">8,4%</td><td class="num cell-pos">+1,82%</td><td class="num cell-pos">+4,12%</td></tr>
+            <tr><td><span class="ticker">VALE3</span><span class="sub">Vale ON</span></td><td>Ações BR</td><td class="num">1.800</td><td class="num">62,18</td><td class="num">111.924,00</td><td class="num">10,2%</td><td class="num cell-neg">-0,48%</td><td class="num cell-pos">+2,90%</td></tr>
+            <tr><td><span class="ticker">ITUB4</span><span class="sub">Itaú Unibanco PN</span></td><td>Ações BR</td><td class="num">3.200</td><td class="num">34,15</td><td class="num">109.280,00</td><td class="num">10,0%</td><td class="num cell-pos">+0,72%</td><td class="num cell-pos">+1,84%</td></tr>
+            <tr><td><span class="ticker">NTNB-2035</span><span class="sub">Tesouro IPCA+ 2035</span></td><td>Renda Fixa</td><td class="num">120</td><td class="num">3.842,11</td><td class="num">461.053,20</td><td class="num">42,1%</td><td class="num cell-pos">+0,04%</td><td class="num cell-pos">+0,72%</td></tr>
+            <tr><td><span class="ticker">HGLG11</span><span class="sub">CSHG Logística FII</span></td><td>FII</td><td class="num">2.100</td><td class="num">182,40</td><td class="num">383.040,00</td><td class="num">14,8%</td><td class="num cell-neg">-0,22%</td><td class="num cell-neg">-1,12%</td></tr>
+            <tr><td><span class="ticker">VOO</span><span class="sub">Vanguard S&amp;P 500 ETF</span></td><td>Internacional</td><td class="num">142</td><td class="num">2.418,90</td><td class="num">343.483,80</td><td class="num">14,5%</td><td class="num cell-pos">+0,38%</td><td class="num cell-pos">+3,42%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============== Dashboard preview ============== -->
+    <section class="sec">
+      <div class="sec-head">
+        <div>
+          <span class="num">06 / PATTERNS</span>
+          <h2>Dashboard de portfólio</h2>
+        </div>
+        <div class="lead">Composição típica: sidebar com navegação, topbar com busca + ações, KPIs no topo, gráfico principal e painel de risco/alocação. Use como esqueleto para qualquer tela analítica.</div>
+      </div>
+
+      <div class="shell">
+        <aside class="side">
+          <div class="brand-mini"><img src="assets/logo-lockup.png" alt="Nobel"></div>
+          <div class="nav-grp">
+            <div class="grp-lbl">Geral</div>
+            <div class="nav-item on"><span class="ic"></span>Visão geral</div>
+            <div class="nav-item"><span class="ic"></span>Carteira <span class="ct">42</span></div>
+            <div class="nav-item"><span class="ic"></span>Movimentações</div>
+            <div class="nav-item"><span class="ic"></span>Documentos</div>
+          </div>
+          <div class="nav-grp">
+            <div class="grp-lbl">Mercado</div>
+            <div class="nav-item"><span class="ic"></span>Renda Variável</div>
+            <div class="nav-item"><span class="ic"></span>Renda Fixa</div>
+            <div class="nav-item"><span class="ic"></span>FIIs</div>
+            <div class="nav-item"><span class="ic"></span>Internacional</div>
+          </div>
+          <div class="nav-grp" style="margin-top:auto">
+            <div class="grp-lbl">Conta</div>
+            <div class="nav-item"><span class="ic"></span>Configurações</div>
+            <div class="nav-item"><span class="ic"></span>Suporte</div>
+          </div>
+        </aside>
+        <div class="body">
+          <div class="body-top">
+            <div class="crumbs">Carteira <span style="color:var(--fg-faint)">/</span> <b>Ricardo Almeida</b> <span style="color:var(--fg-faint)">/</span> Visão geral</div>
+            <div class="right">
+              <div class="searchbox"><span style="color:var(--fg-faint)">⌕</span><input placeholder="Buscar (ativos, clientes, docs)…"><span class="cmd">⌘K</span></div>
+              <button class="btn btn-secondary btn-icon" aria-label="notif">⚲</button>
+              <div class="avatar">RA</div>
+            </div>
+          </div>
+          <div class="content">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+              <div>
+                <div class="eyebrow">Ricardo Almeida · CPF 412.•••.•••-29</div>
+                <div style="font-family:var(--f-mono);font-size:28px;font-weight:500;letter-spacing:-.01em;margin-top:6px">R$ 1.094.029,00 <span style="color:var(--pos-fg);font-size:14px;margin-left:8px">+ R$ 38.412 (+3,64% MTD)</span></div>
+              </div>
+              <div class="seg">
+                <button>1D</button><button>1S</button><button class="on">1M</button><button>YTD</button><button>1A</button><button>5A</button>
+              </div>
+            </div>
+
+            <div class="kpis">
+              <div class="kpi"><div class="row"><span class="lbl">Saldo total</span></div><div class="val">R$ 1,09<span class="unit">MM</span></div></div>
+              <div class="kpi"><div class="row"><span class="lbl">Resultado MTD</span><span class="bg pos">+ 3,64%</span></div><div class="val">R$ 38,4<span class="unit">K</span></div></div>
+              <div class="kpi"><div class="row"><span class="lbl">CDI no período</span></div><div class="val">+ 0,82<span class="unit">%</span></div></div>
+              <div class="kpi"><div class="row"><span class="lbl">Sharpe (12m)</span><span class="bg dot" style="color:var(--fg-mute)">est.</span></div><div class="val">1,28</div></div>
+            </div>
+
+            <div class="row-2">
+              <div class="chart-card">
+                <div class="ch-top">
+                  <div>
+                    <h3>Patrimônio · Outubro 2026</h3>
+                    <div class="meta" style="margin-top:4px">vs CDI · 30 dias úteis</div>
+                  </div>
+                  <div class="seg" style="height:fit-content"><button class="on">Linha</button><button>Área</button><button>Comparado</button></div>
+                </div>
+                <svg viewBox="0 0 600 200" style="width:100%;height:200px" preserveAspectRatio="none">
+                  <!-- grid -->
+                  <g stroke="var(--line)" stroke-width="1">
+                    <line x1="0" y1="40" x2="600" y2="40"/>
+                    <line x1="0" y1="80" x2="600" y2="80"/>
+                    <line x1="0" y1="120" x2="600" y2="120"/>
+                    <line x1="0" y1="160" x2="600" y2="160"/>
+                  </g>
+                  <!-- CDI baseline (dashed) -->
+                  <polyline fill="none" stroke="var(--fg-faint)" stroke-width="1" stroke-dasharray="3 3" points="0,150 60,148 120,146 180,144 240,142 300,140 360,138 420,136 480,134 540,132 600,130"/>
+                  <!-- Portfolio area -->
+                  <path d="M 0,160 L 60,150 L 120,140 L 180,150 L 240,120 L 300,130 L 360,100 L 420,110 L 480,80 L 540,90 L 600,60 L 600,200 L 0,200 Z" fill="var(--b-50)" />
+                  <polyline fill="none" stroke="var(--b-500)" stroke-width="2" points="0,160 60,150 120,140 180,150 240,120 300,130 360,100 420,110 480,80 540,90 600,60"/>
+                  <circle cx="600" cy="60" r="4" fill="var(--b-500)" stroke="var(--bg-elev)" stroke-width="2"/>
+                </svg>
+                <div class="ch-bottom"><span>01 OUT</span><span>08 OUT</span><span>15 OUT</span><span>22 OUT</span><span>29 OUT</span></div>
+              </div>
+
+              <div class="chart-card">
+                <div class="ch-top">
+                  <h3>Alocação por classe</h3>
+                  <div class="meta">% do AUM</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:14px">
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:12px;margin-bottom:5px"><span>Renda Fixa</span><span>42,1%</span></div>
+                    <div style="height:6px;background:var(--bg-deep);border-radius:99px;overflow:hidden"><div style="height:100%;width:42.1%;background:var(--b-500)"></div></div>
+                  </div>
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:12px;margin-bottom:5px"><span>Ações BR</span><span>28,6%</span></div>
+                    <div style="height:6px;background:var(--bg-deep);border-radius:99px;overflow:hidden"><div style="height:100%;width:28.6%;background:var(--b-500)"></div></div>
+                  </div>
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:12px;margin-bottom:5px"><span>FIIs</span><span>14,8%</span></div>
+                    <div style="height:6px;background:var(--bg-deep);border-radius:99px;overflow:hidden"><div style="height:100%;width:14.8%;background:var(--b-500)"></div></div>
+                  </div>
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:12px;margin-bottom:5px"><span>Internacional</span><span>14,5%</span></div>
+                    <div style="height:6px;background:var(--bg-deep);border-radius:99px;overflow:hidden"><div style="height:100%;width:14.5%;background:var(--b-500)"></div></div>
+                  </div>
+                </div>
+                <div style="border-top:1px solid var(--line);padding-top:10px;font-family:var(--f-mono);font-size:11px;color:var(--fg-mute);display:flex;justify-content:space-between">
+                  <span>Total</span><span style="color:var(--fg)">100,0% · R$ 1.094.029</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== Intranet preview ============== -->
+    <section class="sec">
+      <div class="sec-head">
+        <div>
+          <span class="num">07 / PATTERNS</span>
+          <h2>Intranet · feed institucional</h2>
+        </div>
+        <div class="lead">Padrão para comunicação interna: feed cronológico com data tipográfica, autor e categoria, mais cards de pessoas e estados de exceção.</div>
+      </div>
+
+      <div class="cols-2" style="align-items:start">
+        <div>
+          <div class="eyebrow" style="margin-bottom:10px">Comunicados recentes</div>
+          <div class="feed">
+            <div class="item">
+              <div class="date"><b>29</b>OUT</div>
+              <div>
+                <div class="ttl">Reunião trimestral · resultados Q3 e prioridades Q4</div>
+                <div class="meta"><span>Vitor Baqueiro</span><span>· Estratégia</span><span>· 6 min de leitura</span></div>
+              </div>
+              <span class="bg info">Novo</span>
+            </div>
+            <div class="item">
+              <div class="date"><b>27</b>OUT</div>
+              <div>
+                <div class="ttl">Política atualizada de compliance — operações internacionais</div>
+                <div class="meta"><span>Jurídico</span><span>· Obrigatório</span><span>· Até 15/Nov</span></div>
+              </div>
+              <span class="bg warn">Ação</span>
+            </div>
+            <div class="item">
+              <div class="date"><b>24</b>OUT</div>
+              <div>
+                <div class="ttl">Boas-vindas: 7 novos colaboradores na regional Campinas</div>
+                <div class="meta"><span>People &amp; Culture</span><span>· Pessoas</span></div>
+              </div>
+              <span class="bg">Cultura</span>
+            </div>
+            <div class="item">
+              <div class="date"><b>22</b>OUT</div>
+              <div>
+                <div class="ttl">Prêmio Top Assessores 2026 — Nobel entre os 5 maiores</div>
+                <div class="meta"><span>Comunicação</span><span>· Conquistas</span></div>
+              </div>
+              <span class="bg pos">+1 selo</span>
+            </div>
+            <div class="item">
+              <div class="date"><b>18</b>OUT</div>
+              <div>
+                <div class="ttl">Treinamento obrigatório de cibersegurança · Semana 44</div>
+                <div class="meta"><span>TI</span><span>· Treinamento</span><span>· 45 min</span></div>
+              </div>
+              <span class="bg warn">Pendente</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="eyebrow" style="margin-bottom:10px">Aniversariantes &amp; ramais</div>
+          <div class="people">
+            <div class="pcard">
+              <div class="av">RF</div>
+              <div><div class="nm">Roberta Figueira</div><div class="rl">Head Comercial</div></div>
+              <div class="stat-row"><span class="bg pos">Hoje</span><span class="bg">SP · 12º</span></div>
+            </div>
+            <div class="pcard">
+              <div class="av">LV</div>
+              <div><div class="nm">Luís Valente</div><div class="rl">Sócio · Operações</div></div>
+              <div class="stat-row"><span class="bg">SP · 12º</span></div>
+            </div>
+            <div class="pcard">
+              <div class="av">MS</div>
+              <div><div class="nm">Marina Souza</div><div class="rl">Backoffice</div></div>
+              <div class="stat-row"><span class="bg">Campinas</span></div>
+            </div>
+            <div class="pcard">
+              <div class="av">RD</div>
+              <div><div class="nm">Ronan Damante</div><div class="rl">Head Patrimonial</div></div>
+              <div class="stat-row"><span class="bg">SP · 12º</span></div>
+            </div>
+          </div>
+
+          <div class="eyebrow" style="margin:24px 0 10px">Estados de exceção</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div class="state-card" style="padding:18px">
+              <div class="ic">∅</div>
+              <div style="font-weight:600">Nenhum comunicado nesta semana</div>
+              <div style="color:var(--fg-mute);font-size:12.5px;max-width:30ch">Você verá aqui novidades de estratégia, RH e comunicação assim que forem publicadas.</div>
+            </div>
+            <div style="background:var(--bg-elev);border:1px solid var(--line);border-radius:var(--r-3);padding:14px;display:flex;flex-direction:column;gap:8px">
+              <div class="eyebrow">Loading state</div>
+              <div class="skeleton" style="width:60%"></div>
+              <div class="skeleton" style="width:90%"></div>
+              <div class="skeleton" style="width:75%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============== Notes ============== -->
+    <section class="sec" style="border-bottom:0">
+      <div class="sec-head">
+        <div>
+          <span class="num">08 / NOTES</span>
+          <h2>Faça &amp; não faça</h2>
+        </div>
+        <div class="lead">Diferenças deliberadas em relação ao DS editorial: estética operacional troca expressão por consistência e eficiência.</div>
+      </div>
+
+      <div class="cols-2">
+        <div style="background:var(--bg-elev);border:1px solid var(--line);border-radius:var(--r-3);padding:18px">
+          <div class="eyebrow" style="color:var(--pos-fg)">✓ Faça</div>
+          <ul style="margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;color:var(--fg-mute);font-size:13.5px">
+            <li>— Use Inter Tight para tudo que é ação ou label.</li>
+            <li>— Use mono em qualquer número, ticker, código ou data.</li>
+            <li>— Use o azul de sistema como única cor de ação.</li>
+            <li>— Use cores semânticas só para dado financeiro e estado.</li>
+            <li>— Mantenha tabelas sem zebra; use hover para localização.</li>
+            <li>— Prefira ícones em outline simples (1px, 14–16px).</li>
+          </ul>
+        </div>
+        <div style="background:var(--bg-elev);border:1px solid var(--line);border-radius:var(--r-3);padding:18px">
+          <div class="eyebrow" style="color:var(--neg-fg)">✕ Não faça</div>
+          <ul style="margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;color:var(--fg-mute);font-size:13.5px">
+            <li>— Não use Cormorant em interface de produto.</li>
+            <li>— Não use ouro para botões, links ou estados.</li>
+            <li>— Não use sombras pronunciadas — eleva com 1px line.</li>
+            <li>— Não use raios maiores que 8px.</li>
+            <li>— Não misture verde e ouro na mesma tela.</li>
+            <li>— Não use itálico serifado; reserve para a comunicação institucional.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <footer style="padding:24px 0;color:var(--fg-mute);font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;border-top:1px solid var(--line)">
+      <div>NOBEL · OPERATIONAL SYSTEM v.1</div>
+      <div>8 SEÇÕES · LIGHT/DARK · COMPACT/BALANCED/COZY</div>
+      <div>EDITION 2026 · pt-BR</div>
+    </footer>
+  </div>
+</div>
+
+<script>
+  // theme + density toggles
+  const root = document.body;
+  document.querySelectorAll('#theme-tg button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#theme-tg button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    root.dataset.theme = b.dataset.v;
+  }));
+  document.querySelectorAll('#density-tg button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#density-tg button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    root.dataset.density = b.dataset.v;
+  }));
+  // segmented demo
+  document.querySelectorAll('.seg').forEach(seg => {
+    seg.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+      seg.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+    }));
+  });
+  // swap logo color in dark theme
+  const obs = new MutationObserver(()=>{
+    const dark = root.dataset.theme === 'dark';
+    document.querySelectorAll('#brand-logo, .brand-mini img').forEach(img=>{
+      img.src = dark ? 'assets/logo-lockup-ivory.png' : 'assets/logo-lockup.png';
+    });
+  });
+  obs.observe(root, {attributes:true, attributeFilter:['data-theme']});
+</script>
+</body>
+</html>

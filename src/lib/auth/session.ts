@@ -14,7 +14,8 @@ export interface SessionPayload {
   userId: string
   username: string
   name: string
-  role: 'admin' | 'member'
+  role: 'admin' | 'master' | 'lider' | 'assessor'
+  equipe?: string
   email: string
   exp: number
 }

@@ -11,8 +11,10 @@ type DeepDiveCaptacao = {
 }
 
 type Props = {
-  captacao: { bruta: number; resgates: number; liquida: number }
-  mesLabel: string
+  captacao:    { bruta: number; resgates: number; liquida: number }
+  mesLabel:    string
+  filterType?:  string
+  filterValue?: string
 }
 
 function fBRL(val: number): string {
@@ -26,9 +28,10 @@ function fBRL(val: number): string {
 
 const pill = (up: boolean): React.CSSProperties => ({
   display: 'inline-flex', alignItems: 'center', gap: 3,
-  fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 20,
-  background: up ? 'rgba(22,163,74,0.1)' : 'rgba(220,38,38,0.1)',
-  color: up ? '#16a34a' : '#dc2626',
+  fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 'var(--r-pill)',
+  background: 'transparent',
+  border: up ? '1px solid var(--color-positive)' : '1px solid var(--color-negative)',
+  color: up ? 'var(--color-positive)' : 'var(--color-negative)',
 })
 
 function DeepDiveTable({
@@ -45,31 +48,31 @@ function DeepDiveTable({
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead>
           <tr>
-            <th style={{ fontSize: 10, color: 'rgba(26,18,9,0.38)', textAlign: 'left', paddingBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <th style={{ fontSize: 11, color: 'var(--fg-faint)', textAlign: 'left', paddingBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.14em', fontFamily: 'var(--f-mono)' }}>
               Cliente
             </th>
-            <th style={{ fontSize: 10, color: 'rgba(26,18,9,0.38)', textAlign: 'right', paddingBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            <th style={{ fontSize: 11, color: 'var(--fg-faint)', textAlign: 'right', paddingBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.14em', fontFamily: 'var(--f-mono)' }}>
               Valor
             </th>
           </tr>
         </thead>
         <tbody>
           {dados.map((r, i) => (
-            <tr key={r.id_cliente} style={{ borderTop: '1px solid rgba(184,150,62,0.07)' }}>
+            <tr key={r.id_cliente} style={{ borderTop: '1px solid var(--line)' }}>
               <td style={{ padding: '7px 0', fontSize: 12 }}>
-                <span style={{ fontWeight: 500, color: '#1A1209', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 200 }}>
+                <span style={{ fontWeight: 500, color: 'var(--fg)', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 200 }}>
                   {r.nome_cliente ?? `Cliente ${r.id_cliente}`}
                 </span>
-                <span style={{ fontSize: 10, color: 'rgba(26,18,9,0.35)' }}>#{r.id_cliente}</span>
+                <span style={{ fontSize: 10, color: 'var(--fg-faint)' }}>#{r.id_cliente}</span>
               </td>
-              <td style={{ padding: '7px 0', textAlign: 'right', fontSize: 13, fontWeight: 600, color: cor }}>
+              <td style={{ padding: '7px 0', textAlign: 'right', fontSize: 13, fontWeight: 600, color: cor, fontFamily: 'var(--f-mono)' }}>
                 {fBRL(r.valor)}
               </td>
             </tr>
           ))}
           {dados.length === 0 && (
             <tr>
-              <td colSpan={2} style={{ padding: '16px 0', fontSize: 12, color: 'rgba(26,18,9,0.35)', textAlign: 'center' }}>
+              <td colSpan={2} style={{ padding: '16px 0', fontSize: 12, color: 'var(--fg-faint)', textAlign: 'center' }}>
                 Sem movimentações no mês
               </td>
             </tr>
@@ -80,11 +83,11 @@ function DeepDiveTable({
   )
 }
 
-export function BlocoCaptacao({ captacao, mesLabel }: Props) {
-  const [open, setOpen]     = useState(false)
+export function BlocoCaptacao({ captacao, mesLabel, filterType, filterValue }: Props) {
+  const [open, setOpen]       = useState(false)
   const [loading, setLoading] = useState(false)
-  const [dados, setDados]   = useState<DeepDiveCaptacao | null>(null)
-  const [erro, setErro]     = useState(false)
+  const [dados, setDados]     = useState<DeepDiveCaptacao | null>(null)
+  const [erro, setErro]       = useState(false)
 
   async function toggle() {
     if (open) { setOpen(false); return }
@@ -93,7 +96,11 @@ export function BlocoCaptacao({ captacao, mesLabel }: Props) {
     setLoading(true)
     setErro(false)
     try {
-      const res = await fetch('/api/performance/deepdive/captacao')
+      const qs = new URLSearchParams()
+      if (filterType)  qs.set('filter_type',  filterType)
+      if (filterValue) qs.set('filter_value', filterValue)
+      const url = `/api/performance/deepdive/captacao${qs.size ? `?${qs}` : ''}`
+      const res = await fetch(url)
       if (!res.ok) throw new Error()
       const json = await res.json() as { data: DeepDiveCaptacao }
       setDados(json.data)
@@ -113,21 +120,21 @@ export function BlocoCaptacao({ captacao, mesLabel }: Props) {
 
   return (
     <div style={{
-      background: '#fff', borderRadius: 10, marginBottom: 20,
-      border: '1px solid rgba(184,150,62,0.12)',
-      boxShadow: '0 1px 4px rgba(26,18,9,0.05)',
+      background: 'var(--bg-elev)', borderRadius: 8, marginBottom: 20,
+      border: '1px solid var(--line)',
+      boxShadow: '0 1px 4px var(--n-50)',
     }}>
       {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '14px 20px 12px',
-        borderBottom: '1px solid rgba(184,150,62,0.09)', background: '#FDFAF5',
-        borderRadius: open ? '10px 10px 0 0' : 10,
+        borderBottom: '1px solid var(--line)', background: 'var(--bg-deep)',
+        borderRadius: open ? '8px 8px 0 0' : 8,
       }}>
-        <span style={{ fontFamily: 'var(--font-lora, serif)', fontSize: 14, fontWeight: 500, color: '#1A1209' }}>
+        <span style={{ fontFamily: 'var(--f-text)', fontSize: 13, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em' }}>
           Captação — {mesLabel}
         </span>
-        <span style={{ fontSize: 11, color: 'rgba(26,18,9,0.35)' }}>mês corrente</span>
+        <span style={{ fontSize: 11, color: 'var(--fg-faint)' }}>mês corrente</span>
       </div>
 
       {/* KPI row */}
@@ -138,23 +145,23 @@ export function BlocoCaptacao({ captacao, mesLabel }: Props) {
             onClick={item.clickable ? toggle : undefined}
             style={{
               padding: '0 18px',
-              borderLeft: i > 0 ? '1px solid rgba(184,150,62,0.1)' : 'none',
+              borderLeft: i > 0 ? '1px solid var(--line)' : 'none',
               cursor: item.clickable ? 'pointer' : 'default',
               borderRadius: 8,
               transition: 'background 0.15s',
             }}
-            onMouseEnter={e => { if (item.clickable) e.currentTarget.style.background = 'rgba(184,150,62,0.04)' }}
+            onMouseEnter={e => { if (item.clickable) e.currentTarget.style.background = 'var(--n-50)' }}
             onMouseLeave={e => { if (item.clickable) e.currentTarget.style.background = 'transparent' }}
           >
-            <p style={{ fontSize: 10, color: 'rgba(26,18,9,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
+            <p style={{ fontSize: 10, color: 'var(--fg-faint)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 6 }}>
               {item.label}
               {item.clickable && (
-                <span style={{ marginLeft: 6, fontSize: 12, fontWeight: 600, color: '#B8963E' }}>
+                <span style={{ marginLeft: 6, fontSize: 12, fontWeight: 600, color: 'var(--c-gold)' }}>
                   {loading ? '...' : open ? '▲' : '▼'}
                 </span>
               )}
             </p>
-            <p style={{ fontFamily: 'var(--font-lora, serif)', fontSize: 22, fontWeight: 600, color: '#1A1209', marginBottom: 6 }}>
+            <p style={{ fontFamily: 'var(--f-mono)', fontSize: 28, fontWeight: 600, color: 'var(--fg)', marginBottom: 6 }}>
               {fBRL(item.value)}
             </p>
             <span style={pill(item.up)}>
@@ -167,23 +174,23 @@ export function BlocoCaptacao({ captacao, mesLabel }: Props) {
       {/* Deepdive painel */}
       {open && dados && (
         <div style={{
-          borderTop: '1px solid rgba(184,150,62,0.09)',
+          borderTop: '1px solid var(--line)',
           padding: '20px 28px 24px',
-          background: '#FDFAF5',
-          borderRadius: '0 0 10px 10px',
+          background: 'var(--bg-deep)',
+          borderRadius: '0 0 8px 8px',
         }}>
-          <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(26,18,9,0.38)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>
+          <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--fg-faint)', textTransform: 'uppercase', letterSpacing: '0.14em', fontFamily: 'var(--f-mono)', marginBottom: 16 }}>
             Deepdive — {dados.mesLabel}
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40 }}>
-            <DeepDiveTable titulo="Maiores Aportes" dados={dados.aportes}  cor="#16a34a" />
-            <DeepDiveTable titulo="Maiores Resgates" dados={dados.resgates} cor="#dc2626" />
+            <DeepDiveTable titulo="Maiores Aportes" dados={dados.aportes}  cor="var(--color-positive)" />
+            <DeepDiveTable titulo="Maiores Resgates" dados={dados.resgates} cor="var(--color-negative)" />
           </div>
         </div>
       )}
 
       {erro && (
-        <div style={{ padding: '12px 24px', color: '#dc2626', fontSize: 12, borderTop: '1px solid rgba(220,38,38,0.1)' }}>
+        <div style={{ padding: '12px 24px', color: 'var(--color-negative)', fontSize: 12, borderTop: '1px solid var(--color-negative)' }}>
           Erro ao carregar detalhes. Tente novamente.
         </div>
       )}

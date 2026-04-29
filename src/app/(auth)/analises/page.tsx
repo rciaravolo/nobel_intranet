@@ -2,6 +2,7 @@ import { requireSession } from '@/lib/auth/session'
 import { BlocoCaptacao } from './_components/BlocoCaptacao'
 import { BlocoReceita } from './_components/BlocoReceita'
 import { BlocoMetas } from './_components/BlocoMetas'
+import { AnalisesFilters } from './_components/AnalisesFilters'
 
 /* ─── Tipos ──────────────────────────────────────────────────────────────── */
 
@@ -115,22 +116,40 @@ function varRoaBp(cur: number | null, prev: number | null): { label: string; up:
 
 /* ─── Fetch ──────────────────────────────────────────────────────────────── */
 
-function perfHeaders(email: string, role: string, secret: string) {
+function perfHeaders(
+  email: string,
+  role: string,
+  equipe: string | undefined,
+  secret: string,
+  filterType?: string,
+  filterValue?: string,
+) {
   return {
-    Authorization:  `Bearer ${secret}`,
-    'X-User-Email': email,
-    'X-User-Role':  role,
+    Authorization:   `Bearer ${secret}`,
+    'X-User-Email':  email,
+    'X-User-Role':   role,
+    'X-User-Equipe': equipe ?? '',
+    ...(filterType  ? { 'X-Filter-Type':  filterType  } : {}),
+    ...(filterValue ? { 'X-Filter-Value': filterValue } : {}),
   }
 }
 
-async function getOnepage(email: string, role: string): Promise<OnepagePayload | null> {
+type FetchOpts = {
+  email: string
+  role: string
+  equipe: string | undefined
+  filterType?: string
+  filterValue?: string
+}
+
+async function getOnepage(opts: FetchOpts): Promise<OnepagePayload | null> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL
   const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
   if (!apiUrl) return null
   try {
     const res = await fetch(`${apiUrl}/performance/onepage`, {
       cache: 'no-store',
-      headers: perfHeaders(email, role, secret),
+      headers: perfHeaders(opts.email, opts.role, opts.equipe, secret, opts.filterType, opts.filterValue),
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const json = await res.json() as { data: OnepagePayload }
@@ -140,13 +159,13 @@ async function getOnepage(email: string, role: string): Promise<OnepagePayload |
   }
 }
 
-async function getMetas(email: string, role: string): Promise<MetasPayload | null> {
+async function getMetas(opts: FetchOpts): Promise<MetasPayload | null> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL
   const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
   if (!apiUrl) return null
   try {
     const res = await fetch(`${apiUrl}/performance/metas`, {
-      headers: perfHeaders(email, role, secret),
+      headers: perfHeaders(opts.email, opts.role, opts.equipe, secret, opts.filterType, opts.filterValue),
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const json = await res.json() as { data: MetasPayload }
@@ -156,14 +175,14 @@ async function getMetas(email: string, role: string): Promise<MetasPayload | nul
   }
 }
 
-async function getHistorico(email: string, role: string): Promise<HistoricoPayload | null> {
+async function getHistorico(opts: FetchOpts): Promise<HistoricoPayload | null> {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL
   const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
   if (!apiUrl) return null
   try {
     const res = await fetch(`${apiUrl}/performance/historico`, {
       cache: 'no-store',
-      headers: perfHeaders(email, role, secret),
+      headers: perfHeaders(opts.email, opts.role, opts.equipe, secret, opts.filterType, opts.filterValue),
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const json = await res.json() as { data: HistoricoPayload }
@@ -173,34 +192,63 @@ async function getHistorico(email: string, role: string): Promise<HistoricoPaylo
   }
 }
 
+type AssessoresPayload = {
+  equipes: string[]
+  assessores: { id_assessor: string; nome_assessor: string | null; equipe: string }[]
+}
+
+async function getAssessores(role: string, email: string): Promise<AssessoresPayload | null> {
+  if (role !== 'admin' && role !== 'master') return null
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+  const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
+  if (!apiUrl) return null
+  try {
+    const res = await fetch(`${apiUrl}/performance/assessores`, {
+      cache: 'no-store',
+      headers: {
+        Authorization:  `Bearer ${secret}`,
+        'X-User-Role':  role,
+        'X-User-Email': email,
+      },
+    })
+    if (!res.ok) return null
+    const json = await res.json() as { data: AssessoresPayload }
+    return json.data
+  } catch {
+    return null
+  }
+}
+
 /* ─── Estilos ────────────────────────────────────────────────────────────── */
 
 const card: React.CSSProperties = {
-  background: '#fff',
-  borderRadius: 10,
-  border: '1px solid rgba(184,150,62,0.12)',
-  boxShadow: '0 1px 4px rgba(26,18,9,0.05)',
+  background: 'var(--bg-elev)',
+  borderRadius: 8,
+  border: '1px solid var(--line)',
+  boxShadow: 'var(--e-1)',
 }
 
 const cardPad: React.CSSProperties = { padding: '22px 24px' }
 
 const label: React.CSSProperties = {
-  fontSize: 10, color: 'rgba(26,18,9,0.38)',
-  textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10,
+  fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--fg-faint)',
+  textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 10,
 }
 
 const valor: React.CSSProperties = {
-  fontFamily: 'var(--font-lora, serif)', fontSize: 30, fontWeight: 600,
-  color: '#1A1209', marginBottom: 8, lineHeight: 1,
+  fontFamily: 'var(--f-mono)', fontSize: 30, fontWeight: 500,
+  color: 'var(--fg)', marginBottom: 8, lineHeight: 1,
+  fontFeatureSettings: "'tnum'",
 }
 
 const pill = (up?: boolean): React.CSSProperties => ({
   display: 'inline-flex', alignItems: 'center', gap: 3,
-  fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 20,
-  background: up == null
-    ? 'rgba(26,18,9,0.05)'
-    : up ? 'rgba(22,163,74,0.1)' : 'rgba(220,38,38,0.1)',
-  color: up == null ? 'rgba(26,18,9,0.45)' : up ? '#16a34a' : '#dc2626',
+  fontFamily: 'var(--f-mono)', fontSize: 11, fontWeight: 500,
+  padding: '2px 10px', borderRadius: 'var(--r-pill)',
+  border: '1px solid',
+  borderColor: up == null ? 'var(--line-strong)' : up ? 'var(--color-positive)' : 'var(--color-negative)',
+  background: 'transparent',
+  color: up == null ? 'var(--fg-mute)' : up ? 'var(--color-positive)' : 'var(--color-negative)',
 })
 
 /* ─── Page ───────────────────────────────────────────────────────────────── */
@@ -220,15 +268,15 @@ type HistTableProps = {
 
 function HistTable({ title, subtitle, rows, getValue, format, varFn, total25, total26 }: HistTableProps) {
   const thStyle: React.CSSProperties = {
-    fontSize: 10, fontWeight: 600, color: 'rgba(26,18,9,0.38)',
-    textTransform: 'uppercase', letterSpacing: '0.08em',
-    padding: '8px 12px', textAlign: 'right', background: '#FDFAF5',
-    borderBottom: '1px solid rgba(184,150,62,0.09)',
+    fontFamily: 'var(--f-mono)', fontSize: 11, fontWeight: 500, color: 'var(--fg-faint)',
+    textTransform: 'uppercase', letterSpacing: '0.14em',
+    padding: '8px 12px', textAlign: 'right', background: 'var(--bg-deep)',
+    borderBottom: '1px solid var(--line)',
   }
   const thLeft: React.CSSProperties = { ...thStyle, textAlign: 'left' }
   const tdStyle: React.CSSProperties = {
-    fontSize: 12, padding: '7px 12px', textAlign: 'right',
-    color: '#1A1209', borderBottom: '1px solid rgba(184,150,62,0.06)',
+    fontFamily: 'var(--f-mono)', fontSize: 12, padding: '7px 12px', textAlign: 'right',
+    color: 'var(--fg)', borderBottom: '1px solid var(--line)',
   }
   const tdLeft: React.CSSProperties = { ...tdStyle, textAlign: 'left', fontWeight: 500 }
 
@@ -248,20 +296,20 @@ function HistTable({ title, subtitle, rows, getValue, format, varFn, total25, to
 
   return (
     <div style={{
-      background: '#fff', borderRadius: 10,
-      border: '1px solid rgba(184,150,62,0.12)',
-      boxShadow: '0 1px 4px rgba(26,18,9,0.05)',
+      background: 'var(--bg-elev)', borderRadius: 8,
+      border: '1px solid var(--line)',
+      boxShadow: 'var(--e-1)',
       overflow: 'hidden',
     }}>
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '14px 20px 12px',
-        borderBottom: '1px solid rgba(184,150,62,0.09)', background: '#FDFAF5',
+        borderBottom: '1px solid var(--line)', background: 'var(--bg-deep)',
       }}>
-        <span style={{ fontFamily: 'var(--font-lora, serif)', fontSize: 14, fontWeight: 500, color: '#1A1209' }}>
+        <span style={{ fontFamily: 'var(--f-text)', fontSize: 13, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em' }}>
           {title}
         </span>
-        <span style={{ fontSize: 11, color: 'rgba(26,18,9,0.35)' }}>{subtitle}</span>
+        <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--fg-faint)' }}>{subtitle}</span>
       </div>
 
       <div style={{ overflowX: 'auto' }}>
@@ -282,7 +330,7 @@ function HistTable({ title, subtitle, rows, getValue, format, varFn, total25, to
               const yoy = varFn(v26, v25)
               const isLastRow = i === rows.length - 1
               return (
-                <tr key={row.mes} style={{ background: i % 2 === 0 ? '#fff' : 'rgba(184,150,62,0.02)' }}>
+                <tr key={row.mes}>
                   <td style={{ ...tdLeft, borderBottom: isLastRow ? 'none' : tdStyle.borderBottom, textTransform: 'capitalize' }}>
                     {row.label}
                   </td>
@@ -296,7 +344,7 @@ function HistTable({ title, subtitle, rows, getValue, format, varFn, total25, to
                     ...tdStyle,
                     borderBottom: isLastRow ? 'none' : tdStyle.borderBottom,
                     fontWeight: 500,
-                    color: mom.up == null ? 'rgba(26,18,9,0.38)' : mom.up ? '#16a34a' : '#dc2626',
+                    color: mom.up == null ? 'var(--fg-faint)' : mom.up ? 'var(--color-positive)' : 'var(--color-negative)',
                   }}>
                     {mom.label}
                   </td>
@@ -304,7 +352,7 @@ function HistTable({ title, subtitle, rows, getValue, format, varFn, total25, to
                     ...tdStyle,
                     borderBottom: isLastRow ? 'none' : tdStyle.borderBottom,
                     fontWeight: 500,
-                    color: yoy.up == null ? 'rgba(26,18,9,0.38)' : yoy.up ? '#16a34a' : '#dc2626',
+                    color: yoy.up == null ? 'var(--fg-faint)' : yoy.up ? 'var(--color-positive)' : 'var(--color-negative)',
                   }}>
                     {yoy.label}
                   </td>
@@ -316,18 +364,18 @@ function HistTable({ title, subtitle, rows, getValue, format, varFn, total25, to
             {(total25 != null || total26 != null) && (() => {
               const totYoy = varFn(total26 ?? null, total25 ?? null)
               return (
-                <tr style={{ background: '#FDFAF5', borderTop: '2px solid rgba(184,150,62,0.12)' }}>
+                <tr style={{ background: 'var(--bg-deep)', borderTop: '2px solid var(--line-strong)' }}>
                   <td style={{ ...tdLeft, fontWeight: 700, borderBottom: 'none', fontSize: 12 }}>Total</td>
-                  <td style={{ ...tdStyle, fontWeight: 700, borderBottom: 'none', color: 'rgba(26,18,9,0.55)' }}>
+                  <td style={{ ...tdStyle, fontWeight: 700, borderBottom: 'none', color: 'var(--fg-mute)' }}>
                     {format(total25 ?? null)}
                   </td>
                   <td style={{ ...tdStyle, fontWeight: 700, borderBottom: 'none' }}>
                     {format(total26 ?? null)}
                   </td>
-                  <td style={{ ...tdStyle, borderBottom: 'none', color: 'rgba(26,18,9,0.28)' }}>—</td>
+                  <td style={{ ...tdStyle, borderBottom: 'none', color: 'var(--fg-faint)' }}>—</td>
                   <td style={{
                     ...tdStyle, fontWeight: 700, borderBottom: 'none',
-                    color: totYoy.up == null ? 'rgba(26,18,9,0.38)' : totYoy.up ? '#16a34a' : '#dc2626',
+                    color: totYoy.up == null ? 'var(--fg-faint)' : totYoy.up ? 'var(--color-positive)' : 'var(--color-negative)',
                   }}>
                     {totYoy.label}
                   </td>
@@ -343,12 +391,30 @@ function HistTable({ title, subtitle, rows, getValue, format, varFn, total25, to
 
 /* ─── Page ───────────────────────────────────────────────────────────────── */
 
-export default async function AnalisesPage() {
+export default async function AnalisesPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
   const session = await requireSession()
-  const [data, metas, hist] = await Promise.all([
-    getOnepage(session.email, session.role),
-    getMetas(session.email, session.role),
-    getHistorico(session.email, session.role),
+  const sp = await searchParams
+  const filterType  = typeof sp.filter_type  === 'string' ? sp.filter_type  : undefined
+  const filterValue = typeof sp.filter_value === 'string' ? sp.filter_value : undefined
+
+  const canFilter = session.role === 'admin' || session.role === 'master'
+  const opts: FetchOpts = {
+    email:  session.email,
+    role:   session.role,
+    equipe: session.equipe,
+    ...(canFilter && filterType  ? { filterType }  : {}),
+    ...(canFilter && filterValue ? { filterValue } : {}),
+  }
+
+  const [data, metas, hist, assessoresData] = await Promise.all([
+    getOnepage(opts),
+    getMetas(opts),
+    getHistorico(opts),
+    getAssessores(session.role, session.email),
   ])
   const firstName = session.name.split(' ')[0]
 
@@ -366,21 +432,36 @@ export default async function AnalisesPage() {
       {/* ── Header ── */}
       <div className="page-header">
         <div>
-          <p style={{ fontSize: 12, color: 'rgba(26,18,9,0.38)', marginBottom: 5 }}>
+          <p style={{ fontSize: 12, color: 'var(--fg-faint)', marginBottom: 5 }}>
             Posição em {fDataRef(data?.dataRef ?? null)}
           </p>
-          <h1 style={{ fontFamily: 'var(--font-lora, serif)', fontSize: 26, fontWeight: 500, color: '#1A1209' }}>
-            Onepage — <span style={{ color: '#B8963E' }}>{firstName}</span>
+          <h1 style={{ fontFamily: 'var(--f-text)', fontSize: 24, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.02em' }}>
+            Onepage —{' '}
+            <span style={{ color: 'var(--color-b-500)' }}>
+              {filterType === 'equipe' && filterValue
+                ? `Equipe ${filterValue}`
+                : filterType === 'assessor' && assessoresData
+                  ? (assessoresData.assessores.find(a => a.id_assessor === filterValue)?.nome_assessor?.split(' ').slice(0, 2).join(' ') ?? filterValue)
+                  : firstName}
+            </span>
           </h1>
         </div>
       </div>
+
+      {/* ── Filtros (admin / master) ── */}
+      {canFilter && (
+        <AnalisesFilters
+          equipes={assessoresData?.equipes ?? []}
+          assessores={assessoresData?.assessores ?? []}
+        />
+      )}
 
       {/* ── Bloco 1: KPI cards — full width ── */}
       <div className="grid-kpi" style={{ marginBottom: 20 }}>
 
         {/* AuM */}
         <div style={{ ...card, position: 'relative' }}>
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, #B8963E, #D4A96A)' }} />
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'var(--c-gold)' }} />
           <div style={cardPad}>
             <p style={label}>Custódia (AuM)</p>
             <p style={valor}>{fBRL(aum)}</p>
@@ -419,25 +500,42 @@ export default async function AnalisesPage() {
 
       </div>
 
-      {/* ── Layout de duas colunas: conteúdo principal + sidebar metas ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 20, alignItems: 'start' }}>
+      {/* ── Layout: duas colunas para admin/master/lider, coluna única para assessor ── */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: session.role !== 'assessor' ? '1fr 380px' : '1fr',
+        gap: 20,
+        alignItems: 'start',
+      }}>
 
         {/* Coluna principal */}
         <div>
-          {/* Captação */}
-          <BlocoCaptacao captacao={captacao} mesLabel={data?.mesLabel ?? ''} />
+          {/* Captação — key força remount ao mudar filtro, limpando cache */}
+          <BlocoCaptacao
+            key={`captacao-${filterType ?? ''}-${filterValue ?? ''}`}
+            captacao={captacao}
+            mesLabel={data?.mesLabel ?? ''}
+            {...(canFilter && filterType  ? { filterType }  : {})}
+            {...(canFilter && filterValue ? { filterValue } : {})}
+          />
 
-          {/* Receita por Produto */}
-          <BlocoReceita porProduto={receita.porProduto} receitaTotal={receita.total} />
+          {/* Receita por Produto — key força remount ao mudar filtro, limpando cache */}
+          <BlocoReceita
+            key={`receita-${filterType ?? ''}-${filterValue ?? ''}`}
+            porProduto={receita.porProduto}
+            receitaTotal={receita.total}
+            {...(canFilter && filterType  ? { filterType }  : {})}
+            {...(canFilter && filterValue ? { filterValue } : {})}
+          />
 
           {/* Histórico */}
           {histRows.length > 0 && (
             <>
               <div style={{ marginBottom: 12 }}>
-                <p style={{ fontFamily: 'var(--font-lora, serif)', fontSize: 18, fontWeight: 500, color: '#1A1209' }}>
+                <p style={{ fontFamily: 'var(--f-text)', fontSize: 14, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em' }}>
                   Histórico
                 </p>
-                <p style={{ fontSize: 12, color: 'rgba(26,18,9,0.38)', marginTop: 3 }}>
+                <p style={{ fontSize: 12, color: 'var(--fg-faint)', marginTop: 3 }}>
                   Comparativo mensal 2025 vs 2026
                 </p>
               </div>
@@ -487,10 +585,12 @@ export default async function AnalisesPage() {
           )}
         </div>
 
-        {/* Sidebar — Metas (sticky) */}
-        <div style={{ position: 'sticky', top: 24 }}>
-          <BlocoMetas dados={metas} compact />
-        </div>
+        {/* Sidebar — Metas (sticky) — oculto para assessor */}
+        {session.role !== 'assessor' && (
+          <div style={{ position: 'sticky', top: 24 }}>
+            <BlocoMetas dados={metas} compact />
+          </div>
+        )}
 
       </div>
 

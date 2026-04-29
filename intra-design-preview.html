@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INTRA — Nobel Capital · Design Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════
+   NOBEL DESIGN SYSTEM — tokens exatos do globals.css
+   ═══════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --f-display: "Cormorant Garamond", "Times New Roman", serif;
+  --f-text:    "Inter Tight", "Inter", system-ui, sans-serif;
+  --f-mono:    "JetBrains Mono", ui-monospace, monospace;
+
+  --bg:          #FBFAF8;
+  --bg-elev:     #FFFFFF;
+  --bg-deep:     #F6F4F0;
+  --fg:          #1A1812;
+  --fg-mute:     #65604F;
+  --fg-faint:    #8E8775;
+  --line:        #D4CEC1;
+  --line-strong: #B8B1A2;
+
+  --c-gold:      #C9A961;
+  --c-gold-deep: #A8893B;
+  --c-gold-soft: #DFC896;
+  --c-midnight:  #111827;
+
+  --n-25:  #FBFAF8;
+  --n-50:  #F6F4F0;
+  --n-100: #EEEAE2;
+  --n-200: #D4CEC1;
+  --n-300: #B8B1A2;
+  --n-400: #8E8775;
+  --n-500: #65604F;
+  --n-700: #2E2C24;
+  --n-800: #1A1812;
+
+  --b-50:  #E8F0FA;
+  --b-100: #C8DBF1;
+  --b-300: #84AAE0;
+  --b-500: #6094D6;
+  --b-600: #4978B5;
+  --b-700: #2F5588;
+
+  --positive:    #3E8C5C;
+  --positive-bg: #E8F1EA;
+  --negative:    #C4453A;
+  --negative-bg: #FBE9E7;
+  --warning:     #8A5A12;
+  --warning-bg:  #FBF1DE;
+
+  --r-0:    0;
+  --r-1:    2px;
+  --r-2:    4px;
+  --r-3:    8px;
+  --r-pill: 999px;
+
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
+  --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px;
+
+  --e-1:     0 1px 2px rgba(14,26,43,.04), 0 1px 3px rgba(14,26,43,.05), 0 0 0 1px var(--line);
+  --e-2:     0 2px 4px rgba(14,26,43,.05), 0 8px 18px rgba(14,26,43,.08), 0 0 0 1px var(--line);
+  --e-float: 0 1px 2px rgba(14,26,43,.06), 0 6px 14px rgba(14,26,43,.07), 0 18px 32px rgba(14,26,43,.06);
+  --e-float-hover: 0 2px 4px rgba(14,26,43,.08), 0 10px 22px rgba(14,26,43,.10), 0 28px 48px rgba(14,26,43,.10);
+}
+
+html, body { height: 100%; }
+body {
+  font-family: var(--f-text);
+  font-size: 13.5px;
+  line-height: 1.55;
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Shell ──────────────────────────────────────────────────── */
+.shell { display: flex; height: 100vh; overflow: hidden; background: var(--bg-deep); }
+
+/* ── Sidebar ──────────────────────────────────────────────── */
+.sidebar {
+  width: 248px;
+  flex-shrink: 0;
+  background: var(--bg-elev);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.sidebar-logo {
+  padding: 20px 20px 18px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 68px;
+}
+.nobel-mono {
+  width: 30px; height: 30px;
+  border: 1.5px solid var(--c-gold);
+  display: grid; place-items: center;
+  position: relative; flex-shrink: 0;
+}
+.nobel-mono-vline {
+  position: absolute;
+  top: 10%; bottom: 10%; left: 50%;
+  width: 1px;
+  background: var(--c-gold);
+  transform: translateX(-50%);
+  opacity: 0.5;
+}
+.nobel-mono-n {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 23px;
+  line-height: 1;
+  color: var(--fg);
+  position: relative; z-index: 1;
+}
+.wordmark { display: flex; flex-direction: column; gap: 4px; }
+.wordmark-nobel {
+  font-family: var(--f-display);
+  font-weight: 500; font-size: 15px;
+  letter-spacing: .30em; line-height: 1;
+  color: var(--fg);
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--c-gold);
+  text-indent: .30em;
+}
+.wordmark-capital {
+  font-family: var(--f-display);
+  font-weight: 400; font-size: 8px;
+  letter-spacing: .34em; line-height: 1;
+  color: var(--fg-mute);
+  text-indent: .34em;
+}
+.sidebar-nav { flex: 1; padding: 8px; overflow-y: auto; }
+.nav-section-label {
+  font-family: var(--f-mono);
+  font-size: 9px; letter-spacing: .20em;
+  color: var(--fg-faint); text-transform: uppercase;
+  padding: 14px 8px 6px; font-weight: 500;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 8px; border-radius: var(--r-2);
+  text-decoration: none; color: var(--fg-mute);
+  font-size: 13px; font-family: var(--f-text);
+  margin-bottom: 1px; cursor: pointer;
+  transition: background .12s;
+  position: relative;
+}
+.nav-item:hover { background: var(--line); color: var(--fg); }
+.nav-item.active {
+  background: color-mix(in srgb, var(--b-500) 10%, transparent);
+  color: var(--fg); font-weight: 500;
+}
+.nav-item.active::before {
+  content: '';
+  position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 2px; height: 16px;
+  background: var(--b-500);
+  border-radius: 0 2px 2px 0;
+}
+.nav-icon { width: 15px; height: 15px; flex-shrink: 0; }
+.nav-item.active .nav-icon { color: var(--b-500); }
+.nav-divider { height: 1px; background: var(--line); margin: 8px 8px 2px; }
+
+.sidebar-section-op { margin-top: 4px; }
+
+.sidebar-footer {
+  padding: 10px 8px;
+  border-top: 1px solid var(--line);
+}
+.user-btn {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 8px; border-radius: var(--r-2);
+  background: none; border: none; cursor: pointer;
+  width: 100%; text-align: left;
+  transition: background .12s;
+}
+.user-btn:hover { background: var(--line); }
+.user-avatar {
+  width: 30px; height: 30px;
+  border: 1px solid var(--c-gold);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600;
+  color: var(--c-gold-deep); flex-shrink: 0;
+  font-family: var(--f-text);
+  background: color-mix(in srgb, var(--c-gold) 8%, transparent);
+}
+.user-name { font-size: 12px; font-family: var(--f-text); color: var(--fg); font-weight: 500; }
+.user-role { font-family: var(--f-mono); font-size: 9px; color: var(--fg-faint); margin-top: 2px; letter-spacing: .08em; text-transform: uppercase; }
+
+/* ── Content ──────────────────────────────────────────────── */
+.content { flex: 1; overflow-y: auto; padding: var(--s-6); }
+
+/* ── Tabs de preview ─────────────────────────────────────── */
+.preview-tabs { display: flex; gap: 2px; margin-bottom: var(--s-6); border-bottom: 1px solid var(--line); }
+.tab-btn {
+  font-family: var(--f-mono); font-size: 10px; text-transform: uppercase;
+  letter-spacing: .12em; padding: 10px 16px;
+  border: none; background: none; cursor: pointer;
+  color: var(--fg-faint); border-bottom: 2px solid transparent;
+  transition: color .15s, border-color .15s;
+  margin-bottom: -1px;
+}
+.tab-btn:hover { color: var(--fg); }
+.tab-btn.active { color: var(--fg); border-bottom-color: var(--b-500); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── Page header ─────────────────────────────────────────── */
+.page-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-bottom: var(--s-5); flex-wrap: wrap; gap: var(--s-3);
+}
+.page-eyebrow { font-family: var(--f-mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--fg-faint); margin-bottom: 6px; }
+.page-title { font-family: var(--f-display); font-weight: 400; font-size: 28px; line-height: 1.1; color: var(--fg); }
+.page-title em { color: var(--c-gold-deep); font-style: italic; }
+
+/* ── KPI grid ────────────────────────────────────────────── */
+.grid-kpi {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  border: 1px solid var(--line);
+  margin-bottom: var(--s-5);
+  background: var(--bg-elev);
+}
+.kpi-cell {
+  padding: var(--s-5);
+  border-right: 1px solid var(--line);
+  position: relative;
+}
+.kpi-cell:last-child { border-right: 0; }
+.kpi-cell.accent::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--c-gold);
+}
+.kpi-lbl {
+  font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--fg-faint); margin-bottom: var(--s-2);
+}
+.kpi-val {
+  font-family: var(--f-mono); font-size: 30px; font-weight: 500;
+  line-height: 1; color: var(--fg); margin-bottom: var(--s-2);
+  font-feature-settings: 'tnum'; letter-spacing: -.01em;
+}
+.kpi-sub { font-family: var(--f-mono); font-size: 10px; color: var(--fg-faint); letter-spacing: .04em; }
+
+/* ── DS Badge ─────────────────────────────────────────────── */
+.badge {
+  font-family: var(--f-mono); font-size: 11px; letter-spacing: .12em;
+  text-transform: uppercase; padding: 6px 10px; border-radius: var(--r-pill);
+  display: inline-flex; align-items: center; gap: 5px; border: 1px solid;
+}
+.badge.neutral { border-color: var(--line-strong); color: var(--fg-mute); }
+.badge.pos     { border-color: var(--positive); color: var(--positive); }
+.badge.neg     { border-color: var(--negative); color: var(--negative); }
+.badge.gold    { border-color: var(--c-gold); color: var(--c-gold-deep); }
+.badge.solid   { background: var(--c-gold); color: var(--c-midnight); border-color: var(--c-gold); }
+.badge.info    { border-color: var(--b-500); color: var(--b-700); }
+.badge.dot::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; display: inline-block; }
+.badge-sm { font-size: 10px; padding: 3px 8px; letter-spacing: .10em; }
+
+/* ── DS Buttons ───────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: var(--s-2);
+  font-family: var(--f-text); font-size: 11px; font-weight: 500;
+  letter-spacing: .08em; text-transform: uppercase;
+  padding: 9px 18px; border: 1px solid transparent;
+  cursor: pointer; border-radius: var(--r-1); text-decoration: none;
+  white-space: nowrap; transition: all .15s ease;
+}
+.btn-primary { background: var(--b-500); color: #fff; border-color: var(--b-500); }
+.btn-primary:hover { background: var(--b-600); transform: translateY(-1px); box-shadow: var(--e-2); }
+.btn-secondary { border-color: var(--line-strong); color: var(--fg); background: transparent; }
+.btn-secondary:hover { background: color-mix(in srgb, var(--line-strong) 15%, transparent); }
+.btn-ghost { border-color: var(--line-strong); color: var(--fg-mute); background: transparent; }
+.btn-ghost:hover { border-color: var(--fg-mute); color: var(--fg); }
+.btn-editorial { background: var(--c-gold); color: var(--c-midnight); border-color: var(--c-gold); }
+.btn-editorial:hover { opacity: 0.92; }
+.btn:active { transform: translateY(1px) !important; opacity: .88; box-shadow: none !important; }
+
+/* ── Card ─────────────────────────────────────────────────── */
+.card {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--r-3);
+  box-shadow: var(--e-float);
+  transition: transform .25s ease, box-shadow .25s ease;
+  overflow: hidden;
+}
+.card:hover { transform: translateY(-2px); box-shadow: var(--e-float-hover); }
+.card.accent { border-top: 2px solid var(--c-gold); }
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg);
+}
+.card-title { font-family: var(--f-text); font-size: 15px; font-weight: 600; color: var(--fg); }
+.card-subtitle { font-size: 12px; color: var(--fg-mute); margin-top: 2px; }
+.card-body { padding: 16px 20px; }
+
+/* ── Table ────────────────────────────────────────────────── */
+.nobel-table { width: 100%; border-collapse: collapse; }
+.nobel-table thead th {
+  font-family: var(--f-mono); font-size: 11px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: .14em; color: var(--fg-faint);
+  padding: 10px 14px; text-align: left;
+  border-bottom: 1px solid var(--line); background: var(--bg-deep);
+}
+.nobel-table thead th.right { text-align: right; }
+.nobel-table tbody tr { border-bottom: 1px solid var(--line); transition: background .1s; }
+.nobel-table tbody tr:last-child { border-bottom: none; }
+.nobel-table tbody tr:hover { background: var(--n-50); }
+.nobel-table tbody td { padding: 10px 14px; font-size: 13px; color: var(--fg); }
+.nobel-table tbody td.num { font-family: var(--f-mono); text-align: right; font-feature-settings: 'tnum'; }
+.nobel-table tbody td.mute { color: var(--fg-mute); }
+.nobel-table tbody td.pos-val { font-family: var(--f-mono); text-align: right; color: var(--positive); }
+.nobel-table tbody td.neg-val { font-family: var(--f-mono); text-align: right; color: var(--negative); }
+
+/* ── Progress bar ─────────────────────────────────────────── */
+.progress-wrap { margin-bottom: var(--s-3); }
+.progress-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.progress-label { font-family: var(--f-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .14em; color: var(--fg-faint); }
+.progress-pct { font-family: var(--f-mono); font-size: 11px; color: var(--fg-mute); }
+.progress-track { height: 5px; background: var(--n-100); border-radius: var(--r-pill); overflow: hidden; }
+.progress-bar { height: 100%; border-radius: var(--r-pill); transition: width .4s ease; }
+
+/* ── Section grid ─────────────────────────────────────────── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-5); }
+.three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); }
+.content-sidebar { display: grid; grid-template-columns: 1fr 340px; gap: var(--s-5); align-items: start; }
+
+/* ── Tokens section ───────────────────────────────────────── */
+.token-row { display: flex; align-items: center; gap: var(--s-3); margin-bottom: var(--s-2); }
+.token-swatch { width: 32px; height: 32px; border-radius: var(--r-2); border: 1px solid var(--line); flex-shrink: 0; }
+.token-name { font-family: var(--f-mono); font-size: 11px; color: var(--fg-mute); letter-spacing: .04em; }
+.token-hex { font-family: var(--f-mono); font-size: 10px; color: var(--fg-faint); }
+
+/* ── News block ───────────────────────────────────────────── */
+.news-grid { display: grid; grid-template-columns: 2fr 3fr; }
+.news-featured { padding: 20px 24px; border-right: 1px solid var(--line); background: color-mix(in srgb, var(--c-gold) 3%, var(--bg-elev)); }
+.news-source { font-family: var(--f-mono); font-size: 9px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; padding-bottom: 1px; }
+.news-category { font-family: var(--f-mono); font-size: 9px; color: var(--fg-faint); letter-spacing: .10em; text-transform: uppercase; }
+.news-time { font-family: var(--f-mono); font-size: 10px; color: var(--fg-faint); }
+.news-headline { font-family: var(--f-display); font-size: 20px; font-weight: 500; color: var(--fg); line-height: 1.4; margin: 14px 0 10px; }
+.news-summary { font-size: 13px; color: var(--fg-mute); line-height: 1.65; }
+.news-list-item { display: flex; gap: 14px; padding: 12px 20px; border-bottom: 1px solid var(--line); }
+.news-list-item:last-child { border-bottom: none; }
+.news-accent-bar { width: 2px; border-radius: 1px; flex-shrink: 0; opacity: 0.6; }
+.news-list-title { font-size: 13px; font-weight: 500; color: var(--fg); line-height: 1.4; }
+.news-list-desc { font-size: 11px; color: var(--fg-faint); line-height: 1.5; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── Metas sidebar card ───────────────────────────────────── */
+.metas-card { background: var(--bg-elev); border: 1px solid var(--line); border-radius: var(--r-3); overflow: hidden; }
+.metas-header { padding: 14px 16px; border-bottom: 1px solid var(--line); background: var(--bg-deep); }
+.metas-title { font-family: var(--f-display); font-size: 15px; font-weight: 500; color: var(--fg); }
+.metas-period { font-family: var(--f-mono); font-size: 9px; color: var(--fg-faint); text-transform: uppercase; letter-spacing: .12em; }
+.metas-row { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.metas-row:last-child { border-bottom: none; }
+.metas-produto { font-size: 12px; font-weight: 500; color: var(--fg); margin-bottom: 6px; }
+.metas-nums { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.metas-num { font-family: var(--f-mono); font-size: 11px; color: var(--fg-mute); }
+.metas-num strong { color: var(--fg); }
+
+/* ── Section titles ───────────────────────────────────────── */
+.section-eyebrow { font-family: var(--f-mono); font-size: 9px; text-transform: uppercase; letter-spacing: .20em; color: var(--fg-faint); margin-bottom: var(--s-4); padding-bottom: var(--s-2); border-bottom: 1px solid var(--line); }
+.section-title { font-family: var(--f-display); font-size: 18px; font-weight: 500; color: var(--fg); }
+
+/* ── Patterns ─────────────────────────────────────────────── */
+.pattern-demo {
+  height: 80px; border-radius: var(--r-3);
+  border: 1px solid var(--line); position: relative; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.pattern-demo-label { font-family: var(--f-mono); font-size: 10px; color: var(--fg-faint); text-transform: uppercase; letter-spacing: .12em; position: relative; z-index: 1; }
+
+/* ── Scrollbar ────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: var(--r-pill); }
+
+/* ── Spacing helpers ──────────────────────────────────────── */
+.mt1 { margin-top: var(--s-1); } .mt2 { margin-top: var(--s-2); } .mt3 { margin-top: var(--s-3); }
+.mt4 { margin-top: var(--s-4); } .mt5 { margin-top: var(--s-5); } .mb2 { margin-bottom: var(--s-2); }
+.mb3 { margin-bottom: var(--s-3); } .mb4 { margin-bottom: var(--s-4); } .mb5 { margin-bottom: var(--s-5); }
+.gap2 { gap: var(--s-2); } .gap3 { gap: var(--s-3); } .gap4 { gap: var(--s-4); }
+.flex { display: flex; } .flex-center { display: flex; align-items: center; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.wrap { flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ══ SIDEBAR ══════════════════════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="nobel-mono">
+        <div class="nobel-mono-vline"></div>
+        <span class="nobel-mono-n">N</span>
+      </div>
+      <div class="wordmark">
+        <span class="wordmark-nobel">NOBEL</span>
+        <span class="wordmark-capital">CAPITAL</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+
+      <a class="nav-item active" href="#">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Início
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        Onepage
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/>
+        </svg>
+        Carteiras
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+        </svg>
+        Clientes
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+        Relatórios
+      </a>
+
+      <div class="nav-divider"></div>
+      <div class="nav-section-label">Operacional</div>
+
+      <a class="nav-item" href="#">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
+        </svg>
+        Comunicados
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        Documentos
+      </a>
+      <div class="nav-divider"></div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="user-btn">
+        <div class="user-avatar">RF</div>
+        <div>
+          <div class="user-name">Rafael Brandão</div>
+          <div class="user-role">Admin</div>
+        </div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--fg-faint)" stroke-width="1.5" width="12" height="12" style="margin-left:auto;flex-shrink:0">
+          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+        </svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ══ CONTENT ═══════════════════════════════════════════════ -->
+  <main class="content">
+
+    <!-- Tabs -->
+    <div class="preview-tabs">
+      <button class="tab-btn active" onclick="showTab('dashboard')">Dashboard</button>
+      <button class="tab-btn" onclick="showTab('onepage')">Onepage</button>
+      <button class="tab-btn" onclick="showTab('sistema')">Design System</button>
+    </div>
+
+    <!-- ══ TAB: DASHBOARD ════════════════════════════════════ -->
+    <div id="tab-dashboard" class="tab-panel active">
+
+      <!-- Page header -->
+      <div class="page-header">
+        <div>
+          <p class="page-eyebrow">Terça-feira, 29 de Abril de 2026</p>
+          <h1 class="page-title">Bom dia, <em>Rafael</em></h1>
+        </div>
+        <div class="flex gap2 wrap">
+          <a href="#" class="btn btn-ghost">XP Hub
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="10" height="10"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+          <a href="#" class="btn btn-ghost">B3 Live
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="10" height="10"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+          <a href="#" class="btn btn-ghost">ANCORD
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="10" height="10"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- KPI grid -->
+      <div class="grid-kpi">
+        <div class="kpi-cell accent">
+          <p class="kpi-lbl">AUM Total</p>
+          <p class="kpi-val">R$ 2,84<span style="font-size:16px;color:var(--fg-mute);font-weight:400"> BI</span></p>
+          <span class="badge badge-sm neutral">Posição 28/04/2026</span>
+        </div>
+        <div class="kpi-cell">
+          <p class="kpi-lbl">Clientes Ativos</p>
+          <p class="kpi-val">1.247</p>
+          <span class="badge badge-sm neutral">Status ativo · XP</span>
+        </div>
+        <div class="kpi-cell">
+          <p class="kpi-lbl">Captação Abr/26</p>
+          <p class="kpi-val">R$ 38,4<span style="font-size:16px;color:var(--fg-mute);font-weight:400"> M</span></p>
+          <span class="badge badge-sm pos dot">Captação líquida</span>
+        </div>
+        <div class="kpi-cell">
+          <p class="kpi-lbl">Receita Total</p>
+          <p class="kpi-val">R$ 1,09<span style="font-size:16px;color:var(--fg-mute);font-weight:400"> M</span></p>
+          <span class="badge badge-sm neutral">Receita consolidada</span>
+        </div>
+      </div>
+
+      <!-- Notícias -->
+      <div style="background:var(--bg-elev);border:1px solid var(--line);margin-bottom:var(--s-4)">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 20px;border-bottom:1px solid var(--line);background:var(--bg)">
+          <span style="font-family:var(--f-display);font-size:16px;font-weight:500;color:var(--fg)">Notícias do Mercado</span>
+          <span style="font-family:var(--f-mono);font-size:10px;color:var(--fg-faint);letter-spacing:.06em">29/04/2026 às 07:14</span>
+        </div>
+        <div class="news-grid">
+          <div class="news-featured">
+            <div class="flex-center gap2 mb3">
+              <span class="news-source" style="color:#B45309;border-bottom:1px solid #B45309">Valor Econômico</span>
+              <span class="news-category">Macro</span>
+              <span class="news-time" style="margin-left:auto">há 2h</span>
+            </div>
+            <h2 class="news-headline">Selic permanece em 13,75% na decisão do Copom; comunicado sinaliza cautela para próximas reuniões</h2>
+            <p class="news-summary">O Comitê de Política Monetária manteve a taxa básica de juros pelo terceiro encontro consecutivo, destacando a incerteza no cenário fiscal e pressões inflacionárias ainda presentes no setor de serviços.</p>
+          </div>
+          <div>
+            <div class="news-list-item">
+              <div class="news-accent-bar" style="background:#1D4ED8"></div>
+              <div style="flex:1;min-width:0">
+                <div class="flex-center gap2 mb2">
+                  <span class="news-source" style="font-family:var(--f-mono);font-size:9px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:#1D4ED8">Bloomberg</span>
+                  <span class="news-category">Internacional</span>
+                  <span class="news-time" style="margin-left:auto;font-family:var(--f-mono);font-size:10px;color:var(--fg-faint)">há 3h</span>
+                </div>
+                <p class="news-list-title">Fed mantém postura hawkish após dados de inflação acima do esperado</p>
+                <p class="news-list-desc">PCE core marcou 3,4% em março, acima da meta de 2% e do consenso de 3,1%</p>
+              </div>
+            </div>
+            <div class="news-list-item">
+              <div class="news-accent-bar" style="background:#15803D"></div>
+              <div style="flex:1;min-width:0">
+                <div class="flex-center gap2 mb2">
+                  <span style="font-family:var(--f-mono);font-size:9px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:#15803D">InfoMoney</span>
+                  <span class="news-category">Renda Variável</span>
+                  <span style="margin-left:auto;font-family:var(--f-mono);font-size:10px;color:var(--fg-faint)">há 4h</span>
+                </div>
+                <p class="news-list-title">Ibovespa abre em alta impulsionado por petróleo e metais</p>
+                <p class="news-list-desc">PETR4 e VALE3 lideram ganhos na abertura com commodities em alta global</p>
+              </div>
+            </div>
+            <div class="news-list-item">
+              <div class="news-accent-bar" style="background:#9333EA"></div>
+              <div style="flex:1;min-width:0">
+                <div class="flex-center gap2 mb2">
+                  <span style="font-family:var(--f-mono);font-size:9px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:#9333EA">Anbima</span>
+                  <span class="news-category">Fundos</span>
+                  <span style="margin-left:auto;font-family:var(--f-mono);font-size:10px;color:var(--fg-faint)">há 6h</span>
+                </div>
+                <p class="news-list-title">Captação líquida de fundos multimercado soma R$ 4,2 bi em março</p>
+                <p class="news-list-desc">Dados da Anbima mostram retomada do interesse por fundos de gestão ativa</p>
+              </div>
+            </div>
+            <div class="news-list-item" style="border-bottom:none">
+              <div class="news-accent-bar" style="background:#D97706"></div>
+              <div style="flex:1;min-width:0">
+                <div class="flex-center gap2 mb2">
+                  <span style="font-family:var(--f-mono);font-size:9px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:#D97706">B3</span>
+                  <span class="news-category">Mercado</span>
+                  <span style="margin-left:auto;font-family:var(--f-mono);font-size:10px;color:var(--fg-faint)">há 7h</span>
+                </div>
+                <p class="news-list-title">Volume financeiro de abril já supera média histórica em 12%</p>
+                <p class="news-list-desc">Negociações em renda variável atingem R$ 28,3 bi na sessão anterior</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Links úteis -->
+      <div style="background:var(--bg-elev);border:1px solid var(--line)">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 20px;border-bottom:1px solid var(--line);background:var(--bg)">
+          <span style="font-family:var(--f-display);font-size:16px;font-weight:500;color:var(--fg)">Links Úteis</span>
+          <span style="font-family:var(--f-mono);font-size:10px;color:var(--fg-faint);letter-spacing:.06em">abre em nova aba</span>
+        </div>
+        <div style="padding:var(--s-4) var(--s-5);display:flex;flex-direction:column;gap:var(--s-5)">
+          <div>
+            <p style="font-family:var(--f-mono);font-size:9px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--fg-faint);margin-bottom:10px">Mercado</p>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s-2)">
+              <a href="#" class="link-card" style="display:flex;flex-direction:column;gap:4px;padding:12px 14px;background:var(--bg);border:1px solid var(--line);text-decoration:none;border-radius:var(--r-2)">
+                <div style="font-size:12px;font-weight:500;color:var(--fg)">B3 — Bolsa de Valores</div>
+                <div style="font-family:var(--f-mono);font-size:10px;color:var(--fg-faint);letter-spacing:.02em">Preços, índices e negociações</div>
+              </a>
+              <a href="#" class="link-card" style="display:flex;flex-direction:column;gap:4px;padding:12px 14px;background:var(--bg);border:1px solid var(--line);text-decoration:none;border-radius:var(--r-2)">
+                <div style="font-size:12px;font-weight:500;color:var(--fg)">InfoMoney</div>
+                <div style="font-family:var(--f-mono);font-size:10px;color:var(--fg-faint);letter-spacing:.02em">Notícias do mercado financeiro</div>
+              </a>
+              <a href="#" class="link-card" style="display:flex;flex-direction:column;gap:4px;padding:12px 14px;background:var(--bg);border:1px solid var(--line);text-decoration:none;border-radius:var(--r-2)">
+                <div style="font-size:12px;font-weight:500;color:var(--fg)">Valor Econômico</div>
+                <div style="font-family:var(--f-mono);font-size:10px;color:var(--fg-faint);letter-spacing:.02em">Jornalismo de negócios</div>
+              </a>
+              <a href="#" class="link-card" style="display:flex;flex-direction:column;gap:4px;padding:12px 14px;background:var(--bg);border:1px solid var(--line);text-decoration:none;border-radius:var(--r-2)">
+                <div style="font-size:12px;font-weight:500;color:var(--fg)">Bloomberg</div>
+                <div style="font-family:var(--f-mono);font-size:10px;color:var(--fg-faint);letter-spacing:.02em">Dados e notícias globais</div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tab-dashboard -->
+
+    <!-- ══ TAB: ONEPAGE ══════════════════════════════════════ -->
+    <div id="tab-onepage" class="tab-panel">
+
+      <div class="page-header">
+        <div>
+          <p class="page-eyebrow">Posição em 28/04/2026</p>
+          <h1 style="font-family:var(--f-display);font-size:26px;font-weight:500;color:var(--fg)">
+            Onepage — <span style="color:var(--c-gold)">Rafael</span>
+          </h1>
+        </div>
+      </div>
+
+      <!-- KPI cards Onepage -->
+      <div class="grid-kpi mb5">
+        <div class="kpi-cell accent">
+          <p class="kpi-lbl">Custódia (AuM)</p>
+          <p class="kpi-val">R$ 2,84<span style="font-size:14px;color:var(--fg-mute);font-weight:400"> BI</span></p>
+          <span class="badge badge-sm neutral dot">Posição 28/04/2026</span>
+        </div>
+        <div class="kpi-cell">
+          <p class="kpi-lbl">Clientes Ativos</p>
+          <p class="kpi-val">1.247</p>
+          <span class="badge badge-sm pos dot">Base ativa XP</span>
+        </div>
+        <div class="kpi-cell">
+          <p class="kpi-lbl">Clientes Inativos</p>
+          <p class="kpi-val">183</p>
+          <span class="badge badge-sm neg dot">12,8% da base total</span>
+        </div>
+        <div class="kpi-cell">
+          <p class="kpi-lbl">Receita Total</p>
+          <p class="kpi-val">R$ 1,09<span style="font-size:14px;color:var(--fg-mute);font-weight:400"> M</span></p>
+          <span class="badge badge-sm neutral dot">Todos os produtos</span>
+        </div>
+      </div>
+
+      <div class="content-sidebar">
+        <!-- Coluna principal -->
+        <div>
+          <!-- Captação -->
+          <div class="card accent mb5" style="border-radius:var(--r-3)">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Captação Líquida</div>
+                <div class="card-subtitle">Abril 2026</div>
+              </div>
+              <span class="badge info">Deep Dive</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--line)">
+              <div style="padding:var(--s-4) var(--s-5);border-right:1px solid var(--line)">
+                <p class="kpi-lbl">Captação Bruta</p>
+                <p style="font-family:var(--f-mono);font-size:24px;font-weight:500;color:var(--fg);font-feature-settings:'tnum'">R$ 52,7M</p>
+              </div>
+              <div style="padding:var(--s-4) var(--s-5);border-right:1px solid var(--line)">
+                <p class="kpi-lbl">Resgates</p>
+                <p style="font-family:var(--f-mono);font-size:24px;font-weight:500;color:var(--negative);font-feature-settings:'tnum'">-R$ 14,3M</p>
+              </div>
+              <div style="padding:var(--s-4) var(--s-5)">
+                <p class="kpi-lbl">Captação Líquida</p>
+                <p style="font-family:var(--f-mono);font-size:24px;font-weight:500;color:var(--positive);font-feature-settings:'tnum'">R$ 38,4M</p>
+              </div>
+            </div>
+            <div style="padding:var(--s-4)">
+              <p class="page-eyebrow" style="margin-bottom:var(--s-3)">Top captadores — Abril 2026</p>
+              <table class="nobel-table">
+                <thead>
+                  <tr>
+                    <th>#</th><th>Assessor</th><th>Equipe</th>
+                    <th class="right">Captação Bruta</th><th class="right">Líquida</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td class="mute" style="font-family:var(--f-mono)">01</td><td style="font-weight:500">Ana Souza</td><td class="mute">Alpha</td><td class="num">R$ 8,4M</td><td class="pos-val">R$ 7,1M</td></tr>
+                  <tr><td class="mute" style="font-family:var(--f-mono)">02</td><td style="font-weight:500">Pedro Lima</td><td class="mute">Beta</td><td class="num">R$ 7,2M</td><td class="pos-val">R$ 5,8M</td></tr>
+                  <tr><td class="mute" style="font-family:var(--f-mono)">03</td><td style="font-weight:500">Carlos Mendes</td><td class="mute">Alpha</td><td class="num">R$ 6,9M</td><td class="pos-val">R$ 6,2M</td></tr>
+                  <tr><td class="mute" style="font-family:var(--f-mono)">04</td><td style="font-weight:500">Fernanda Costa</td><td class="mute">Gamma</td><td class="num">R$ 5,1M</td><td class="neg-val">-R$ 0,3M</td></tr>
+                  <tr><td class="mute" style="font-family:var(--f-mono)">05</td><td style="font-weight:500">Roberto Nunes</td><td class="mute">Beta</td><td class="num">R$ 4,8M</td><td class="pos-val">R$ 4,1M</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Histórico -->
+          <div style="margin-bottom:var(--s-3)">
+            <p style="font-family:var(--f-display);font-size:18px;font-weight:500;color:var(--fg)">Histórico</p>
+            <p style="font-size:12px;color:var(--fg-faint);margin-top:3px">Comparativo mensal 2025 vs 2026</p>
+          </div>
+          <div style="background:var(--bg-elev);border:1px solid var(--line);border-radius:var(--r-3);overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px 12px;border-bottom:1px solid var(--line);background:var(--bg-deep)">
+              <span style="font-family:var(--f-display);font-size:14px;font-weight:500;color:var(--fg)">Custódia (AuM)</span>
+              <span style="font-family:var(--f-mono);font-size:11px;color:var(--fg-faint)">R$ por mês</span>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="nobel-table">
+                <thead>
+                  <tr>
+                    <th>Mês</th><th class="right">2025</th><th class="right">2026</th>
+                    <th class="right">% MoM</th><th class="right">% YoY</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td style="text-transform:capitalize;font-weight:500">Janeiro</td><td class="num mute">R$ 2,41B</td><td class="num" style="font-weight:600">R$ 2,63B</td><td class="pos-val">+4,8%</td><td class="pos-val">+9,1%</td></tr>
+                  <tr><td style="text-transform:capitalize;font-weight:500">Fevereiro</td><td class="num mute">R$ 2,48B</td><td class="num" style="font-weight:600">R$ 2,71B</td><td class="pos-val">+3,0%</td><td class="pos-val">+9,3%</td></tr>
+                  <tr><td style="text-transform:capitalize;font-weight:500">Março</td><td class="num mute">R$ 2,55B</td><td class="num" style="font-weight:600">R$ 2,79B</td><td class="pos-val">+2,9%</td><td class="pos-val">+9,4%</td></tr>
+                  <tr><td style="text-transform:capitalize;font-weight:500">Abril</td><td class="num mute">R$ 2,62B</td><td class="num" style="font-weight:600">R$ 2,84B</td><td class="pos-val">+1,8%</td><td class="pos-val">+8,4%</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metas sidebar -->
+        <div style="position:sticky;top:24px">
+          <div class="metas-card">
+            <div class="metas-header">
+              <div class="flex-between">
+                <span class="metas-title">Metas</span>
+                <span class="badge badge-sm gold">Abr 2026</span>
+              </div>
+              <p class="metas-period mt2">17 dias passados · 13 restantes</p>
+            </div>
+
+            <div class="metas-row">
+              <div class="flex-between mb2">
+                <span class="metas-produto">Captação Líquida</span>
+                <span class="badge badge-sm pos">82%</span>
+              </div>
+              <div class="metas-nums">
+                <span class="metas-num">Meta: <strong>R$ 46M</strong></span>
+                <span class="metas-num">Real: <strong>R$ 38,4M</strong></span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-bar" style="width:82%;background:var(--positive)"></div>
+              </div>
+            </div>
+
+            <div class="metas-row">
+              <div class="flex-between mb2">
+                <span class="metas-produto">Renda Variável</span>
+                <span class="badge badge-sm pos">91%</span>
+              </div>
+              <div class="metas-nums">
+                <span class="metas-num">Meta: <strong>R$ 220K</strong></span>
+                <span class="metas-num">Real: <strong>R$ 200K</strong></span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-bar" style="width:91%;background:var(--positive)"></div>
+              </div>
+            </div>
+
+            <div class="metas-row">
+              <div class="flex-between mb2">
+                <span class="metas-produto">Fee Fixo</span>
+                <span class="badge badge-sm neg">54%</span>
+              </div>
+              <div class="metas-nums">
+                <span class="metas-num">Meta: <strong>R$ 180K</strong></span>
+                <span class="metas-num">Real: <strong>R$ 97K</strong></span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-bar" style="width:54%;background:var(--negative)"></div>
+              </div>
+            </div>
+
+            <div class="metas-row">
+              <div class="flex-between mb2">
+                <span class="metas-produto">COE</span>
+                <span class="badge badge-sm neutral">73%</span>
+              </div>
+              <div class="metas-nums">
+                <span class="metas-num">Meta: <strong>R$ 150K</strong></span>
+                <span class="metas-num">Real: <strong>R$ 109K</strong></span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-bar" style="width:73%;background:var(--b-500)"></div>
+              </div>
+            </div>
+
+            <div class="metas-row" style="border-bottom:none">
+              <div class="flex-between mb2">
+                <span class="metas-produto">Seguros</span>
+                <span class="badge badge-sm pos">108%</span>
+              </div>
+              <div class="metas-nums">
+                <span class="metas-num">Meta: <strong>R$ 60K</strong></span>
+                <span class="metas-num">Real: <strong>R$ 65K</strong></span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-bar" style="width:100%;background:var(--positive)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tab-onepage -->
+
+    <!-- ══ TAB: DESIGN SYSTEM ════════════════════════════════ -->
+    <div id="tab-sistema" class="tab-panel">
+
+      <div class="page-header">
+        <div>
+          <p class="page-eyebrow">Nobel Capital · 2026</p>
+          <h1 class="page-title">Design System <em>Operacional</em></h1>
+        </div>
+      </div>
+
+      <div class="two-col mb5">
+
+        <!-- Tipografia -->
+        <div class="card" style="border-radius:var(--r-3)">
+          <div class="card-header"><div class="card-title">Tipografia</div></div>
+          <div class="card-body">
+            <p style="font-family:var(--f-display);font-size:36px;font-weight:400;color:var(--fg);line-height:1.05">Cormorant Garamond</p>
+            <p style="font-family:var(--f-display);font-size:36px;font-weight:400;color:var(--c-gold);font-style:italic;line-height:1.05;margin-bottom:var(--s-4)">por gerações.</p>
+            <p style="font-family:var(--f-text);font-size:18px;font-weight:600;color:var(--fg);margin-bottom:4px">Inter Tight 600</p>
+            <p style="font-family:var(--f-text);font-size:15px;color:var(--fg-mute);margin-bottom:4px">Inter Tight 400 — texto de interface, formulários, navegação</p>
+            <p style="font-family:var(--f-text);font-size:13.5px;color:var(--fg-mute);margin-bottom:var(--s-4)">Corpo de texto padrão, 13.5px, line-height 1.55</p>
+            <p style="font-family:var(--f-mono);font-size:30px;font-weight:500;color:var(--fg);font-feature-settings:'tnum';letter-spacing:-.01em">R$ 2.843.291,00</p>
+            <p style="font-family:var(--f-mono);font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--fg-faint);margin-top:4px">JetBrains Mono — dados quantitativos, labels, badges</p>
+          </div>
+        </div>
+
+        <!-- Cores -->
+        <div class="card" style="border-radius:var(--r-3)">
+          <div class="card-header"><div class="card-title">Paleta Operacional</div></div>
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--s-4)">
+              <div>
+                <p style="font-family:var(--f-mono);font-size:9px;text-transform:uppercase;letter-spacing:.16em;color:var(--fg-faint);margin-bottom:var(--s-3)">Marca</p>
+                <div class="token-row"><div class="token-swatch" style="background:#C9A961"></div><div><div class="token-name">--c-gold</div><div class="token-hex">#C9A961</div></div></div>
+                <div class="token-row"><div class="token-swatch" style="background:#111827"></div><div><div class="token-name">--c-midnight</div><div class="token-hex">#111827</div></div></div>
+                <p style="font-family:var(--f-mono);font-size:9px;text-transform:uppercase;letter-spacing:.16em;color:var(--fg-faint);margin:var(--s-3) 0">Sistema (UI)</p>
+                <div class="token-row"><div class="token-swatch" style="background:#6094D6"></div><div><div class="token-name">--b-500</div><div class="token-hex">#6094D6</div></div></div>
+                <div class="token-row"><div class="token-swatch" style="background:#4978B5"></div><div><div class="token-name">--b-600</div><div class="token-hex">#4978B5</div></div></div>
+              </div>
+              <div>
+                <p style="font-family:var(--f-mono);font-size:9px;text-transform:uppercase;letter-spacing:.16em;color:var(--fg-faint);margin-bottom:var(--s-3)">Superfícies</p>
+                <div class="token-row"><div class="token-swatch" style="background:#FBFAF8;border:1px solid var(--line)"></div><div><div class="token-name">--bg</div><div class="token-hex">#FBFAF8</div></div></div>
+                <div class="token-row"><div class="token-swatch" style="background:#FFFFFF;border:1px solid var(--line)"></div><div><div class="token-name">--bg-elev</div><div class="token-hex">#FFFFFF</div></div></div>
+                <div class="token-row"><div class="token-swatch" style="background:#F6F4F0;border:1px solid var(--line)"></div><div><div class="token-name">--bg-deep</div><div class="token-hex">#F6F4F0</div></div></div>
+                <p style="font-family:var(--f-mono);font-size:9px;text-transform:uppercase;letter-spacing:.16em;color:var(--fg-faint);margin:var(--s-3) 0">Semânticas</p>
+                <div class="token-row"><div class="token-swatch" style="background:#3E8C5C"></div><div><div class="token-name">--positive</div><div class="token-hex">#3E8C5C</div></div></div>
+                <div class="token-row"><div class="token-swatch" style="background:#C4453A"></div><div><div class="token-name">--negative</div><div class="token-hex">#C4453A</div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Badges -->
+      <div class="card mb5" style="border-radius:var(--r-3)">
+        <div class="card-header"><div class="card-title">Badges §5.5</div><span style="font-family:var(--f-mono);font-size:10px;color:var(--fg-faint)">mono 11px · uppercase · outline</span></div>
+        <div class="card-body flex gap3 wrap">
+          <span class="badge pos dot">Captação positiva</span>
+          <span class="badge neg dot">Queda de receita</span>
+          <span class="badge gold">Ouro editorial</span>
+          <span class="badge solid">Nobel Capital</span>
+          <span class="badge neutral">Neutro</span>
+          <span class="badge info dot">Informação</span>
+          <span class="badge badge-sm pos">+3,64%</span>
+          <span class="badge badge-sm neg">-1,28%</span>
+          <span class="badge badge-sm neutral">Posição 28/04</span>
+          <span class="badge badge-sm gold">Abr 2026</span>
+        </div>
+      </div>
+
+      <!-- Botões -->
+      <div class="card mb5" style="border-radius:var(--r-3)">
+        <div class="card-header"><div class="card-title">Botões §5.1</div><span style="font-family:var(--f-mono);font-size:10px;color:var(--fg-faint)">Inter Tight · uppercase · r-1 (2px)</span></div>
+        <div class="card-body flex gap3 wrap">
+          <button class="btn btn-primary">Ação primária</button>
+          <button class="btn btn-secondary">Secundário</button>
+          <button class="btn btn-ghost">Ghost</button>
+          <button class="btn btn-editorial">Editorial</button>
+          <button class="btn btn-primary" style="opacity:.5;cursor:default" disabled>Desabilitado</button>
+        </div>
+      </div>
+
+      <!-- Elevação -->
+      <div class="card mb5" style="border-radius:var(--r-3)">
+        <div class="card-header"><div class="card-title">Elevação §4.3</div><span style="font-family:var(--f-mono);font-size:10px;color:var(--fg-faint)">sistema flutuante de 3 camadas</span></div>
+        <div class="card-body">
+          <div class="three-col">
+            <div style="background:var(--bg-elev);border-radius:var(--r-3);padding:var(--s-5);box-shadow:var(--e-1);text-align:center">
+              <p style="font-family:var(--f-mono);font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--fg-faint)">e-1</p>
+              <p style="font-size:12px;color:var(--fg-mute);margin-top:6px">Separador sutil</p>
+            </div>
+            <div style="background:var(--bg-elev);border-radius:var(--r-3);padding:var(--s-5);box-shadow:var(--e-2);text-align:center">
+              <p style="font-family:var(--f-mono);font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--fg-faint)">e-2</p>
+              <p style="font-size:12px;color:var(--fg-mute);margin-top:6px">Card elevado</p>
+            </div>
+            <div style="background:var(--bg-elev);border-radius:var(--r-3);padding:var(--s-5);box-shadow:var(--e-float);text-align:center;transition:transform .25s,box-shadow .25s" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--e-float-hover)'" onmouseleave="this.style.transform='';this.style.boxShadow='var(--e-float)'">
+              <p style="font-family:var(--f-mono);font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--fg-faint)">e-float</p>
+              <p style="font-size:12px;color:var(--fg-mute);margin-top:6px">Hover para lift ↑</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Padrões -->
+      <div class="card mb5" style="border-radius:var(--r-3)">
+        <div class="card-header"><div class="card-title">Padrões Geométricos §6</div><span style="font-family:var(--f-mono);font-size:10px;color:var(--fg-faint)">opacidade 4–8% · abaixo do dado</span></div>
+        <div class="card-body">
+          <div class="two-col">
+            <div>
+              <p style="font-family:var(--f-mono);font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--fg-faint);margin-bottom:var(--s-3)">P-01 Grid — Headers</p>
+              <div class="pattern-demo pattern-grid-overlay" style="background:var(--bg-deep)">
+                <span class="pattern-demo-label">P-01 · Grid 24px</span>
+              </div>
+            </div>
+            <div>
+              <p style="font-family:var(--f-mono);font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--fg-faint);margin-bottom:var(--s-3)">P-02 Dot Grid — Empty States</p>
+              <div class="pattern-demo pattern-dots-overlay" style="background:var(--bg-deep)">
+                <span class="pattern-demo-label">P-02 · Dot Grid 16px</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI Card isolado -->
+      <div class="card mb5" style="border-radius:var(--r-3)">
+        <div class="card-header"><div class="card-title">KPI Card §5.3</div><span style="font-family:var(--f-mono);font-size:10px;color:var(--fg-faint)">float elevation · hover lift · delta outline</span></div>
+        <div class="card-body">
+          <div class="three-col">
+            <div style="background:var(--bg-elev);border:1px solid var(--line);border-radius:var(--r-3);padding:var(--s-4);display:flex;flex-direction:column;gap:10px;box-shadow:var(--e-float);transition:transform .25s ease,box-shadow .25s ease" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--e-float-hover)'" onmouseleave="this.style.transform='';this.style.boxShadow='var(--e-float)'">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-family:var(--f-mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--fg-faint)">AUM</span>
+                <span class="badge badge-sm pos dot">+2,41%</span>
+              </div>
+              <div style="font-family:var(--f-mono);font-size:30px;font-weight:500;line-height:1;font-feature-settings:'tnum'">R$ 2,84<span style="font-size:16px;color:var(--fg-mute);font-weight:400"> BI</span></div>
+              <svg viewBox="0 0 200 34" preserveAspectRatio="none" style="width:100%;height:34px"><path d="M0,28 L25,26 L50,22 L75,18 L100,20 L125,14 L150,10 L175,8 L200,4" fill="none" stroke="var(--positive)" stroke-width="1.5"/></svg>
+            </div>
+            <div style="background:var(--bg-elev);border:1px solid var(--line);border-radius:var(--r-3);padding:var(--s-4);display:flex;flex-direction:column;gap:10px;box-shadow:var(--e-float);transition:transform .25s ease,box-shadow .25s ease" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--e-float-hover)'" onmouseleave="this.style.transform='';this.style.boxShadow='var(--e-float)'">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-family:var(--f-mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--fg-faint)">Receita</span>
+                <span class="badge badge-sm neg dot">-0,8%</span>
+              </div>
+              <div style="font-family:var(--f-mono);font-size:30px;font-weight:500;line-height:1;font-feature-settings:'tnum'">R$ 1,09<span style="font-size:16px;color:var(--fg-mute);font-weight:400"> M</span></div>
+              <svg viewBox="0 0 200 34" preserveAspectRatio="none" style="width:100%;height:34px"><path d="M0,8 L25,10 L50,12 L75,10 L100,16 L125,18 L150,22 L175,24 L200,28" fill="none" stroke="var(--negative)" stroke-width="1.5"/></svg>
+            </div>
+            <div style="background:var(--bg-elev);border:1px solid var(--line);border-radius:var(--r-3);padding:var(--s-4);display:flex;flex-direction:column;gap:10px;box-shadow:var(--e-float);transition:transform .25s ease,box-shadow .25s ease" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--e-float-hover)'" onmouseleave="this.style.transform='';this.style.boxShadow='var(--e-float)'">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-family:var(--f-mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--fg-faint)">ROA</span>
+                <span class="badge badge-sm neutral">—</span>
+              </div>
+              <div style="font-family:var(--f-mono);font-size:30px;font-weight:500;line-height:1;font-feature-settings:'tnum'">1,28<span style="font-size:16px;color:var(--fg-mute);font-weight:400"> %a.a.</span></div>
+              <svg viewBox="0 0 200 34" preserveAspectRatio="none" style="width:100%;height:34px"><path d="M0,18 L25,17 L50,16 L75,18 L100,15 L125,17 L150,16 L175,14 L200,16" fill="none" stroke="var(--n-400)" stroke-width="1.5"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tab-sistema -->
+
+  </main>
+</div>
+
+<!-- Padrões CSS (replicados do globals.css) -->
+<style>
+.pattern-grid-overlay { position: relative; }
+.pattern-grid-overlay::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: linear-gradient(var(--line-strong) 1px, transparent 1px), linear-gradient(90deg, var(--line-strong) 1px, transparent 1px);
+  background-size: 24px 24px; opacity: 0.06; pointer-events: none; z-index: 0;
+}
+.pattern-grid-overlay > * { position: relative; z-index: 1; }
+.pattern-dots-overlay { position: relative; }
+.pattern-dots-overlay::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: radial-gradient(circle, var(--line-strong) 1.5px, transparent 1.5px);
+  background-size: 16px 16px; opacity: 0.08; pointer-events: none; z-index: 0;
+}
+.pattern-dots-overlay > * { position: relative; z-index: 1; }
+</style>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

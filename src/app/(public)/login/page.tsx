@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
@@ -20,30 +19,19 @@ export default function LoginPage() {
     const errors: typeof fieldErrors = {}
     if (!username.trim()) errors.username = 'Informe seu username'
     if (!password) errors.password = 'Informe sua senha'
-
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors)
-      return
-    }
+    if (Object.keys(errors).length > 0) { setFieldErrors(errors); return }
 
     setFieldErrors({})
     setLoading(true)
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const res  = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       })
-
       const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.error ?? 'Erro ao fazer login')
-        setPassword('')
-        return
-      }
-
+      if (!res.ok) { setError(data.error ?? 'Erro ao fazer login'); setPassword(''); return }
       router.push('/dashboard')
       router.refresh()
     } catch {
@@ -55,33 +43,57 @@ export default function LoginPage() {
 
   return (
     <div className="shell">
-      {/* LEFT */}
+
+      {/* ── LEFT — editorial brand panel ─────────────────────── */}
       <div className="left">
-        <div className="logo-wrap">
-          <Image
-            src="/logo-light.png"
-            alt="Nobel Capital"
-            width={240}
-            height={46}
-            priority
-            style={{ height: 46, width: 'auto' }}
-          />
+        {/* Subtle gold radial */}
+        <div className="left-bg" />
+
+        {/* Nobel lockup */}
+        <div className="lockup">
+          {/* Monogram */}
+          <div className="mono">
+            <div className="mono-hairline" />
+            <span className="mono-n">N</span>
+          </div>
+          {/* Wordmark */}
+          <div className="word">
+            <span className="word-nobel">NOBEL</span>
+            <span className="word-capital">CAPITAL</span>
+          </div>
         </div>
 
+        {/* Display headline */}
         <h1 className="headline">
-          INTRA
-          <br />
-          NOBEL
+          Sistema interno<br />
+          <em className="headline-em">INTRA</em>
         </h1>
 
+        {/* Hairline rule */}
         <div className="rule" />
-        <p className="tagline">Sistema interno — Nobel Capital &amp; XP Investimentos</p>
+
+        {/* Tagline */}
+        <p className="tagline">
+          Permanência · Rigor · Clareza
+        </p>
+
+        {/* Bottom meta */}
+        <div className="left-meta">
+          <span>Nobel Capital &amp; XP Investimentos</span>
+          <span>Acesso restrito · colaboradores</span>
+        </div>
       </div>
 
-      {/* RIGHT */}
+      {/* ── RIGHT — form panel ───────────────────────────────── */}
       <div className="right">
+        {/* Subtle grid texture */}
+        <div className="right-grid" />
+
         <div className="card">
-          <p className="card-eyebrow">Acesso restrito</p>
+          {/* Gold top accent line */}
+          <div className="card-accent" />
+
+          <p className="eyebrow">Acesso restrito</p>
           <h2 className="card-title">Entre na sua conta</h2>
 
           <form onSubmit={handleSubmit} noValidate>
@@ -97,7 +109,7 @@ export default function LoginPage() {
                   value={username}
                   onChange={(e) => {
                     setUsername(e.target.value)
-                    setFieldErrors((p) => { const { username: _, ...rest } = p; return rest })
+                    setFieldErrors((p) => { const { username: _, ...r } = p; return r })
                   }}
                   data-error={!!fieldErrors.username}
                 />
@@ -117,7 +129,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value)
-                    setFieldErrors((p) => { const { password: _, ...rest } = p; return rest })
+                    setFieldErrors((p) => { const { password: _, ...r } = p; return r })
                   }}
                   data-error={!!fieldErrors.password}
                 />
@@ -157,11 +169,7 @@ export default function LoginPage() {
             )}
 
             <button type="submit" className="btn-submit" disabled={loading}>
-              {loading ? <span className="spinner" /> : 'Entrar'}
-            </button>
-
-            <button type="button" className="btn-forgot">
-              Esqueci minha senha
+              {loading ? <span className="spinner" /> : 'Entrar →'}
             </button>
           </form>
 
@@ -174,142 +182,227 @@ export default function LoginPage() {
       </div>
 
       <style jsx>{`
+        /* ── Shell ─────────────────────────────────────────── */
         .shell {
           display: flex;
           min-height: 100vh;
-          font-family: var(--font-geist), 'Geist', system-ui, sans-serif;
-          background: #F6F3ED;
+          font-family: var(--f-text);
+          background: var(--bg);
+          color: var(--fg);
         }
 
-        /* LEFT — editorial brand panel */
+        /* ── LEFT ──────────────────────────────────────────── */
         .left {
-          width: 600px;
+          width: 520px;
           flex-shrink: 0;
-          background: #F6F3ED;
+          background: var(--bg);
           display: flex;
           flex-direction: column;
           justify-content: center;
-          padding: 80px;
-          gap: 0;
+          padding: 72px 80px;
           position: relative;
-          border-right: 1px solid rgba(184,150,62,0.15);
+          border-right: 1px solid var(--line);
+          overflow: hidden;
         }
 
-        .left::before {
-          content: '';
+        .left-bg {
           position: absolute;
           inset: 0;
-          background: radial-gradient(ellipse 70% 55% at 20% 60%, rgba(184,150,62,0.08) 0%, transparent 65%);
+          background: radial-gradient(ellipse 70% 50% at 20% 65%, color-mix(in oklch, var(--c-gold) 10%, transparent) 0%, transparent 65%);
           pointer-events: none;
         }
 
-        .logo-wrap {
-          margin-bottom: 56px;
+        /* Nobel lockup */
+        .lockup {
+          display: inline-flex;
+          align-items: center;
+          gap: 14px;
+          margin-bottom: 60px;
           position: relative;
           z-index: 1;
         }
 
-        .headline {
-          font-family: 'Lora', serif;
-          font-size: 64px;
-          font-weight: 700;
-          color: #1A1209;
-          line-height: 0.95;
-          letter-spacing: -0.025em;
+        .mono {
+          width: 44px;
+          height: 44px;
+          border: 1.5px solid var(--c-gold);
+          display: grid;
+          place-items: center;
+          position: relative;
+          flex-shrink: 0;
+        }
+
+        .mono-hairline {
+          position: absolute;
+          top: 10%; bottom: 10%;
+          left: 50%;
+          width: 1px;
+          background: var(--c-gold);
+          transform: translateX(-50%);
+          opacity: 0.45;
+        }
+
+        .mono-n {
+          font-family: var(--f-display);
+          font-weight: 500;
+          font-size: 34px;
+          line-height: 1;
+          color: var(--fg);
           position: relative;
           z-index: 1;
+        }
+
+        .word {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 5px;
+        }
+
+        .word-nobel {
+          font-family: var(--f-display);
+          font-weight: 500;
+          font-size: 18px;
+          letter-spacing: .30em;
+          line-height: 1;
+          color: var(--fg);
+          padding-bottom: 6px;
+          border-bottom: 1px solid var(--c-gold);
+          text-indent: .30em;
+        }
+
+        .word-capital {
+          font-family: var(--f-display);
+          font-weight: 400;
+          font-size: 10px;
+          letter-spacing: .34em;
+          line-height: 1;
+          color: var(--fg-mute);
+          text-indent: .34em;
+        }
+
+        /* Display headline */
+        .headline {
+          font-family: var(--f-display);
+          font-size: 52px;
+          font-weight: 300;
+          color: var(--fg);
+          line-height: 1.05;
+          letter-spacing: -.01em;
+          position: relative;
+          z-index: 1;
+          margin: 0;
+        }
+
+        .headline-em {
+          font-style: italic;
+          color: var(--c-gold-deep);
+          font-weight: 400;
         }
 
         .rule {
-          width: 48px;
+          width: 40px;
           height: 1px;
-          background: #B8963E;
-          margin-top: 40px;
-          margin-bottom: 20px;
+          background: var(--c-gold);
+          margin: 32px 0 16px;
           position: relative;
           z-index: 1;
         }
 
         .tagline {
-          font-size: 13px;
-          font-weight: 300;
-          color: rgba(26,18,9,0.45);
-          letter-spacing: 0.04em;
+          font-family: var(--f-mono);
+          font-size: 10px;
+          font-weight: 400;
+          color: var(--fg-faint);
+          letter-spacing: .14em;
+          text-transform: uppercase;
           line-height: 1.7;
           position: relative;
           z-index: 1;
         }
 
-        /* RIGHT — form panel */
+        .left-meta {
+          position: absolute;
+          bottom: 32px;
+          left: 80px;
+          right: 80px;
+          display: flex;
+          justify-content: space-between;
+          font-family: var(--f-mono);
+          font-size: 9px;
+          letter-spacing: .12em;
+          text-transform: uppercase;
+          color: var(--fg-faint);
+          z-index: 1;
+        }
+
+        /* ── RIGHT ─────────────────────────────────────────── */
         .right {
           flex: 1;
-          background: #FDFAF5;
+          background: var(--bg-deep);
           display: flex;
           align-items: center;
           justify-content: center;
           position: relative;
         }
 
-        .right::before {
-          content: '';
+        .right-grid {
           position: absolute;
           inset: 0;
           background-image:
-            linear-gradient(rgba(184,150,62,0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(184,150,62,0.05) 1px, transparent 1px);
-          background-size: 56px 56px;
+            linear-gradient(var(--line) 1px, transparent 1px),
+            linear-gradient(90deg, var(--line) 1px, transparent 1px);
+          background-size: 52px 52px;
           pointer-events: none;
         }
 
-        /* CARD */
+        /* ── Card ──────────────────────────────────────────── */
         .card {
-          width: 460px;
-          background: #FFFFFF;
-          border: 1px solid rgba(184,150,62,0.18);
-          border-radius: 4px;
-          padding: 52px;
-          box-shadow: 0 4px 40px rgba(26,18,9,0.07), 0 1px 4px rgba(26,18,9,0.04);
+          width: 440px;
+          background: var(--bg-elev);
+          border: 1px solid var(--line);
+          padding: 48px;
           position: relative;
           z-index: 1;
         }
 
-        .card::before {
-          content: '';
+        .card-accent {
           position: absolute;
-          top: 0; left: 40px; right: 40px;
+          top: 0; left: 0; right: 0;
           height: 2px;
-          background: linear-gradient(90deg, transparent, #B8963E, transparent);
-          opacity: 0.7;
+          background: linear-gradient(90deg, var(--c-gold), var(--c-gold-soft), transparent);
         }
 
-        .card-eyebrow {
-          font-size: 10px;
-          letter-spacing: 0.22em;
+        .eyebrow {
+          font-family: var(--f-mono);
+          font-size: 9px;
+          letter-spacing: .22em;
           text-transform: uppercase;
-          color: #B8963E;
+          color: var(--c-gold-deep);
           font-weight: 500;
           margin-bottom: 8px;
         }
 
         .card-title {
-          font-family: 'Lora', serif;
-          font-size: 22px;
-          font-weight: 600;
-          color: #1A1209;
+          font-family: var(--f-display);
+          font-size: 24px;
+          font-weight: 400;
+          color: var(--fg);
           margin-bottom: 36px;
-          letter-spacing: -0.01em;
+          line-height: 1.2;
         }
 
-        /* FIELDS */
-        .field { margin-bottom: 20px; }
+        /* ── Fields ────────────────────────────────────────── */
+        .field { margin-bottom: 22px; }
 
         .field label {
           display: block;
-          font-size: 11px;
+          font-family: var(--f-mono);
+          font-size: 9px;
           font-weight: 500;
-          letter-spacing: 0.08em;
+          letter-spacing: .16em;
           text-transform: uppercase;
-          color: rgba(26,18,9,0.45);
+          color: var(--fg-mute);
           margin-bottom: 8px;
         }
 
@@ -317,150 +410,149 @@ export default function LoginPage() {
 
         .input-wrap input {
           width: 100%;
-          height: 50px;
-          background: #F6F3ED;
-          border: 1.5px solid rgba(184,150,62,0.22);
-          border-radius: 4px;
-          padding: 0 16px;
-          font-family: var(--font-geist), 'Geist', system-ui, sans-serif;
+          height: 46px;
+          background: var(--bg);
+          border: 1px solid var(--line-strong);
+          padding: 0 14px;
+          font-family: var(--f-text);
           font-size: 14px;
-          color: #1A1209;
+          color: var(--fg);
           outline: none;
-          transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+          transition: border-color .18s, box-shadow .18s;
+          border-radius: var(--r-1);
           -webkit-appearance: none;
         }
 
-        .input-wrap input::placeholder { color: rgba(26,18,9,0.25); }
+        .input-wrap input::placeholder { color: var(--fg-faint); }
 
         .input-wrap input:focus {
-          background: #FFFFFF;
-          border-color: #B8963E;
-          box-shadow: 0 0 0 3px rgba(184,150,62,0.1);
+          border-color: var(--c-gold);
+          box-shadow: 0 0 0 3px color-mix(in oklch, var(--c-gold) 12%, transparent);
         }
 
         .input-wrap input[data-error='true'] {
-          border-color: #c0392b;
-          box-shadow: 0 0 0 3px rgba(192,57,43,0.08);
+          border-color: var(--c-negative);
+          box-shadow: 0 0 0 3px color-mix(in oklch, var(--c-negative) 10%, transparent);
         }
 
         .toggle-pw {
           position: absolute;
-          right: 14px;
+          right: 12px;
           top: 50%;
           transform: translateY(-50%);
           background: none;
           border: none;
           cursor: pointer;
-          color: rgba(26,18,9,0.3);
+          color: var(--fg-faint);
           padding: 4px;
-          transition: color 0.15s;
+          transition: color .15s;
           display: flex;
           align-items: center;
         }
 
-        .toggle-pw:hover { color: #B8963E; }
-        .toggle-pw svg { width: 15px; height: 15px; display: block; }
+        .toggle-pw:hover { color: var(--c-gold-deep); }
+        .toggle-pw svg { width: 14px; height: 14px; display: block; }
 
         .error-msg {
-          font-size: 11px;
-          color: #c0392b;
+          font-family: var(--f-mono);
+          font-size: 10px;
+          color: var(--c-negative);
           margin-top: 5px;
-          letter-spacing: 0.01em;
+          letter-spacing: .04em;
         }
 
         .global-error {
           display: flex;
           align-items: center;
           gap: 8px;
-          background: rgba(192,57,43,0.05);
-          border: 1px solid rgba(192,57,43,0.2);
-          border-radius: 4px;
-          padding: 12px 14px;
+          background: color-mix(in oklch, var(--c-negative) 8%, transparent);
+          border: 1px solid color-mix(in oklch, var(--c-negative) 30%, transparent);
+          padding: 10px 14px;
+          font-family: var(--f-text);
           font-size: 13px;
-          color: #c0392b;
+          color: var(--c-negative);
           margin-top: 4px;
           margin-bottom: 4px;
+          border-radius: var(--r-1);
         }
 
-        .global-error svg { width: 15px; height: 15px; flex-shrink: 0; }
+        .global-error svg { width: 14px; height: 14px; flex-shrink: 0; }
 
-        /* BUTTONS */
+        /* ── Buttons ───────────────────────────────────────── */
         .btn-submit {
           width: 100%;
-          height: 52px;
-          background: #1A1209;
+          height: 48px;
+          background: var(--fg);
           border: none;
-          border-radius: 4px;
-          font-family: var(--font-geist), 'Geist', system-ui, sans-serif;
-          font-size: 13px;
-          font-weight: 600;
-          letter-spacing: 0.1em;
+          font-family: var(--f-text);
+          font-size: 11px;
+          font-weight: 500;
+          letter-spacing: .10em;
           text-transform: uppercase;
-          color: #F6F3ED;
+          color: var(--bg-elev);
           cursor: pointer;
           margin-top: 28px;
           margin-bottom: 10px;
-          transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+          transition: background .2s, transform .15s, box-shadow .2s;
           display: flex;
           align-items: center;
           justify-content: center;
+          border-radius: var(--r-1);
         }
 
         .btn-submit:hover:not(:disabled) {
-          background: #B8963E;
+          background: var(--c-gold-deep);
+          color: #1a1408;
           transform: translateY(-1px);
-          box-shadow: 0 6px 20px rgba(184,150,62,0.25);
+          box-shadow: var(--e-2);
         }
 
         .btn-submit:disabled {
-          opacity: 0.55;
+          opacity: 0.5;
           cursor: not-allowed;
         }
 
         .spinner {
-          width: 18px;
-          height: 18px;
-          border: 2px solid rgba(246,243,237,0.3);
-          border-top-color: #F6F3ED;
+          width: 16px;
+          height: 16px;
+          border: 1.5px solid rgba(255,255,255,.3);
+          border-top-color: #fff;
           border-radius: 50%;
-          animation: spin 0.7s linear infinite;
+          animation: spin .7s linear infinite;
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .btn-forgot {
-          width: 100%;
-          height: 48px;
-          background: transparent;
-          border: 1.5px solid rgba(184,150,62,0.22);
-          border-radius: 4px;
-          font-family: var(--font-geist), 'Geist', system-ui, sans-serif;
-          font-size: 12px;
-          font-weight: 400;
-          letter-spacing: 0.06em;
-          color: rgba(26,18,9,0.45);
-          cursor: pointer;
-          transition: border-color 0.2s, color 0.2s;
-        }
-
-        .btn-forgot:hover {
-          border-color: #B8963E;
-          color: #B8963E;
-        }
-
+        /* ── Footer ────────────────────────────────────────── */
         .card-footer {
-          margin-top: 32px;
-          padding-top: 22px;
-          border-top: 1px solid rgba(184,150,62,0.14);
+          margin-top: 28px;
+          padding-top: 20px;
+          border-top: 1px solid var(--line);
           text-align: center;
-          font-size: 11px;
-          color: rgba(26,18,9,0.3);
-          line-height: 1.7;
+          font-family: var(--f-mono);
+          font-size: 10px;
+          color: var(--fg-faint);
+          line-height: 1.8;
+          letter-spacing: .04em;
         }
 
         .card-footer strong {
-          color: rgba(26,18,9,0.5);
+          color: var(--fg-mute);
           font-weight: 500;
+        }
+
+        /* ── Responsive ────────────────────────────────────── */
+        @media (max-width: 900px) {
+          .shell { flex-direction: column; }
+          .left  { width: 100%; min-height: 40vh; padding: 48px; }
+          .left-meta { display: none; }
+          .headline { font-size: 36px; }
+        }
+
+        @media (max-width: 520px) {
+          .right { padding: 24px; align-items: flex-start; padding-top: 40px; }
+          .card  { width: 100%; padding: 32px 24px; }
+          .left  { padding: 32px 24px; }
         }
       `}</style>
     </div>

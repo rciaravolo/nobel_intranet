@@ -68,6 +68,7 @@ export async function POST(req: NextRequest) {
     username: user.username,
     name: user.name,
     role: user.role,
+    ...(user.equipe ? { equipe: user.equipe } : {}),
     email: user.email,
   })
 
