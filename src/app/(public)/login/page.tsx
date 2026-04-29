@@ -214,7 +214,12 @@ export default function LoginPage() {
         .left {
           width: 520px;
           flex-shrink: 0;
-          background: var(--bg);
+          /* P-04 cross-hatch gold — breathing texture for the brand panel */
+          background-color: var(--bg);
+          background-image:
+            repeating-linear-gradient(45deg, rgba(184, 150, 62, 0.055) 0, rgba(184, 150, 62, 0.055) 1px, transparent 0, transparent 50%),
+            repeating-linear-gradient(-45deg, rgba(184, 150, 62, 0.055) 0, rgba(184, 150, 62, 0.055) 1px, transparent 0, transparent 50%);
+          background-size: 18px 18px;
           display: flex;
           flex-direction: column;
           justify-content: center;

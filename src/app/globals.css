@@ -415,7 +415,14 @@ a {
 /* KPI stat cell — floating card */
 .ds-stat {
   padding: var(--s-5) var(--s-5);
-  background: var(--bg-elev);
+  /* P-02 dot texture — breathing pattern below the data */
+  background-color: var(--bg-elev);
+  background-image: radial-gradient(
+    circle,
+    color-mix(in oklch, var(--fg) 7%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 16px 16px;
   border: 1px solid var(--line);
   border-radius: var(--r-3);
   box-shadow: var(--e-float);
@@ -448,6 +455,25 @@ a {
   color: var(--fg-faint);
   margin-top: var(--s-1);
   letter-spacing: .04em;
+}
+
+/* AUM card — P-04 cross-hatch gold overrides the dot pattern */
+.ds-stat.ds-stat-accent {
+  background-image: repeating-linear-gradient(
+      45deg,
+      rgba(184, 150, 62, 0.07) 0,
+      rgba(184, 150, 62, 0.07) 1px,
+      transparent 0,
+      transparent 50%
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(184, 150, 62, 0.07) 0,
+      rgba(184, 150, 62, 0.07) 1px,
+      transparent 0,
+      transparent 50%
+    );
+  background-size: 14px 14px;
 }
 
 /* Gold accent bar at top of stat — cor sólida, sem gradiente (§7) */
@@ -711,6 +737,128 @@ a {
   z-index: 0;
 }
 .pattern-dots-overlay > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Padrão P-03: Diagonal ──────────────────────────────────── */
+.pattern-diagonal-overlay {
+  position: relative;
+}
+.pattern-diagonal-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    45deg,
+    color-mix(in oklch, var(--fg) 5%, transparent) 0,
+    color-mix(in oklch, var(--fg) 5%, transparent) 1px,
+    transparent 0,
+    transparent 50%
+  );
+  background-size: 10px 10px;
+  pointer-events: none;
+  z-index: 0;
+}
+.pattern-diagonal-overlay > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Padrão P-04: Cross-hatch (gold) ───────────────────────── */
+.pattern-crosshatch-overlay {
+  position: relative;
+}
+.pattern-crosshatch-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+      45deg,
+      rgba(184, 150, 62, 0.08) 0,
+      rgba(184, 150, 62, 0.08) 1px,
+      transparent 0,
+      transparent 50%
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(184, 150, 62, 0.08) 0,
+      rgba(184, 150, 62, 0.08) 1px,
+      transparent 0,
+      transparent 50%
+    );
+  background-size: 14px 14px;
+  pointer-events: none;
+  z-index: 0;
+}
+.pattern-crosshatch-overlay > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Padrão P-07: Horizonte ─────────────────────────────────── */
+.pattern-horizonte-overlay {
+  position: relative;
+}
+.pattern-horizonte-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 46%,
+    rgba(184, 150, 62, 0.18) 49%,
+    rgba(184, 150, 62, 0.22) 50%,
+    rgba(184, 150, 62, 0.18) 51%,
+    transparent 54%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+.pattern-horizonte-overlay > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Padrão P-08: Concêntrico ───────────────────────────────── */
+.pattern-concentric-overlay {
+  position: relative;
+  overflow: hidden;
+}
+.pattern-concentric-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+      ellipse at 88% 92%,
+      transparent 28%,
+      rgba(184, 150, 62, 0.09) 29%,
+      transparent 30%
+    ),
+    radial-gradient(
+      ellipse at 88% 92%,
+      transparent 42%,
+      rgba(184, 150, 62, 0.07) 43%,
+      transparent 44%
+    ),
+    radial-gradient(
+      ellipse at 88% 92%,
+      transparent 56%,
+      rgba(184, 150, 62, 0.05) 57%,
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse at 88% 92%,
+      transparent 70%,
+      rgba(184, 150, 62, 0.04) 71%,
+      transparent 72%
+    );
+  pointer-events: none;
+  z-index: 0;
+}
+.pattern-concentric-overlay > * {
   position: relative;
   z-index: 1;
 }

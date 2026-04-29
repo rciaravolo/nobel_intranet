@@ -335,10 +335,54 @@
   border-bottom: 1px solid rgba(184, 150, 62, 0.14);
 }
 
+/* P-01 grid texture — breathing layer below cards */
+.sectionDark::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(184, 150, 62, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(184, 150, 62, 0.06) 1px, transparent 1px);
+  background-size: 44px 44px;
+  pointer-events: none;
+  z-index: 0;
+}
+.sectionDark > * {
+  position: relative;
+  z-index: 1;
+}
+
 .sectionBase {
   padding: 112px 56px;
   position: relative;
   background: #f6f3ed;
+}
+
+/* P-04 cross-hatch gold — premium editorial texture */
+.sectionBase::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+      45deg,
+      rgba(184, 150, 62, 0.07) 0,
+      rgba(184, 150, 62, 0.07) 1px,
+      transparent 0,
+      transparent 50%
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(184, 150, 62, 0.07) 0,
+      rgba(184, 150, 62, 0.07) 1px,
+      transparent 0,
+      transparent 50%
+    );
+  background-size: 16px 16px;
+  pointer-events: none;
+  z-index: 0;
+}
+.sectionBase > * {
+  position: relative;
+  z-index: 1;
 }
 
 .sectionMid {
@@ -346,6 +390,21 @@
   position: relative;
   background: #fdfaf5;
   border-top: 1px solid rgba(184, 150, 62, 0.14);
+}
+
+/* P-02 dots — subtle breathing space between recentes */
+.sectionMid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(184, 150, 62, 0.12) 1px, transparent 1px);
+  background-size: 22px 22px;
+  pointer-events: none;
+  z-index: 0;
+}
+.sectionMid > * {
+  position: relative;
+  z-index: 1;
 }
 
 .sectionHeader {
