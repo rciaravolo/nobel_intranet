@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { verifyPassword } from '@/lib/auth/password'
 import { setSession } from '@/lib/auth/session'
 import { findUserByUsername } from '@/lib/auth/users'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 
 const loginSchema = z.object({
   username: z.string().min(1).max(64).trim().toLowerCase(),
@@ -30,10 +30,7 @@ export async function POST(req: NextRequest) {
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
 
   if (!rateLimit(ip)) {
-    return NextResponse.json(
-      { error: 'Muitas tentativas. Aguarde 15 minutos.' },
-      { status: 429 },
-    )
+    return NextResponse.json({ error: 'Muitas tentativas. Aguarde 15 minutos.' }, { status: 429 })
   }
 
   let body: unknown

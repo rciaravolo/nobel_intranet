@@ -19,19 +19,26 @@ export default function LoginPage() {
     const errors: typeof fieldErrors = {}
     if (!username.trim()) errors.username = 'Informe seu username'
     if (!password) errors.password = 'Informe sua senha'
-    if (Object.keys(errors).length > 0) { setFieldErrors(errors); return }
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+      return
+    }
 
     setFieldErrors({})
     setLoading(true)
 
     try {
-      const res  = await fetch('/api/auth/login', {
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       })
       const data = await res.json()
-      if (!res.ok) { setError(data.error ?? 'Erro ao fazer login'); setPassword(''); return }
+      if (!res.ok) {
+        setError(data.error ?? 'Erro ao fazer login')
+        setPassword('')
+        return
+      }
       router.push('/dashboard')
       router.refresh()
     } catch {
@@ -43,7 +50,6 @@ export default function LoginPage() {
 
   return (
     <div className="shell">
-
       {/* ── LEFT — editorial brand panel ─────────────────────── */}
       <div className="left">
         {/* Subtle gold radial */}
@@ -65,7 +71,8 @@ export default function LoginPage() {
 
         {/* Display headline */}
         <h1 className="headline">
-          Sistema interno<br />
+          Sistema interno
+          <br />
           <em className="headline-em">INTRA</em>
         </h1>
 
@@ -73,9 +80,7 @@ export default function LoginPage() {
         <div className="rule" />
 
         {/* Tagline */}
-        <p className="tagline">
-          Permanência · Rigor · Clareza
-        </p>
+        <p className="tagline">Permanência · Rigor · Clareza</p>
 
         {/* Bottom meta */}
         <div className="left-meta">
@@ -109,7 +114,10 @@ export default function LoginPage() {
                   value={username}
                   onChange={(e) => {
                     setUsername(e.target.value)
-                    setFieldErrors((p) => { const { username: _, ...r } = p; return r })
+                    setFieldErrors((p) => {
+                      const { username: _, ...r } = p
+                      return r
+                    })
                   }}
                   data-error={!!fieldErrors.username}
                 />
@@ -129,7 +137,10 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value)
-                    setFieldErrors((p) => { const { password: _, ...r } = p; return r })
+                    setFieldErrors((p) => {
+                      const { password: _, ...r } = p
+                      return r
+                    })
                   }}
                   data-error={!!fieldErrors.password}
                 />
@@ -140,13 +151,25 @@ export default function LoginPage() {
                   aria-label={showPw ? 'Ocultar senha' : 'Mostrar senha'}
                 >
                   {showPw ? (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      aria-hidden="true"
+                    >
                       <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" />
                       <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
                       <line x1="1" y1="1" x2="23" y2="23" />
                     </svg>
                   ) : (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      aria-hidden="true"
+                    >
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                       <circle cx="12" cy="12" r="3" />
                     </svg>
@@ -159,7 +182,13 @@ export default function LoginPage() {
             {/* Global error */}
             {error && (
               <div className="global-error" role="alert">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden="true"
+                >
                   <circle cx="12" cy="12" r="10" />
                   <line x1="12" y1="8" x2="12" y2="12" />
                   <line x1="12" y1="16" x2="12.01" y2="16" />

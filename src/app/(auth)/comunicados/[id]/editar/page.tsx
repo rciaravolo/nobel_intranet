@@ -1,12 +1,12 @@
+import { ComunicadoForm } from '@/components/features/comunicados/ComunicadoForm'
+import { comunicadosApi } from '@/lib/api/comunicados'
+import { getSessionUser, podeEditarComunicado } from '@/lib/auth/cf-session'
 /**
  * /comunicados/[id]/editar — Página de edição de comunicado.
  * Server Component: verifica permissão e carrega dados iniciais.
  */
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { comunicadosApi } from '@/lib/api/comunicados'
-import { getSessionUser, podeEditarComunicado } from '@/lib/auth/cf-session'
-import { ComunicadoForm } from '@/components/features/comunicados/ComunicadoForm'
 
 type Props = {
   params: Promise<{ id: string }>
@@ -49,10 +49,7 @@ export default async function EditarComunicadoPage({ params }: Props) {
             Comunicados
           </Link>
           {' / '}
-          <Link
-            href={`/comunicados/${id}`}
-            style={{ color: 'inherit', textDecoration: 'none' }}
-          >
+          <Link href={`/comunicados/${id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
             {comunicado.titulo.length > 30
               ? `${comunicado.titulo.slice(0, 30)}…`
               : comunicado.titulo}
@@ -108,13 +105,8 @@ export default async function EditarComunicadoPage({ params }: Props) {
           Comunicados
         </Link>
         {' / '}
-        <Link
-          href={`/comunicados/${id}`}
-          style={{ color: 'inherit', textDecoration: 'none' }}
-        >
-          {comunicado.titulo.length > 30
-            ? `${comunicado.titulo.slice(0, 30)}…`
-            : comunicado.titulo}
+        <Link href={`/comunicados/${id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+          {comunicado.titulo.length > 30 ? `${comunicado.titulo.slice(0, 30)}…` : comunicado.titulo}
         </Link>
         {' / '}
         <span style={{ color: '#1A1209' }}>Editar</span>

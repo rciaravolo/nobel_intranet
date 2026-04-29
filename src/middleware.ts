@@ -5,7 +5,7 @@
  * A verificação criptográfica real do JWT ocorre no servidor
  * via requireSession() nos layouts/pages (Node.js runtime).
  */
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 const PUBLIC = ['/login', '/api/auth/login', '/api/auth/logout', '/_next', '/favicon']
 const ASSET_RE = /\.(png|jpg|jpeg|svg|ico|webp|woff2?|css|js|map)$/

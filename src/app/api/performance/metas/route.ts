@@ -1,5 +1,5 @@
-import { type NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth/session'
+import { type NextRequest, NextResponse } from 'next/server'
 
 export async function GET(_req: NextRequest) {
   const session = await getSession()
@@ -12,7 +12,7 @@ export async function GET(_req: NextRequest) {
     headers: {
       Authorization: `Bearer ${secret}`,
       'X-User-Email': session.email,
-      'X-User-Role':  session.role,
+      'X-User-Role': session.role,
       'X-User-Equipe': session.equipe ?? '',
     },
   })

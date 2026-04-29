@@ -1,10 +1,10 @@
+import { ComunicadoForm } from '@/components/features/comunicados/ComunicadoForm'
+import { getSessionUser, podeCriarComunicado } from '@/lib/auth/cf-session'
 /**
  * /comunicados/novo — Página de criação de comunicado.
  * Server Component: verifica permissão antes de renderizar o formulário.
  */
 import Link from 'next/link'
-import { getSessionUser, podeCriarComunicado } from '@/lib/auth/cf-session'
-import { ComunicadoForm } from '@/components/features/comunicados/ComunicadoForm'
 
 export const metadata = {
   title: 'Novo comunicado — INTRA Nobel Capital',

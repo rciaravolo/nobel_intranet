@@ -1,35 +1,62 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
 import type { SessionPayload } from '@/lib/auth/session'
+import { usePathname } from 'next/navigation'
 
 const PAGE_TITLES: Record<string, string> = {
-  '/dashboard':    'Dashboard',
-  '/relatorios':   'Relatórios',
-  '/carteiras':    'Carteiras',
-  '/clientes':     'Clientes',
-  '/analises':     'Análises',
-  '/documentos':   'Documentos',
-  '/agenda':       'Agenda',
-  '/comunicados':  'Comunicados',
-  '/automacoes':   'Automações',
-  '/configuracoes':'Configurações',
+  '/dashboard': 'Dashboard',
+  '/relatorios': 'Relatórios',
+  '/carteiras': 'Carteiras',
+  '/clientes': 'Clientes',
+  '/analises': 'Análises',
+  '/documentos': 'Documentos',
+  '/agenda': 'Agenda',
+  '/comunicados': 'Comunicados',
+  '/automacoes': 'Automações',
+  '/configuracoes': 'Configurações',
 }
 
-const MONTHS = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']
-const DAYS   = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado']
+const MONTHS = [
+  'janeiro',
+  'fevereiro',
+  'março',
+  'abril',
+  'maio',
+  'junho',
+  'julho',
+  'agosto',
+  'setembro',
+  'outubro',
+  'novembro',
+  'dezembro',
+]
+const DAYS = [
+  'Domingo',
+  'Segunda-feira',
+  'Terça-feira',
+  'Quarta-feira',
+  'Quinta-feira',
+  'Sexta-feira',
+  'Sábado',
+]
 
 function formatDate() {
   const now = new Date()
   return `${DAYS[now.getDay()]}, ${now.getDate()} de ${MONTHS[now.getMonth()]} de ${now.getFullYear()}`
 }
 
-interface Props { session: SessionPayload }
+interface Props {
+  session: SessionPayload
+}
 
 export function Topbar({ session }: Props) {
   const pathname = usePathname()
-  const title    = PAGE_TITLES[pathname] ?? 'INTRA'
-  const initials = session.name.split(' ').map((n) => n[0]).slice(0, 2).join('')
+  const title = PAGE_TITLES[pathname] ?? 'INTRA'
+  const initials = session.name
+    .split(' ')
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join('')
 
   return (
     <header
@@ -74,7 +101,15 @@ export function Topbar({ session }: Props) {
           cursor: 'text',
         }}
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="rgba(26,18,9,0.3)" strokeWidth="1.5" width="13" height="13">
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="rgba(26,18,9,0.3)"
+          strokeWidth="1.5"
+          width="13"
+          height="13"
+        >
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
@@ -83,6 +118,8 @@ export function Topbar({ session }: Props) {
 
       {/* Notifications */}
       <button
+        type="button"
+        aria-label="Notificações"
         style={{
           width: 34,
           height: 34,
@@ -96,7 +133,15 @@ export function Topbar({ session }: Props) {
           position: 'relative',
         }}
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="rgba(26,18,9,0.5)" strokeWidth="1.5" width="15" height="15">
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="rgba(26,18,9,0.5)"
+          strokeWidth="1.5"
+          width="15"
+          height="15"
+        >
           <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
         </svg>
         <div

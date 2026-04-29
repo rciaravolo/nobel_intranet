@@ -1,21 +1,18 @@
+import { ComunicadosList } from '@/components/features/comunicados/ComunicadosList'
+import { comunicadosApi } from '@/lib/api/comunicados'
+import { getSessionUser, podeCriarComunicado } from '@/lib/auth/cf-session'
 /**
  * /comunicados — Página de listagem de comunicados.
  * Server Component: faz fetch inicial no servidor e hidrata o Client Component.
  */
 import Link from 'next/link'
-import { comunicadosApi } from '@/lib/api/comunicados'
-import { getSessionUser, podeCriarComunicado } from '@/lib/auth/cf-session'
-import { ComunicadosList } from '@/components/features/comunicados/ComunicadosList'
 
 export const metadata = {
   title: 'Comunicados — INTRA Nobel Capital',
 }
 
 export default async function ComunicadosPage() {
-  const [comunicados, user] = await Promise.all([
-    comunicadosApi.list(),
-    getSessionUser(),
-  ])
+  const [comunicados, user] = await Promise.all([comunicadosApi.list(), getSessionUser()])
 
   const podeNovo = podeCriarComunicado(user)
 
@@ -31,7 +28,10 @@ export default async function ComunicadosPage() {
         }}
       >
         <div>
-          <nav aria-label="Breadcrumb" style={{ fontSize: 11, color: 'rgba(26,18,9,0.4)', marginBottom: 4 }}>
+          <nav
+            aria-label="Breadcrumb"
+            style={{ fontSize: 11, color: 'rgba(26,18,9,0.4)', marginBottom: 4 }}
+          >
             <Link href="/dashboard" style={{ color: 'inherit', textDecoration: 'none' }}>
               Início
             </Link>

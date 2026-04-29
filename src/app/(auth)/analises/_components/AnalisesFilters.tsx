@@ -9,14 +9,14 @@ type Assessor = {
 }
 
 type Props = {
-  equipes:    string[]
+  equipes: string[]
   assessores: Assessor[]
 }
 
 export function AnalisesFilters({ equipes, assessores }: Props) {
-  const router       = useRouter()
+  const router = useRouter()
   const searchParams = useSearchParams()
-  const currentType  = searchParams.get('filter_type')
+  const currentType = searchParams.get('filter_type')
   const currentValue = searchParams.get('filter_value')
 
   function setFilter(type: string | null, value: string | null) {
@@ -33,12 +33,17 @@ export function AnalisesFilters({ equipes, assessores }: Props) {
   }
 
   const selectStyle: React.CSSProperties = {
-    height: 32, padding: '0 28px 0 10px',
-    borderRadius: 8, fontSize: 12, fontWeight: 500,
+    height: 32,
+    padding: '0 28px 0 10px',
+    borderRadius: 8,
+    fontSize: 12,
+    fontWeight: 500,
     fontFamily: 'var(--f-mono)',
     border: '1px solid var(--line-strong)',
-    background: 'var(--bg-deep)', color: 'var(--fg)',
-    cursor: 'pointer', outline: 'none',
+    background: 'var(--bg-deep)',
+    color: 'var(--fg)',
+    cursor: 'pointer',
+    outline: 'none',
     appearance: 'none',
     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23B8963E' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
     backgroundRepeat: 'no-repeat',
@@ -52,23 +57,27 @@ export function AnalisesFilters({ equipes, assessores }: Props) {
     background: 'var(--bg-elev)',
   }
 
-  const equipeValue   = currentType === 'equipe'   ? (currentValue ?? '') : ''
+  const equipeValue = currentType === 'equipe' ? (currentValue ?? '') : ''
   const assessorValue = currentType === 'assessor' ? (currentValue ?? '') : ''
 
   // Quando uma equipe está selecionada, pré-filtra a lista de assessores
-  const assessorEquipe = assessores.find(a => a.id_assessor === assessorValue)?.equipe ?? ''
+  const assessorEquipe = assessores.find((a) => a.id_assessor === assessorValue)?.equipe ?? ''
   const equipeContexto = equipeValue || assessorEquipe
   const assessoresFiltrados = equipeContexto
-    ? assessores.filter(a => a.equipe === equipeContexto)
+    ? assessores.filter((a) => a.equipe === equipeContexto)
     : assessores
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-      <span style={{
-        fontSize: 10, color: 'var(--fg-faint)',
-        fontFamily: 'var(--f-mono)',
-        textTransform: 'uppercase', letterSpacing: '0.14em',
-      }}>
+      <span
+        style={{
+          fontSize: 10,
+          color: 'var(--fg-faint)',
+          fontFamily: 'var(--f-mono)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.14em',
+        }}
+      >
         Filtrar
       </span>
 
@@ -77,14 +86,16 @@ export function AnalisesFilters({ equipes, assessores }: Props) {
         <select
           style={equipeValue ? activeSelectStyle : selectStyle}
           value={equipeValue}
-          onChange={e => {
+          onChange={(e) => {
             const v = e.target.value
             setFilter(v ? 'equipe' : null, v || null)
           }}
         >
-          <option value=''>Equipe — todas</option>
-          {equipes.map(eq => (
-            <option key={eq} value={eq}>{eq}</option>
+          <option value="">Equipe — todas</option>
+          {equipes.map((eq) => (
+            <option key={eq} value={eq}>
+              {eq}
+            </option>
           ))}
         </select>
       )}
@@ -94,15 +105,15 @@ export function AnalisesFilters({ equipes, assessores }: Props) {
         <select
           style={assessorValue ? activeSelectStyle : selectStyle}
           value={assessorValue}
-          onChange={e => {
+          onChange={(e) => {
             const v = e.target.value
             setFilter(v ? 'assessor' : null, v || null)
           }}
         >
-          <option value=''>
+          <option value="">
             {equipeContexto ? `Assessor — ${equipeContexto}` : 'Assessor — todos'}
           </option>
-          {assessoresFiltrados.map(a => (
+          {assessoresFiltrados.map((a) => (
             <option key={a.id_assessor} value={a.id_assessor}>
               {a.nome_assessor ?? a.id_assessor}
             </option>
@@ -113,13 +124,19 @@ export function AnalisesFilters({ equipes, assessores }: Props) {
       {/* Limpar filtro ativo */}
       {currentType && (
         <button
+          type="button"
           onClick={() => setFilter(null, null)}
           style={{
-            height: 32, padding: '0 12px', borderRadius: 8,
-            fontSize: 11, fontWeight: 500, cursor: 'pointer',
+            height: 32,
+            padding: '0 12px',
+            borderRadius: 8,
+            fontSize: 11,
+            fontWeight: 500,
+            cursor: 'pointer',
             fontFamily: 'var(--f-mono)',
             border: '1px solid var(--line-strong)',
-            background: 'transparent', color: 'var(--fg)',
+            background: 'transparent',
+            color: 'var(--fg)',
           }}
         >
           ✕ Limpar

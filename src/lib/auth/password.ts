@@ -2,7 +2,7 @@
  * Password hashing usando Node.js crypto nativo (scrypt).
  * Zero dependências externas — compatível com Cloudflare Workers via Web Crypto API.
  */
-import { scryptSync, timingSafeEqual } from 'crypto'
+import { scryptSync, timingSafeEqual } from 'node:crypto'
 
 const SCRYPT_PARAMS = { N: 16384, r: 8, p: 1, maxmem: 33554432 }
 const KEY_LEN = 64

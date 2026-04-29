@@ -1,5 +1,5 @@
-import { type NextRequest, NextResponse } from 'next/server'
 import { getSession } from '@/lib/auth/session'
+import { type NextRequest, NextResponse } from 'next/server'
 
 export async function GET(_req: NextRequest) {
   const session = await getSession()
@@ -14,8 +14,8 @@ export async function GET(_req: NextRequest) {
   const res = await fetch(`${apiUrl}/performance/assessores`, {
     cache: 'no-store',
     headers: {
-      Authorization:  `Bearer ${secret}`,
-      'X-User-Role':  session.role,
+      Authorization: `Bearer ${secret}`,
+      'X-User-Role': session.role,
       'X-User-Email': session.email,
     },
   })

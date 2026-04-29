@@ -1,12 +1,12 @@
 import type { TickerItem } from '@/../../server/src/lib/ticker'
 
 const FALLBACK: TickerItem[] = [
-  { name: 'IBOV',    value: '—', change: '—',         up: null },
-  { name: 'USD/BRL', value: '—', change: '—',         up: null },
-  { name: 'CDI',     value: '—', change: 'a.a.',      up: null },
-  { name: 'IPCA',    value: '—', change: 'acum. 12m', up: null },
-  { name: 'S&P 500', value: '—', change: '—',         up: null },
-  { name: 'BTC',     value: '—', change: '—',         up: null },
+  { name: 'IBOV', value: '—', change: '—', up: null },
+  { name: 'USD/BRL', value: '—', change: '—', up: null },
+  { name: 'CDI', value: '—', change: 'a.a.', up: null },
+  { name: 'IPCA', value: '—', change: 'acum. 12m', up: null },
+  { name: 'S&P 500', value: '—', change: '—', up: null },
+  { name: 'BTC', value: '—', change: '—', up: null },
 ]
 
 export function TickerBar({ tickers = FALLBACK }: { tickers?: TickerItem[] }) {
@@ -36,7 +36,9 @@ export function TickerBar({ tickers = FALLBACK }: { tickers?: TickerItem[] }) {
           }}
         >
           {i > 0 && (
-            <div style={{ width: 1, height: 10, background: 'var(--line-strong)', margin: '0 20px' }} />
+            <div
+              style={{ width: 1, height: 10, background: 'var(--line-strong)', margin: '0 20px' }}
+            />
           )}
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
             <span

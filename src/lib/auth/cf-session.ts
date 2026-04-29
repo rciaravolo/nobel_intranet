@@ -101,10 +101,7 @@ export function podeCriarComunicado(user: SessionUser | null): boolean {
  * Retorna true se o usuário pode editar/arquivar um comunicado específico.
  * Diretoria pode editar qualquer um; RH só pode editar os próprios.
  */
-export function podeEditarComunicado(
-  user: SessionUser | null,
-  autorEmail: string,
-): boolean {
+export function podeEditarComunicado(user: SessionUser | null, autorEmail: string): boolean {
   if (!user) return false
   if (user.role === 'diretoria') return true
   if (user.role === 'rh' && user.email === autorEmail) return true

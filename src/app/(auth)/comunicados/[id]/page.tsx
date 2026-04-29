@@ -1,14 +1,14 @@
+import { ArquivarButton } from '@/components/features/comunicados/ArquivarButton'
+import { comunicadosApi } from '@/lib/api/comunicados'
+import { getSessionUser, podeEditarComunicado } from '@/lib/auth/cf-session'
 /**
  * /comunicados/[id] — Página de detalhe de comunicado.
  * Server Component: faz fetch pelo ID, exibe conteúdo Markdown e banners de status.
  */
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import rehypeSanitize from 'rehype-sanitize'
-import { notFound } from 'next/navigation'
-import { comunicadosApi } from '@/lib/api/comunicados'
-import { getSessionUser, podeEditarComunicado } from '@/lib/auth/cf-session'
-import { ArquivarButton } from '@/components/features/comunicados/ArquivarButton'
 
 type Props = {
   params: Promise<{ id: string }>
@@ -37,9 +37,7 @@ export default async function ComunicadoDetailPage({ params }: Props) {
   const user = await getSessionUser()
 
   const agora = new Date()
-  const expirado =
-    comunicado.dataExpiracao !== null &&
-    new Date(comunicado.dataExpiracao) < agora
+  const expirado = comunicado.dataExpiracao !== null && new Date(comunicado.dataExpiracao) < agora
 
   const arquivado = !comunicado.ativo
 
@@ -85,9 +83,7 @@ export default async function ComunicadoDetailPage({ params }: Props) {
         </Link>
         {' / '}
         <span style={{ color: '#1A1209' }}>
-          {comunicado.titulo.length > 40
-            ? `${comunicado.titulo.slice(0, 40)}…`
-            : comunicado.titulo}
+          {comunicado.titulo.length > 40 ? `${comunicado.titulo.slice(0, 40)}…` : comunicado.titulo}
         </span>
       </nav>
 
@@ -123,8 +119,7 @@ export default async function ComunicadoDetailPage({ params }: Props) {
             marginBottom: 16,
           }}
         >
-          Este comunicado expirou em {dataExpiracaoFormatada} e não está mais na
-          listagem ativa.
+          Este comunicado expirou em {dataExpiracaoFormatada} e não está mais na listagem ativa.
         </div>
       )}
 
@@ -203,9 +198,7 @@ export default async function ComunicadoDetailPage({ params }: Props) {
             <span style={{ fontSize: 13, fontWeight: 500, color: '#1A1209' }}>
               {comunicado.autorNome}
             </span>
-            <span
-              style={{ fontSize: 12, color: 'rgba(26,18,9,0.4)', marginLeft: 8 }}
-            >
+            <span style={{ fontSize: 12, color: 'rgba(26,18,9,0.4)', marginLeft: 8 }}>
               {dataFormatada}
             </span>
           </div>

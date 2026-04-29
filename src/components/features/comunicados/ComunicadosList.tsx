@@ -21,10 +21,14 @@ type Props = {
 export function ComunicadosList({ initialData, podeNovo }: Props) {
   const [filtro, setFiltro] = useState<FiltroComunicado>('Todos')
 
-  const { data: comunicados = [], isLoading, isError, refetch } = useQuery({
+  const {
+    data: comunicados = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ['comunicados', filtro],
-    queryFn: () =>
-      comunicadosApi.list(filtro !== 'Todos' ? { categoria: filtro } : undefined),
+    queryFn: () => comunicadosApi.list(filtro !== 'Todos' ? { categoria: filtro } : undefined),
     initialData: filtro === 'Todos' ? initialData : undefined,
   })
 

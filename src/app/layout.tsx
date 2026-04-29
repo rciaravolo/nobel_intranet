@@ -1,6 +1,6 @@
+import { Providers } from '@/components/providers'
 import type { Metadata } from 'next'
 import { Cormorant_Garamond, Inter_Tight, JetBrains_Mono } from 'next/font/google'
-import { Providers } from '@/components/providers'
 import './globals.css'
 
 /* Display / headings — Cormorant Garamond */

@@ -2,7 +2,7 @@
  * Gerenciamento de sessão via JWT assinado com HMAC-SHA256.
  * Usa apenas APIs nativas do Node.js — zero dependências.
  */
-import { createHmac, randomBytes, timingSafeEqual } from 'crypto'
+import { createHmac, timingSafeEqual } from 'node:crypto'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 

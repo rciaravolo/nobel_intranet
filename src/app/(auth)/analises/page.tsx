@@ -1,71 +1,83 @@
 import { requireSession } from '@/lib/auth/session'
-import { BlocoCaptacao } from './_components/BlocoCaptacao'
-import { BlocoReceita } from './_components/BlocoReceita'
-import { BlocoMetas } from './_components/BlocoMetas'
 import { AnalisesFilters } from './_components/AnalisesFilters'
+import { BlocoCaptacao } from './_components/BlocoCaptacao'
+import { BlocoMetas } from './_components/BlocoMetas'
+import { BlocoReceita } from './_components/BlocoReceita'
 
 /* ─── Tipos ──────────────────────────────────────────────────────────────── */
 
 type ReceitaProduto = { produto: string; receita: number }
 
 type OnepagePayload = {
-  dataRef:  string | null
+  dataRef: string | null
   mesLabel: string
-  aum:      number
+  aum: number
   clientes: { ativos: number; inativos: number }
   captacao: { bruta: number; resgates: number; liquida: number }
-  receita:  { total: number; porProduto: ReceitaProduto[] }
+  receita: { total: number; porProduto: ReceitaProduto[] }
 }
 
 type MetaProduto = {
-  slug: string; label: string
-  meta: number; realizado: number; gap: number
+  slug: string
+  label: string
+  meta: number
+  realizado: number
+  gap: number
   pctAtingido: number | null
-  paceRealizado: number; paceNecessario: number
-  projecao: number; pctMeta: number | null
+  paceRealizado: number
+  paceNecessario: number
+  projecao: number
+  pctMeta: number | null
 }
 
 type MetasPayload =
   | { semMeta: true; mesISO: string }
   | {
-      semMeta:  false
-      mesISO:   string
-      dias:     { passados: number; restantes: number; total: number }
+      semMeta: false
+      mesISO: string
+      dias: { passados: number; restantes: number; total: number }
       produtos: MetaProduto[]
-      total:    { meta: number; realizado: number; projecao: number; gap: number; pctAtingido: number | null; pctMeta: number | null }
+      total: {
+        meta: number
+        realizado: number
+        projecao: number
+        gap: number
+        pctAtingido: number | null
+        pctMeta: number | null
+      }
     }
 
 type MesHistorico = {
-  mes:      number
-  label:    string
+  mes: number
+  label: string
   custodia: { v25: number | null; v26: number | null }
   captacao: { v25: number | null; v26: number | null }
-  roa:      { v25: number | null; v26: number | null }
-  receita:  { v25: number | null; v26: number | null }
+  roa: { v25: number | null; v26: number | null }
+  receita: { v25: number | null; v26: number | null }
 }
 
 type HistoricoPayload = {
   historico: MesHistorico[]
   totais: {
     captacao: { v25: number; v26: number }
-    receita:  { v25: number; v26: number }
+    receita: { v25: number; v26: number }
   }
 }
 
 /* ─── Cores por produto de receita ───────────────────────────────────────── */
 
 const RECEITA_COLOR: Record<string, string> = {
-  'Renda Variável':  '#F59E0B',
-  'Renda Fixa':      '#3B82F6',
-  'COE':             '#EF4444',
-  'Câmbio':          '#06B6D4',
-  'Fee Fixo':        '#8B5CF6',
-  'Seguros':         '#10B981',
-  'Consórcio':       '#F97316',
-  'Dominion':        '#6366F1',
-  'Oferta de Fundos':'#EC4899',
+  'Renda Variável': '#F59E0B',
+  'Renda Fixa': '#3B82F6',
+  COE: '#EF4444',
+  Câmbio: '#06B6D4',
+  'Fee Fixo': '#8B5CF6',
+  Seguros: '#10B981',
+  Consórcio: '#F97316',
+  Dominion: '#6366F1',
+  'Oferta de Fundos': '#EC4899',
 }
-const rColor = (p: string) => RECEITA_COLOR[p] ?? '#B8963E'
+const _rColor = (p: string) => RECEITA_COLOR[p] ?? '#B8963E'
 
 /* ─── Formatação ─────────────────────────────────────────────────────────── */
 
@@ -74,8 +86,8 @@ function fBRL(val: number | null): string {
   const abs = Math.abs(val)
   const pre = val < 0 ? '-R$ ' : 'R$ '
   if (abs >= 1_000_000_000) return `${pre}${(abs / 1_000_000_000).toFixed(2).replace('.', ',')}B`
-  if (abs >= 1_000_000)     return `${pre}${(abs / 1_000_000).toFixed(1).replace('.', ',')}M`
-  if (abs >= 1_000)         return `${pre}${(abs / 1_000).toFixed(0)}K`
+  if (abs >= 1_000_000) return `${pre}${(abs / 1_000_000).toFixed(1).replace('.', ',')}M`
+  if (abs >= 1_000) return `${pre}${(abs / 1_000).toFixed(0)}K`
   return `${pre}${abs.toFixed(0)}`
 }
 
@@ -90,7 +102,9 @@ function fPct(val: number, total: number): string {
 function fDataRef(iso: string | null): string {
   if (!iso) return ''
   return new Date(iso).toLocaleDateString('pt-BR', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
     timeZone: 'America/Sao_Paulo',
   })
 }
@@ -125,11 +139,11 @@ function perfHeaders(
   filterValue?: string,
 ) {
   return {
-    Authorization:   `Bearer ${secret}`,
-    'X-User-Email':  email,
-    'X-User-Role':   role,
+    Authorization: `Bearer ${secret}`,
+    'X-User-Email': email,
+    'X-User-Role': role,
     'X-User-Equipe': equipe ?? '',
-    ...(filterType  ? { 'X-Filter-Type':  filterType  } : {}),
+    ...(filterType ? { 'X-Filter-Type': filterType } : {}),
     ...(filterValue ? { 'X-Filter-Value': filterValue } : {}),
   }
 }
@@ -149,10 +163,17 @@ async function getOnepage(opts: FetchOpts): Promise<OnepagePayload | null> {
   try {
     const res = await fetch(`${apiUrl}/performance/onepage`, {
       cache: 'no-store',
-      headers: perfHeaders(opts.email, opts.role, opts.equipe, secret, opts.filterType, opts.filterValue),
+      headers: perfHeaders(
+        opts.email,
+        opts.role,
+        opts.equipe,
+        secret,
+        opts.filterType,
+        opts.filterValue,
+      ),
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const json = await res.json() as { data: OnepagePayload }
+    const json = (await res.json()) as { data: OnepagePayload }
     return json.data
   } catch {
     return null
@@ -165,10 +186,17 @@ async function getMetas(opts: FetchOpts): Promise<MetasPayload | null> {
   if (!apiUrl) return null
   try {
     const res = await fetch(`${apiUrl}/performance/metas`, {
-      headers: perfHeaders(opts.email, opts.role, opts.equipe, secret, opts.filterType, opts.filterValue),
+      headers: perfHeaders(
+        opts.email,
+        opts.role,
+        opts.equipe,
+        secret,
+        opts.filterType,
+        opts.filterValue,
+      ),
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const json = await res.json() as { data: MetasPayload }
+    const json = (await res.json()) as { data: MetasPayload }
     return json.data
   } catch {
     return null
@@ -182,10 +210,17 @@ async function getHistorico(opts: FetchOpts): Promise<HistoricoPayload | null> {
   try {
     const res = await fetch(`${apiUrl}/performance/historico`, {
       cache: 'no-store',
-      headers: perfHeaders(opts.email, opts.role, opts.equipe, secret, opts.filterType, opts.filterValue),
+      headers: perfHeaders(
+        opts.email,
+        opts.role,
+        opts.equipe,
+        secret,
+        opts.filterType,
+        opts.filterValue,
+      ),
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const json = await res.json() as { data: HistoricoPayload }
+    const json = (await res.json()) as { data: HistoricoPayload }
     return json.data
   } catch {
     return null
@@ -206,13 +241,13 @@ async function getAssessores(role: string, email: string): Promise<AssessoresPay
     const res = await fetch(`${apiUrl}/performance/assessores`, {
       cache: 'no-store',
       headers: {
-        Authorization:  `Bearer ${secret}`,
-        'X-User-Role':  role,
+        Authorization: `Bearer ${secret}`,
+        'X-User-Role': role,
         'X-User-Email': email,
       },
     })
     if (!res.ok) return null
-    const json = await res.json() as { data: AssessoresPayload }
+    const json = (await res.json()) as { data: AssessoresPayload }
     return json.data
   } catch {
     return null
@@ -231,22 +266,36 @@ const card: React.CSSProperties = {
 const cardPad: React.CSSProperties = { padding: '22px 24px' }
 
 const label: React.CSSProperties = {
-  fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--fg-faint)',
-  textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 10,
+  fontFamily: 'var(--f-mono)',
+  fontSize: 11,
+  color: 'var(--fg-faint)',
+  textTransform: 'uppercase',
+  letterSpacing: '0.14em',
+  marginBottom: 10,
 }
 
 const valor: React.CSSProperties = {
-  fontFamily: 'var(--f-mono)', fontSize: 30, fontWeight: 500,
-  color: 'var(--fg)', marginBottom: 8, lineHeight: 1,
+  fontFamily: 'var(--f-mono)',
+  fontSize: 30,
+  fontWeight: 500,
+  color: 'var(--fg)',
+  marginBottom: 8,
+  lineHeight: 1,
   fontFeatureSettings: "'tnum'",
 }
 
 const pill = (up?: boolean): React.CSSProperties => ({
-  display: 'inline-flex', alignItems: 'center', gap: 3,
-  fontFamily: 'var(--f-mono)', fontSize: 11, fontWeight: 500,
-  padding: '2px 10px', borderRadius: 'var(--r-pill)',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 3,
+  fontFamily: 'var(--f-mono)',
+  fontSize: 11,
+  fontWeight: 500,
+  padding: '2px 10px',
+  borderRadius: 'var(--r-pill)',
   border: '1px solid',
-  borderColor: up == null ? 'var(--line-strong)' : up ? 'var(--color-positive)' : 'var(--color-negative)',
+  borderColor:
+    up == null ? 'var(--line-strong)' : up ? 'var(--color-positive)' : 'var(--color-negative)',
   background: 'transparent',
   color: up == null ? 'var(--fg-mute)' : up ? 'var(--color-positive)' : 'var(--color-negative)',
 })
@@ -256,27 +305,46 @@ const pill = (up?: boolean): React.CSSProperties => ({
 /* ─── Componente: Tabela Histórica ───────────────────────────────────────── */
 
 type HistTableProps = {
-  title:    string
+  title: string
   subtitle: string
-  rows:     MesHistorico[]
+  rows: MesHistorico[]
   getValue: (r: MesHistorico) => { v25: number | null; v26: number | null }
-  format:   (v: number | null) => string
-  varFn:    (cur: number | null, prev: number | null) => { label: string; up: boolean | null }
+  format: (v: number | null) => string
+  varFn: (cur: number | null, prev: number | null) => { label: string; up: boolean | null }
   total25?: number | undefined
   total26?: number | undefined
 }
 
-function HistTable({ title, subtitle, rows, getValue, format, varFn, total25, total26 }: HistTableProps) {
+function HistTable({
+  title,
+  subtitle,
+  rows,
+  getValue,
+  format,
+  varFn,
+  total25,
+  total26,
+}: HistTableProps) {
   const thStyle: React.CSSProperties = {
-    fontFamily: 'var(--f-mono)', fontSize: 11, fontWeight: 500, color: 'var(--fg-faint)',
-    textTransform: 'uppercase', letterSpacing: '0.14em',
-    padding: '8px 12px', textAlign: 'right', background: 'var(--bg-deep)',
+    fontFamily: 'var(--f-mono)',
+    fontSize: 11,
+    fontWeight: 500,
+    color: 'var(--fg-faint)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.14em',
+    padding: '8px 12px',
+    textAlign: 'right',
+    background: 'var(--bg-deep)',
     borderBottom: '1px solid var(--line)',
   }
   const thLeft: React.CSSProperties = { ...thStyle, textAlign: 'left' }
   const tdStyle: React.CSSProperties = {
-    fontFamily: 'var(--f-mono)', fontSize: 12, padding: '7px 12px', textAlign: 'right',
-    color: 'var(--fg)', borderBottom: '1px solid var(--line)',
+    fontFamily: 'var(--f-mono)',
+    fontSize: 12,
+    padding: '7px 12px',
+    textAlign: 'right',
+    color: 'var(--fg)',
+    borderBottom: '1px solid var(--line)',
   }
   const tdLeft: React.CSSProperties = { ...tdStyle, textAlign: 'left', fontWeight: 500 }
 
@@ -295,21 +363,39 @@ function HistTable({ title, subtitle, rows, getValue, format, varFn, total25, to
   }
 
   return (
-    <div style={{
-      background: 'var(--bg-elev)', borderRadius: 8,
-      border: '1px solid var(--line)',
-      boxShadow: 'var(--e-1)',
-      overflow: 'hidden',
-    }}>
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '14px 20px 12px',
-        borderBottom: '1px solid var(--line)', background: 'var(--bg-deep)',
-      }}>
-        <span style={{ fontFamily: 'var(--f-text)', fontSize: 13, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em' }}>
+    <div
+      style={{
+        background: 'var(--bg-elev)',
+        borderRadius: 8,
+        border: '1px solid var(--line)',
+        boxShadow: 'var(--e-1)',
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '14px 20px 12px',
+          borderBottom: '1px solid var(--line)',
+          background: 'var(--bg-deep)',
+        }}
+      >
+        <span
+          style={{
+            fontFamily: 'var(--f-text)',
+            fontSize: 13,
+            fontWeight: 600,
+            color: 'var(--fg)',
+            letterSpacing: '-.01em',
+          }}
+        >
           {title}
         </span>
-        <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--fg-faint)' }}>{subtitle}</span>
+        <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--fg-faint)' }}>
+          {subtitle}
+        </span>
       </div>
 
       <div style={{ overflowX: 'auto' }}>
@@ -331,29 +417,61 @@ function HistTable({ title, subtitle, rows, getValue, format, varFn, total25, to
               const isLastRow = i === rows.length - 1
               return (
                 <tr key={row.mes}>
-                  <td style={{ ...tdLeft, borderBottom: isLastRow ? 'none' : tdStyle.borderBottom, textTransform: 'capitalize' }}>
+                  <td
+                    style={{
+                      ...tdLeft,
+                      borderBottom: isLastRow ? 'none' : tdStyle.borderBottom,
+                      textTransform: 'capitalize',
+                    }}
+                  >
                     {row.label}
                   </td>
-                  <td style={{ ...tdStyle, borderBottom: isLastRow ? 'none' : tdStyle.borderBottom, color: 'rgba(26,18,9,0.45)' }}>
+                  <td
+                    style={{
+                      ...tdStyle,
+                      borderBottom: isLastRow ? 'none' : tdStyle.borderBottom,
+                      color: 'rgba(26,18,9,0.45)',
+                    }}
+                  >
                     {format(v25)}
                   </td>
-                  <td style={{ ...tdStyle, borderBottom: isLastRow ? 'none' : tdStyle.borderBottom, fontWeight: 600 }}>
+                  <td
+                    style={{
+                      ...tdStyle,
+                      borderBottom: isLastRow ? 'none' : tdStyle.borderBottom,
+                      fontWeight: 600,
+                    }}
+                  >
                     {format(v26)}
                   </td>
-                  <td style={{
-                    ...tdStyle,
-                    borderBottom: isLastRow ? 'none' : tdStyle.borderBottom,
-                    fontWeight: 500,
-                    color: mom.up == null ? 'var(--fg-faint)' : mom.up ? 'var(--color-positive)' : 'var(--color-negative)',
-                  }}>
+                  <td
+                    style={{
+                      ...tdStyle,
+                      borderBottom: isLastRow ? 'none' : tdStyle.borderBottom,
+                      fontWeight: 500,
+                      color:
+                        mom.up == null
+                          ? 'var(--fg-faint)'
+                          : mom.up
+                            ? 'var(--color-positive)'
+                            : 'var(--color-negative)',
+                    }}
+                  >
                     {mom.label}
                   </td>
-                  <td style={{
-                    ...tdStyle,
-                    borderBottom: isLastRow ? 'none' : tdStyle.borderBottom,
-                    fontWeight: 500,
-                    color: yoy.up == null ? 'var(--fg-faint)' : yoy.up ? 'var(--color-positive)' : 'var(--color-negative)',
-                  }}>
+                  <td
+                    style={{
+                      ...tdStyle,
+                      borderBottom: isLastRow ? 'none' : tdStyle.borderBottom,
+                      fontWeight: 500,
+                      color:
+                        yoy.up == null
+                          ? 'var(--fg-faint)'
+                          : yoy.up
+                            ? 'var(--color-positive)'
+                            : 'var(--color-negative)',
+                    }}
+                  >
                     {yoy.label}
                   </td>
                 </tr>
@@ -361,27 +479,53 @@ function HistTable({ title, subtitle, rows, getValue, format, varFn, total25, to
             })}
 
             {/* Total row */}
-            {(total25 != null || total26 != null) && (() => {
-              const totYoy = varFn(total26 ?? null, total25 ?? null)
-              return (
-                <tr style={{ background: 'var(--bg-deep)', borderTop: '2px solid var(--line-strong)' }}>
-                  <td style={{ ...tdLeft, fontWeight: 700, borderBottom: 'none', fontSize: 12 }}>Total</td>
-                  <td style={{ ...tdStyle, fontWeight: 700, borderBottom: 'none', color: 'var(--fg-mute)' }}>
-                    {format(total25 ?? null)}
-                  </td>
-                  <td style={{ ...tdStyle, fontWeight: 700, borderBottom: 'none' }}>
-                    {format(total26 ?? null)}
-                  </td>
-                  <td style={{ ...tdStyle, borderBottom: 'none', color: 'var(--fg-faint)' }}>—</td>
-                  <td style={{
-                    ...tdStyle, fontWeight: 700, borderBottom: 'none',
-                    color: totYoy.up == null ? 'var(--fg-faint)' : totYoy.up ? 'var(--color-positive)' : 'var(--color-negative)',
-                  }}>
-                    {totYoy.label}
-                  </td>
-                </tr>
-              )
-            })()}
+            {(total25 != null || total26 != null) &&
+              (() => {
+                const totYoy = varFn(total26 ?? null, total25 ?? null)
+                return (
+                  <tr
+                    style={{
+                      background: 'var(--bg-deep)',
+                      borderTop: '2px solid var(--line-strong)',
+                    }}
+                  >
+                    <td style={{ ...tdLeft, fontWeight: 700, borderBottom: 'none', fontSize: 12 }}>
+                      Total
+                    </td>
+                    <td
+                      style={{
+                        ...tdStyle,
+                        fontWeight: 700,
+                        borderBottom: 'none',
+                        color: 'var(--fg-mute)',
+                      }}
+                    >
+                      {format(total25 ?? null)}
+                    </td>
+                    <td style={{ ...tdStyle, fontWeight: 700, borderBottom: 'none' }}>
+                      {format(total26 ?? null)}
+                    </td>
+                    <td style={{ ...tdStyle, borderBottom: 'none', color: 'var(--fg-faint)' }}>
+                      —
+                    </td>
+                    <td
+                      style={{
+                        ...tdStyle,
+                        fontWeight: 700,
+                        borderBottom: 'none',
+                        color:
+                          totYoy.up == null
+                            ? 'var(--fg-faint)'
+                            : totYoy.up
+                              ? 'var(--color-positive)'
+                              : 'var(--color-negative)',
+                      }}
+                    >
+                      {totYoy.label}
+                    </td>
+                  </tr>
+                )
+              })()}
           </tbody>
         </table>
       </div>
@@ -398,15 +542,15 @@ export default async function AnalisesPage({
 }) {
   const session = await requireSession()
   const sp = await searchParams
-  const filterType  = typeof sp.filter_type  === 'string' ? sp.filter_type  : undefined
+  const filterType = typeof sp.filter_type === 'string' ? sp.filter_type : undefined
   const filterValue = typeof sp.filter_value === 'string' ? sp.filter_value : undefined
 
   const canFilter = session.role === 'admin' || session.role === 'master'
   const opts: FetchOpts = {
-    email:  session.email,
-    role:   session.role,
+    email: session.email,
+    role: session.role,
     equipe: session.equipe,
-    ...(canFilter && filterType  ? { filterType }  : {}),
+    ...(canFilter && filterType ? { filterType } : {}),
     ...(canFilter && filterValue ? { filterValue } : {}),
   }
 
@@ -418,30 +562,41 @@ export default async function AnalisesPage({
   ])
   const firstName = session.name.split(' ')[0]
 
-  const aum       = data?.aum ?? 0
-  const clientes  = data?.clientes  ?? { ativos: 0, inativos: 0 }
-  const captacao  = data?.captacao  ?? { bruta: 0, resgates: 0, liquida: 0 }
-  const receita   = data?.receita   ?? { total: 0, porProduto: [] }
+  const aum = data?.aum ?? 0
+  const clientes = data?.clientes ?? { ativos: 0, inativos: 0 }
+  const captacao = data?.captacao ?? { bruta: 0, resgates: 0, liquida: 0 }
+  const receita = data?.receita ?? { total: 0, porProduto: [] }
 
-  const histRows  = hist?.historico ?? []
-  const totais    = hist?.totais
+  const histRows = hist?.historico ?? []
+  const totais = hist?.totais
 
   return (
     <div style={{ maxWidth: 1340 }}>
-
       {/* ── Header ── */}
       <div className="page-header">
         <div>
           <p style={{ fontSize: 12, color: 'var(--fg-faint)', marginBottom: 5 }}>
             Posição em {fDataRef(data?.dataRef ?? null)}
           </p>
-          <h1 style={{ fontFamily: 'var(--f-text)', fontSize: 24, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.02em' }}>
+          <h1
+            style={{
+              fontFamily: 'var(--f-text)',
+              fontSize: 24,
+              fontWeight: 600,
+              color: 'var(--fg)',
+              letterSpacing: '-.02em',
+            }}
+          >
             Onepage —{' '}
             <span style={{ color: 'var(--color-b-500)' }}>
               {filterType === 'equipe' && filterValue
                 ? `Equipe ${filterValue}`
                 : filterType === 'assessor' && assessoresData
-                  ? (assessoresData.assessores.find(a => a.id_assessor === filterValue)?.nome_assessor?.split(' ').slice(0, 2).join(' ') ?? filterValue)
+                  ? (assessoresData.assessores
+                      .find((a) => a.id_assessor === filterValue)
+                      ?.nome_assessor?.split(' ')
+                      .slice(0, 2)
+                      .join(' ') ?? filterValue)
                   : firstName}
             </span>
           </h1>
@@ -458,10 +613,18 @@ export default async function AnalisesPage({
 
       {/* ── Bloco 1: KPI cards — full width ── */}
       <div className="grid-kpi" style={{ marginBottom: 20 }}>
-
         {/* AuM */}
         <div style={{ ...card, position: 'relative' }}>
-          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'var(--c-gold)' }} />
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 2,
+              background: 'var(--c-gold)',
+            }}
+          />
           <div style={cardPad}>
             <p style={label}>Custódia (AuM)</p>
             <p style={valor}>{fBRL(aum)}</p>
@@ -497,17 +660,17 @@ export default async function AnalisesPage({
             <span style={pill()}>todos os produtos</span>
           </div>
         </div>
-
       </div>
 
       {/* ── Layout: duas colunas para admin/master/lider, coluna única para assessor ── */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: session.role !== 'assessor' ? '1fr 380px' : '1fr',
-        gap: 20,
-        alignItems: 'start',
-      }}>
-
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: session.role !== 'assessor' ? '1fr 380px' : '1fr',
+          gap: 20,
+          alignItems: 'start',
+        }}
+      >
         {/* Coluna principal */}
         <div>
           {/* Captação — key força remount ao mudar filtro, limpando cache */}
@@ -515,7 +678,7 @@ export default async function AnalisesPage({
             key={`captacao-${filterType ?? ''}-${filterValue ?? ''}`}
             captacao={captacao}
             mesLabel={data?.mesLabel ?? ''}
-            {...(canFilter && filterType  ? { filterType }  : {})}
+            {...(canFilter && filterType ? { filterType } : {})}
             {...(canFilter && filterValue ? { filterValue } : {})}
           />
 
@@ -524,7 +687,7 @@ export default async function AnalisesPage({
             key={`receita-${filterType ?? ''}-${filterValue ?? ''}`}
             porProduto={receita.porProduto}
             receitaTotal={receita.total}
-            {...(canFilter && filterType  ? { filterType }  : {})}
+            {...(canFilter && filterType ? { filterType } : {})}
             {...(canFilter && filterValue ? { filterValue } : {})}
           />
 
@@ -532,7 +695,15 @@ export default async function AnalisesPage({
           {histRows.length > 0 && (
             <>
               <div style={{ marginBottom: 12 }}>
-                <p style={{ fontFamily: 'var(--f-text)', fontSize: 14, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em' }}>
+                <p
+                  style={{
+                    fontFamily: 'var(--f-text)',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: 'var(--fg)',
+                    letterSpacing: '-.01em',
+                  }}
+                >
                   Histórico
                 </p>
                 <p style={{ fontSize: 12, color: 'var(--fg-faint)', marginTop: 3 }}>
@@ -540,7 +711,14 @@ export default async function AnalisesPage({
                 </p>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: 16,
+                  marginBottom: 16,
+                }}
+              >
                 <HistTable
                   title="Custódia (AuM)"
                   subtitle="R$ por mês"
@@ -559,7 +737,14 @@ export default async function AnalisesPage({
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: 16,
+                  marginBottom: 24,
+                }}
+              >
                 <HistTable
                   title="Captação Líquida"
                   subtitle="R$ por mês"
@@ -591,9 +776,7 @@ export default async function AnalisesPage({
             <BlocoMetas dados={metas} compact />
           </div>
         )}
-
       </div>
-
     </div>
   )
 }

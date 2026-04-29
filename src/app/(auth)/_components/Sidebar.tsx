@@ -1,9 +1,9 @@
 'use client'
 
-import Link from 'next/link'
-import { useState } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
 import type { SessionPayload } from '@/lib/auth/session'
+import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 /* ─── Navigation config ───────────────────────────────────────────────────── */
 const NAV = [
@@ -14,7 +14,13 @@ const NAV = [
         href: '/dashboard',
         label: 'Início',
         icon: (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
             <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
             <polyline points="9 22 9 12 15 12 15 22" />
           </svg>
@@ -24,7 +30,13 @@ const NAV = [
         href: '/analises',
         label: 'Onepage',
         icon: (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
           </svg>
         ),
@@ -33,7 +45,13 @@ const NAV = [
         href: '/carteiras',
         label: 'Carteiras',
         icon: (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
             <rect x="2" y="7" width="20" height="14" rx="2" />
             <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
           </svg>
@@ -43,7 +61,13 @@ const NAV = [
         href: '/clientes',
         label: 'Clientes',
         icon: (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
             <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
             <circle cx="9" cy="7" r="4" />
             <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
@@ -54,7 +78,13 @@ const NAV = [
         href: '/relatorios',
         label: 'Relatórios',
         icon: (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
             <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
             <polyline points="14 2 14 8 20 8" />
             <line x1="16" y1="13" x2="8" y2="13" />
@@ -71,7 +101,13 @@ const NAV = [
         href: '/comunicados',
         label: 'Comunicados',
         icon: (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
             <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
             <path d="M13.73 21a2 2 0 01-3.46 0" />
           </svg>
@@ -81,7 +117,13 @@ const NAV = [
         href: '/documentos',
         label: 'Documentos',
         icon: (
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
             <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
             <polyline points="14 2 14 8 20 8" />
           </svg>
@@ -224,6 +266,7 @@ export function Sidebar({ session }: Props) {
       >
         {collapsed ? (
           <button
+            type="button"
             onClick={() => setCollapsed(false)}
             title="Expandir menu"
             style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
@@ -233,12 +276,15 @@ export function Sidebar({ session }: Props) {
         ) : (
           <>
             {/* Nobel lockup: monogram + wordmark */}
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, overflow: 'hidden' }}>
+            <div
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 12, overflow: 'hidden' }}
+            >
               <NobelMono size={30} />
               <NobelWordmark size="sm" />
             </div>
             {/* Collapse button */}
             <button
+              type="button"
               onClick={() => setCollapsed(true)}
               title="Recolher menu"
               style={{
@@ -265,7 +311,15 @@ export function Sidebar({ session }: Props) {
                 e.currentTarget.style.color = 'var(--fg-faint)'
               }}
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="10" height="10">
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                width="10"
+                height="10"
+              >
                 <polyline points="11 17 6 12 11 7" />
                 <polyline points="18 17 13 12 18 7" />
               </svg>
@@ -311,8 +365,12 @@ export function Sidebar({ session }: Props) {
                     textDecoration: 'none',
                     marginBottom: 1,
                     position: 'relative',
-                    background: active ? 'var(--fg)' : 'transparent',
-                    transition: 'background .12s',
+                    background: active ? 'var(--color-b-50)' : 'transparent',
+                    borderLeft:
+                      active && !collapsed
+                        ? '2px solid var(--color-b-500)'
+                        : '2px solid transparent',
+                    transition: 'background .12s, border-color .12s',
                     justifyContent: collapsed ? 'center' : 'flex-start',
                   }}
                   onMouseEnter={(e) => {
@@ -328,7 +386,7 @@ export function Sidebar({ session }: Props) {
                       width: 15,
                       height: 15,
                       flexShrink: 0,
-                      color: active ? 'var(--bg)' : 'var(--fg-faint)',
+                      color: active ? 'var(--color-b-600)' : 'var(--fg-faint)',
                     }}
                   >
                     {item.icon}
@@ -340,8 +398,8 @@ export function Sidebar({ session }: Props) {
                       style={{
                         fontSize: 13,
                         fontFamily: 'var(--f-text)',
-                        color: active ? 'var(--bg)' : 'var(--fg-mute)',
-                        fontWeight: active ? 500 : 400,
+                        color: active ? 'var(--color-b-700)' : 'var(--fg-mute)',
+                        fontWeight: active ? 600 : 400,
                         whiteSpace: 'nowrap',
                         flex: 1,
                       }}
@@ -374,6 +432,7 @@ export function Sidebar({ session }: Props) {
         }}
       >
         <button
+          type="button"
           onClick={handleLogout}
           title={collapsed ? `${session.name} — clique para sair` : undefined}
           style={{
@@ -390,8 +449,12 @@ export function Sidebar({ session }: Props) {
             transition: 'background .12s',
             justifyContent: collapsed ? 'center' : 'flex-start',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--line)')}
-          onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'var(--line)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'none'
+          }}
         >
           {/* Avatar */}
           <div
@@ -399,7 +462,7 @@ export function Sidebar({ session }: Props) {
               width: 28,
               height: 28,
               borderRadius: '50%',
-              background: 'var(--color-b-500)',
+              background: 'linear-gradient(135deg, #B8963E, #8B6914)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -443,6 +506,7 @@ export function Sidebar({ session }: Props) {
                 </div>
               </div>
               <svg
+                aria-hidden="true"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="var(--fg-faint)"
