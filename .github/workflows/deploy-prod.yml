@@ -27,23 +27,29 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
 
-      - name: Inspecionar output do build
+      - name: Listar arquivos do build (para debug)
+        if: always()
         run: |
-          echo "=== raiz .open-next ==="
-          find .open-next -maxdepth 2 -type f | head -30 || echo "não encontrado"
-          echo "=== verificar _worker.js ==="
-          find .open-next -name "_worker.js" | head -5 || echo "nenhum _worker.js"
-          echo "=== verificar worker.js ==="
-          find .open-next -name "worker.js" | head -5 || echo "nenhum worker.js"
+          echo "=== Todos os arquivos relevantes após build ==="
+          find . \
+            -not -path "*/node_modules/*" \
+            -not -path "*/.git/*" \
+            -not -path "*/.next/*" \
+            -not -path "*/src/*" \
+            -type f 2>/dev/null | sort > /tmp/build-files.txt
+          cat /tmp/build-files.txt
+          echo ""
+          echo "=== Diretórios .open-next ==="
+          find . -type d -name ".open-next" 2>/dev/null
+          ls -la .open-next/ 2>/dev/null || echo "sem .open-next"
+          ls -la .open-next/assets/ 2>/dev/null || echo "sem .open-next/assets"
 
-      - name: Garantir _worker.js no assets
-        run: |
-          WORKER=$(find .open-next -name "worker.js" | head -1)
-          ASSETS=$(find .open-next -type d -name "assets" | head -1)
-          if [ -n "$WORKER" ] && [ -n "$ASSETS" ] && [ ! -f "$ASSETS/_worker.js" ]; then
-            echo "Copiando $WORKER → $ASSETS/_worker.js"
-            cp "$WORKER" "$ASSETS/_worker.js"
-          fi
+      - name: Upload artifact de debug
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output-listing
+          path: /tmp/build-files.txt
 
       - name: Deploy Worker (API)
         run: npm run deploy:worker
@@ -61,10 +67,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Deploy Frontend (Cloudflare Pages)
-        run: |
-          ASSETS=$(find .open-next -type d -name "assets" | head -1)
-          echo "Deploying from: $ASSETS"
-          npx wrangler pages deploy "$ASSETS" --project-name=intra --branch=main --commit-dirty=true
+        run: node_modules/.bin/opennextjs-cloudflare deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -77,11 +80,9 @@ jobs:
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           format: markdown
           message: |
-            🚀 *Deploy em produção concluído\!*
-
-            🌐 https://intra-a3y\.pages\.dev
-
-            Commit: `${{ github.sha }}`
+            Deploy em producao concluido!
+            https://intra-a3y.pages.dev
+            Commit: ${{ github.sha }}
 
       - name: Notify deploy failure
         if: failure()
@@ -91,6 +92,5 @@ jobs:
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           format: markdown
           message: |
-            🔥 *Deploy em produção FALHOU\!*
-
-            🔍 [Ver logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            Deploy em producao FALHOU!
+            Ver logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
