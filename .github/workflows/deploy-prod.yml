@@ -27,6 +27,24 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
 
+      - name: Verificar output do build
+        run: |
+          echo "=== .open-next/ ==="
+          ls -la .open-next/ 2>/dev/null || echo "diretório não encontrado"
+          echo "=== .open-next/assets/ ==="
+          ls -la .open-next/assets/ 2>/dev/null || echo "diretório não encontrado"
+          echo "=== _worker.js present? ==="
+          ls -la .open-next/assets/_worker.js 2>/dev/null || echo "NÃO encontrado"
+
+      - name: Garantir _worker.js no diretório de assets
+        run: |
+          if [ -f ".open-next/worker.js" ] && [ ! -f ".open-next/assets/_worker.js" ]; then
+            echo "Copiando worker.js para assets/_worker.js"
+            cp .open-next/worker.js .open-next/assets/_worker.js
+          else
+            echo "_worker.js já existe ou worker.js não encontrado"
+          fi
+
       - name: Deploy Worker (API)
         run: npm run deploy:worker
         continue-on-error: true
@@ -47,7 +65,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy --project-name=intra --branch=main
+          command: pages deploy .open-next/assets --project-name=intra --branch=main
 
       - name: Notify production deploy
         if: success()
@@ -59,7 +77,7 @@ jobs:
           message: |
             🚀 *Deploy em produção concluído\!*
 
-            🌐 https://intra\.nobelcapital\.com\.br
+            🌐 https://intra-a3y\.pages\.dev
 
             Commit: `${{ github.sha }}`
 
