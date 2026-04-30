@@ -27,22 +27,22 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
 
-      - name: Verificar output do build
+      - name: Inspecionar output do build
         run: |
-          echo "=== .open-next/ ==="
-          ls -la .open-next/ 2>/dev/null || echo "diretório não encontrado"
-          echo "=== .open-next/assets/ ==="
-          ls -la .open-next/assets/ 2>/dev/null || echo "diretório não encontrado"
-          echo "=== _worker.js present? ==="
-          ls -la .open-next/assets/_worker.js 2>/dev/null || echo "NÃO encontrado"
+          echo "=== raiz .open-next ==="
+          find .open-next -maxdepth 2 -type f | head -30 || echo "não encontrado"
+          echo "=== verificar _worker.js ==="
+          find .open-next -name "_worker.js" | head -5 || echo "nenhum _worker.js"
+          echo "=== verificar worker.js ==="
+          find .open-next -name "worker.js" | head -5 || echo "nenhum worker.js"
 
-      - name: Garantir _worker.js no diretório de assets
+      - name: Garantir _worker.js no assets
         run: |
-          if [ -f ".open-next/worker.js" ] && [ ! -f ".open-next/assets/_worker.js" ]; then
-            echo "Copiando worker.js para assets/_worker.js"
-            cp .open-next/worker.js .open-next/assets/_worker.js
-          else
-            echo "_worker.js já existe ou worker.js não encontrado"
+          WORKER=$(find .open-next -name "worker.js" | head -1)
+          ASSETS=$(find .open-next -type d -name "assets" | head -1)
+          if [ -n "$WORKER" ] && [ -n "$ASSETS" ] && [ ! -f "$ASSETS/_worker.js" ]; then
+            echo "Copiando $WORKER → $ASSETS/_worker.js"
+            cp "$WORKER" "$ASSETS/_worker.js"
           fi
 
       - name: Deploy Worker (API)
@@ -61,11 +61,13 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Deploy Frontend (Cloudflare Pages)
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy .open-next/assets --project-name=intra --branch=main
+        run: |
+          ASSETS=$(find .open-next -type d -name "assets" | head -1)
+          echo "Deploying from: $ASSETS"
+          npx wrangler pages deploy "$ASSETS" --project-name=intra --branch=main --commit-dirty=true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Notify production deploy
         if: success()
