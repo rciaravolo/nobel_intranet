@@ -44,7 +44,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy .vercel/output/static --project-name=intra --branch=pr-${{ github.event.pull_request.number }}
+          command: pages deploy --project-name=intra --branch=pr-${{ github.event.pull_request.number }}
 
   notify-success:
     name: Notify Telegram

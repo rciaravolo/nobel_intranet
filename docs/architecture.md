@@ -101,7 +101,7 @@ Layer 5: HTTPS everywhere
 6. Rafa testa no celular
 7. Rafa aprova e faz merge na main
 8. GitHub Actions executa:
-   a. npx @cloudflare/next-on-pages (build frontend)
+   a. opennextjs-cloudflare build (Next.js → .open-next/)
    b. wrangler pages deploy (frontend para CF Pages)
    c. wrangler deploy (Worker para CF Workers)
    d. wrangler d1 migrations apply (migrations do banco)

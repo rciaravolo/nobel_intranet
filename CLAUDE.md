@@ -168,7 +168,7 @@ npm run typecheck        # TypeScript check
 npm run test             # Vitest
 
 # Build
-npm run pages:build      # Build frontend para Cloudflare Pages
+npm run pages:build      # opennextjs-cloudflare build → .open-next/
 npm run deploy:worker    # Deploy Worker para produção
 
 # Deploy
