@@ -219,7 +219,9 @@ export default async function DashboardPage() {
       {/* ── Page header ─────────────────────────────────────── */}
       <div className="page-header">
         <div>
-          <p style={{ ...monoLabel, marginBottom: 6, textTransform: 'capitalize' }}>{dataFmt}</p>
+          <p style={{ fontFamily: 'var(--f-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--fg-faint)', marginBottom: 4 }}>
+            Bem-vindo de volta
+          </p>
           <h1
             style={{
               fontFamily: 'var(--f-text)',
@@ -241,6 +243,8 @@ export default async function DashboardPage() {
             >
               {firstName}
             </span>
+            {' '}
+            <span style={{ color: 'var(--c-gold)', fontSize: 18, fontFamily: 'var(--f-text)', fontStyle: 'normal' }}>♦</span>
           </h1>
         </div>
 
@@ -281,61 +285,39 @@ export default async function DashboardPage() {
       <div className="grid-kpi" style={{ marginBottom: 'var(--s-5)' }}>
         {/* AUM */}
         <div className="ds-stat ds-stat-accent">
-          <p
-            style={{
-              fontFamily: 'var(--f-mono)',
-              fontSize: 9,
-              letterSpacing: '.18em',
-              textTransform: 'uppercase',
-              color: 'var(--fg-faint)',
-              marginBottom: 8,
-            }}
-          >
-            AUM Total
-          </p>
-          <p
-            style={{
-              fontFamily: 'var(--f-mono)',
-              fontSize: 30,
-              fontWeight: 500,
-              fontFeatureSettings: "'tnum'",
-              lineHeight: 1,
-              color: 'var(--fg)',
-              marginBottom: 8,
-            }}
-          >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <span style={{ fontFamily: 'var(--f-mono)', fontSize: 9, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--fg-faint)' }}>
+              AUM Total
+            </span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--c-gold)" strokeWidth="1.5" width="15" height="15" aria-hidden="true">
+              <line x1="12" y1="1" x2="12" y2="23"/>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg>
+          </div>
+          <p style={{ fontFamily: 'var(--f-text)', fontSize: 34, fontWeight: 700, lineHeight: 1, color: 'var(--fg)', marginBottom: 14, letterSpacing: '-.02em' }}>
             {kpis ? formatBRL(kpis.aum.value) : '—'}
           </p>
-          {kpis?.aum.dataRef && (
-            <span className="ds-badge">Posição {formatDataRef(kpis.aum.dataRef)}</span>
+          {kpis?.aum.dataRef ? (
+            <span className="ds-badge gold">Posição {formatDataRef(kpis.aum.dataRef)}</span>
+          ) : (
+            <span className="ds-badge">—</span>
           )}
         </div>
 
         {/* Clientes ativos */}
         <div className="ds-stat">
-          <p
-            style={{
-              fontFamily: 'var(--f-mono)',
-              fontSize: 9,
-              letterSpacing: '.18em',
-              textTransform: 'uppercase',
-              color: 'var(--fg-faint)',
-              marginBottom: 8,
-            }}
-          >
-            Clientes Ativos
-          </p>
-          <p
-            style={{
-              fontFamily: 'var(--f-mono)',
-              fontSize: 30,
-              fontWeight: 500,
-              fontFeatureSettings: "'tnum'",
-              lineHeight: 1,
-              color: 'var(--fg)',
-              marginBottom: 8,
-            }}
-          >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <span style={{ fontFamily: 'var(--f-mono)', fontSize: 9, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--fg-faint)' }}>
+              Clientes Ativos
+            </span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-b-500)" strokeWidth="1.5" width="15" height="15" aria-hidden="true">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <p style={{ fontFamily: 'var(--f-text)', fontSize: 34, fontWeight: 700, lineHeight: 1, color: 'var(--fg)', marginBottom: 14, letterSpacing: '-.02em' }}>
             {kpis ? kpis.clientesAtivos.value.toLocaleString('pt-BR') : '—'}
           </p>
           <span className="ds-badge">status ativo · XP</span>
@@ -348,29 +330,16 @@ export default async function DashboardPage() {
             const up = cap >= 0
             return (
               <div className="ds-stat">
-                <p
-                  style={{
-                    fontFamily: 'var(--f-mono)',
-                    fontSize: 9,
-                    letterSpacing: '.18em',
-                    textTransform: 'uppercase',
-                    color: 'var(--fg-faint)',
-                    marginBottom: 8,
-                  }}
-                >
-                  Captação {kpis.captacao.mesLabel}
-                </p>
-                <p
-                  style={{
-                    fontFamily: 'var(--f-mono)',
-                    fontSize: 30,
-                    fontWeight: 500,
-                    fontFeatureSettings: "'tnum'",
-                    lineHeight: 1,
-                    color: 'var(--fg)',
-                    marginBottom: 8,
-                  }}
-                >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                  <span style={{ fontFamily: 'var(--f-mono)', fontSize: 9, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--fg-faint)' }}>
+                    Captação {kpis.captacao.mesLabel}
+                  </span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke={up ? 'var(--color-positive)' : 'var(--color-negative)'} strokeWidth="1.5" width="15" height="15" aria-hidden="true">
+                    <polyline points={up ? '22 7 13.5 15.5 8.5 10.5 2 17' : '2 7 10.5 15.5 15.5 10.5 22 17'}/>
+                    <polyline points={up ? '16 7 22 7 22 13' : '8 17 2 17 2 11'}/>
+                  </svg>
+                </div>
+                <p style={{ fontFamily: 'var(--f-text)', fontSize: 34, fontWeight: 700, lineHeight: 1, color: 'var(--fg)', marginBottom: 14, letterSpacing: '-.02em' }}>
                   {formatBRL(cap)}
                 </p>
                 <span className={`ds-badge ${up ? 'pos' : 'neg'}`}>
@@ -382,29 +351,17 @@ export default async function DashboardPage() {
 
         {/* Receita */}
         <div className="ds-stat">
-          <p
-            style={{
-              fontFamily: 'var(--f-mono)',
-              fontSize: 9,
-              letterSpacing: '.18em',
-              textTransform: 'uppercase',
-              color: 'var(--fg-faint)',
-              marginBottom: 8,
-            }}
-          >
-            Receita Total
-          </p>
-          <p
-            style={{
-              fontFamily: 'var(--f-mono)',
-              fontSize: 30,
-              fontWeight: 500,
-              fontFeatureSettings: "'tnum'",
-              lineHeight: 1,
-              color: 'var(--fg)',
-              marginBottom: 8,
-            }}
-          >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <span style={{ fontFamily: 'var(--f-mono)', fontSize: 9, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--fg-faint)' }}>
+              Receita Total
+            </span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-b-500)" strokeWidth="1.5" width="15" height="15" aria-hidden="true">
+              <line x1="18" y1="20" x2="18" y2="10"/>
+              <line x1="12" y1="20" x2="12" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+          </div>
+          <p style={{ fontFamily: 'var(--f-text)', fontSize: 34, fontWeight: 700, lineHeight: 1, color: 'var(--fg)', marginBottom: 14, letterSpacing: '-.02em' }}>
             {kpis?.receita?.value != null ? formatBRL(kpis.receita.value) : '—'}
           </p>
           <span className="ds-badge">receita consolidada</span>

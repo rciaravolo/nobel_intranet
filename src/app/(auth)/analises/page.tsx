@@ -258,9 +258,11 @@ async function getAssessores(role: string, email: string): Promise<AssessoresPay
 
 const card: React.CSSProperties = {
   background: 'var(--bg-elev)',
-  borderRadius: 8,
+  borderRadius: 12,
   border: '1px solid var(--line)',
-  boxShadow: 'var(--e-1)',
+  boxShadow: 'var(--e-float)',
+  overflow: 'hidden',
+  transition: 'transform .2s ease, box-shadow .2s ease',
 }
 
 const cardPad: React.CSSProperties = { padding: '22px 24px' }
@@ -268,36 +270,50 @@ const cardPad: React.CSSProperties = { padding: '22px 24px' }
 const label: React.CSSProperties = {
   fontFamily: 'var(--f-mono)',
   fontSize: 11,
+  fontWeight: 500,
   color: 'var(--fg-faint)',
   textTransform: 'uppercase',
-  letterSpacing: '0.14em',
-  marginBottom: 10,
+  letterSpacing: '0.10em',
 }
 
 const valor: React.CSSProperties = {
-  fontFamily: 'var(--f-mono)',
-  fontSize: 30,
-  fontWeight: 500,
+  fontFamily: 'var(--f-text)',
+  fontSize: 34,
+  fontWeight: 700,
   color: 'var(--fg)',
-  marginBottom: 8,
+  marginBottom: 10,
   lineHeight: 1,
-  fontFeatureSettings: "'tnum'",
+  letterSpacing: '-.02em',
 }
 
 const pill = (up?: boolean): React.CSSProperties => ({
   display: 'inline-flex',
   alignItems: 'center',
-  gap: 3,
+  gap: 4,
   fontFamily: 'var(--f-mono)',
   fontSize: 11,
   fontWeight: 500,
-  padding: '2px 10px',
+  padding: '3px 10px',
   borderRadius: 'var(--r-pill)',
-  border: '1px solid',
-  borderColor:
-    up == null ? 'var(--line-strong)' : up ? 'var(--color-positive)' : 'var(--color-negative)',
-  background: 'transparent',
+  border: '1px solid transparent',
+  background:
+    up == null
+      ? 'var(--bg-deep)'
+      : up
+        ? 'var(--color-positive-bg)'
+        : 'var(--color-negative-bg)',
   color: up == null ? 'var(--fg-mute)' : up ? 'var(--color-positive)' : 'var(--color-negative)',
+})
+
+const iconBox = (color: string): React.CSSProperties => ({
+  width: 30,
+  height: 30,
+  borderRadius: 8,
+  background: `color-mix(in oklch, ${color} 10%, transparent)`,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flexShrink: 0,
 })
 
 /* ─── Page ───────────────────────────────────────────────────────────────── */
@@ -325,28 +341,58 @@ function HistTable({
   total25,
   total26,
 }: HistTableProps) {
-  const thStyle: React.CSSProperties = {
+  // Último mês com dado 2026 (mês corrente)
+  const lastDataIdx = rows.reduce((max, r, i) => {
+    const { v26 } = getValue(r)
+    return v26 != null ? i : max
+  }, -1)
+
+  const thBase: React.CSSProperties = {
     fontFamily: 'var(--f-mono)',
-    fontSize: 11,
-    fontWeight: 500,
+    fontSize: 10,
+    fontWeight: 600,
     color: 'var(--fg-faint)',
     textTransform: 'uppercase',
-    letterSpacing: '0.14em',
+    letterSpacing: '0.12em',
     padding: '8px 12px',
     textAlign: 'right',
     background: 'var(--bg-deep)',
     borderBottom: '1px solid var(--line)',
+    whiteSpace: 'nowrap',
   }
-  const thLeft: React.CSSProperties = { ...thStyle, textAlign: 'left' }
-  const tdStyle: React.CSSProperties = {
+
+  const tdBase: React.CSSProperties = {
     fontFamily: 'var(--f-mono)',
     fontSize: 12,
-    padding: '7px 12px',
+    padding: '8px 12px',
     textAlign: 'right',
     color: 'var(--fg)',
     borderBottom: '1px solid var(--line)',
   }
-  const tdLeft: React.CSSProperties = { ...tdStyle, textAlign: 'left', fontWeight: 500 }
+
+  // Badge colorido para colunas % MoM / % YoY
+  const pctPill = (v: { label: string; up: boolean | null }) => {
+    if (v.up === null || v.label === '—')
+      return <span style={{ color: 'var(--fg-faint)' }}>—</span>
+    return (
+      <span
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 2,
+          padding: '2px 6px',
+          borderRadius: 4,
+          fontSize: 11,
+          fontWeight: 600,
+          fontVariantNumeric: 'tabular-nums',
+          background: v.up ? 'var(--color-positive-bg)' : 'var(--color-negative-bg)',
+          color: v.up ? 'var(--color-positive)' : 'var(--color-negative)',
+        }}
+      >
+        {v.up ? '↑' : '↓'} {v.label}
+      </span>
+    )
+  }
 
   // For % MoM (2026): compare with previous month in 2026 (or dec-25 for jan)
   // For % YoY: compare v26 with v25 same month
@@ -366,47 +412,49 @@ function HistTable({
     <div
       style={{
         background: 'var(--bg-elev)',
-        borderRadius: 8,
+        borderRadius: 12,
         border: '1px solid var(--line)',
-        boxShadow: 'var(--e-1)',
+        boxShadow: 'var(--e-float)',
         overflow: 'hidden',
       }}
     >
+      {/* Header */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '14px 20px 12px',
+          padding: '13px 20px',
           borderBottom: '1px solid var(--line)',
           background: 'var(--bg-deep)',
         }}
       >
-        <span
-          style={{
-            fontFamily: 'var(--f-text)',
-            fontSize: 13,
-            fontWeight: 600,
-            color: 'var(--fg)',
-            letterSpacing: '-.01em',
-          }}
-        >
+        <span style={{ fontFamily: 'var(--f-text)', fontSize: 13, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em' }}>
           {title}
         </span>
-        <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--fg-faint)' }}>
-          {subtitle}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontFamily: 'var(--f-mono)', fontSize: 9, letterSpacing: '.10em', textTransform: 'uppercase', padding: '2px 7px', borderRadius: 4, background: 'var(--bg)', color: 'var(--fg-mute)', border: '1px solid var(--line-strong)' }}>
+            2025
+          </span>
+          <span style={{ fontFamily: 'var(--f-mono)', fontSize: 9, letterSpacing: '.10em', textTransform: 'uppercase', padding: '2px 7px', borderRadius: 4, background: 'color-mix(in oklch, var(--color-b-500) 10%, transparent)', color: 'var(--color-b-500)', border: '1px solid color-mix(in oklch, var(--color-b-500) 25%, transparent)' }}>
+            2026
+          </span>
+          <span style={{ width: 1, height: 10, background: 'var(--line-strong)', display: 'inline-block' }} />
+          <span style={{ fontFamily: 'var(--f-mono)', fontSize: 10, color: 'var(--fg-faint)' }}>
+            {subtitle}
+          </span>
+        </div>
       </div>
 
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
-              <th style={thLeft}>Mês</th>
-              <th style={thStyle}>2025</th>
-              <th style={thStyle}>2026</th>
-              <th style={thStyle}>% MoM</th>
-              <th style={thStyle}>% YoY</th>
+              <th style={{ ...thBase, textAlign: 'left' }}>Mês</th>
+              <th style={{ ...thBase, color: 'var(--fg-faint)' }}>2025</th>
+              <th style={{ ...thBase, color: 'var(--color-b-500)' }}>2026</th>
+              <th style={thBase}>% MOM</th>
+              <th style={thBase}>% YOY</th>
             </tr>
           </thead>
           <tbody>
@@ -415,64 +463,64 @@ function HistTable({
               const mom = varFn(v26, getPrevMonth26(i))
               const yoy = varFn(v26, v25)
               const isLastRow = i === rows.length - 1
+              const hasData = v26 != null
+              const isCurrentMonth = i === lastDataIdx
+              const isNegVal = v26 !== null && v26 < 0
+
               return (
-                <tr key={row.mes}>
-                  <td
-                    style={{
-                      ...tdLeft,
-                      borderBottom: isLastRow ? 'none' : tdStyle.borderBottom,
-                      textTransform: 'capitalize',
-                    }}
-                  >
-                    {row.label}
+                <tr
+                  key={row.mes}
+                  style={{
+                    background: isCurrentMonth
+                      ? 'color-mix(in oklch, var(--color-b-500) 3%, var(--bg-elev))'
+                      : 'transparent',
+                  }}
+                >
+                  {/* Mês */}
+                  <td style={{ ...tdBase, textAlign: 'left', fontWeight: hasData ? 600 : 400, borderBottom: isLastRow ? 'none' : '1px solid var(--line)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: '50%',
+                          flexShrink: 0,
+                          background: isCurrentMonth
+                            ? 'var(--color-b-500)'
+                            : hasData
+                              ? 'color-mix(in oklch, var(--color-b-500) 50%, var(--line-strong))'
+                              : 'var(--line-strong)',
+                        }}
+                      />
+                      <span style={{ textTransform: 'capitalize' }}>{row.label}</span>
+                    </div>
                   </td>
-                  <td
-                    style={{
-                      ...tdStyle,
-                      borderBottom: isLastRow ? 'none' : tdStyle.borderBottom,
-                      color: 'rgba(26,18,9,0.45)',
-                    }}
-                  >
+
+                  {/* 2025 */}
+                  <td style={{ ...tdBase, borderBottom: isLastRow ? 'none' : '1px solid var(--line)', color: 'var(--fg-faint)' }}>
                     {format(v25)}
                   </td>
+
+                  {/* 2026 */}
                   <td
                     style={{
-                      ...tdStyle,
-                      borderBottom: isLastRow ? 'none' : tdStyle.borderBottom,
-                      fontWeight: 600,
+                      ...tdBase,
+                      borderBottom: isLastRow ? 'none' : '1px solid var(--line)',
+                      fontWeight: hasData ? 700 : 400,
+                      color: !hasData ? 'var(--fg-faint)' : isNegVal ? 'var(--color-negative)' : 'var(--fg)',
                     }}
                   >
                     {format(v26)}
                   </td>
-                  <td
-                    style={{
-                      ...tdStyle,
-                      borderBottom: isLastRow ? 'none' : tdStyle.borderBottom,
-                      fontWeight: 500,
-                      color:
-                        mom.up == null
-                          ? 'var(--fg-faint)'
-                          : mom.up
-                            ? 'var(--color-positive)'
-                            : 'var(--color-negative)',
-                    }}
-                  >
-                    {mom.label}
+
+                  {/* % MoM */}
+                  <td style={{ ...tdBase, borderBottom: isLastRow ? 'none' : '1px solid var(--line)' }}>
+                    {pctPill(mom)}
                   </td>
-                  <td
-                    style={{
-                      ...tdStyle,
-                      borderBottom: isLastRow ? 'none' : tdStyle.borderBottom,
-                      fontWeight: 500,
-                      color:
-                        yoy.up == null
-                          ? 'var(--fg-faint)'
-                          : yoy.up
-                            ? 'var(--color-positive)'
-                            : 'var(--color-negative)',
-                    }}
-                  >
-                    {yoy.label}
+
+                  {/* % YoY */}
+                  <td style={{ ...tdBase, borderBottom: isLastRow ? 'none' : '1px solid var(--line)' }}>
+                    {pctPill(yoy)}
                   </td>
                 </tr>
               )
@@ -483,45 +531,22 @@ function HistTable({
               (() => {
                 const totYoy = varFn(total26 ?? null, total25 ?? null)
                 return (
-                  <tr
-                    style={{
-                      background: 'var(--bg-deep)',
-                      borderTop: '2px solid var(--line-strong)',
-                    }}
-                  >
-                    <td style={{ ...tdLeft, fontWeight: 700, borderBottom: 'none', fontSize: 12 }}>
-                      Total
+                  <tr style={{ background: 'var(--bg-deep)', borderTop: '2px solid var(--line-strong)' }}>
+                    <td style={{ ...tdBase, textAlign: 'left', fontWeight: 700, borderBottom: 'none' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--c-gold)', flexShrink: 0 }} />
+                        Total
+                      </div>
                     </td>
-                    <td
-                      style={{
-                        ...tdStyle,
-                        fontWeight: 700,
-                        borderBottom: 'none',
-                        color: 'var(--fg-mute)',
-                      }}
-                    >
+                    <td style={{ ...tdBase, fontWeight: 700, borderBottom: 'none', color: 'var(--fg-mute)' }}>
                       {format(total25 ?? null)}
                     </td>
-                    <td style={{ ...tdStyle, fontWeight: 700, borderBottom: 'none' }}>
+                    <td style={{ ...tdBase, fontWeight: 700, borderBottom: 'none', color: (total26 ?? 0) < 0 ? 'var(--color-negative)' : 'var(--fg)' }}>
                       {format(total26 ?? null)}
                     </td>
-                    <td style={{ ...tdStyle, borderBottom: 'none', color: 'var(--fg-faint)' }}>
-                      —
-                    </td>
-                    <td
-                      style={{
-                        ...tdStyle,
-                        fontWeight: 700,
-                        borderBottom: 'none',
-                        color:
-                          totYoy.up == null
-                            ? 'var(--fg-faint)'
-                            : totYoy.up
-                              ? 'var(--color-positive)'
-                              : 'var(--color-negative)',
-                      }}
-                    >
-                      {totYoy.label}
+                    <td style={{ ...tdBase, borderBottom: 'none', color: 'var(--fg-faint)' }}>—</td>
+                    <td style={{ ...tdBase, fontWeight: 700, borderBottom: 'none' }}>
+                      {pctPill(totYoy)}
                     </td>
                   </tr>
                 )
@@ -615,18 +640,17 @@ export default async function AnalisesPage({
       <div className="grid-kpi" style={{ marginBottom: 20 }}>
         {/* AuM */}
         <div style={{ ...card, position: 'relative' }}>
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 2,
-              background: 'var(--c-gold)',
-            }}
-          />
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, var(--c-gold), #D4AF6A)' }} />
           <div style={cardPad}>
-            <p style={label}>Custódia (AuM)</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <span style={label}>Custódia (AuM)</span>
+              <div style={iconBox('var(--c-gold)')}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--c-gold)" strokeWidth="1.5" width="15" height="15" aria-hidden="true">
+                  <line x1="12" y1="1" x2="12" y2="23"/>
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </div>
+            </div>
             <p style={valor}>{fBRL(aum)}</p>
             <span style={pill()}>posição {fDataRef(data?.dataRef ?? null)}</span>
           </div>
@@ -635,7 +659,17 @@ export default async function AnalisesPage({
         {/* Clientes Ativos */}
         <div style={card}>
           <div style={cardPad}>
-            <p style={label}>Clientes Ativos</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <span style={label}>Clientes Ativos</span>
+              <div style={iconBox('var(--color-b-500)')}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-b-500)" strokeWidth="1.5" width="15" height="15" aria-hidden="true">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+              </div>
+            </div>
             <p style={valor}>{fNum(clientes.ativos)}</p>
             <span style={pill(true)}>↑ base ativa XP</span>
           </div>
@@ -644,7 +678,16 @@ export default async function AnalisesPage({
         {/* Clientes Inativos */}
         <div style={card}>
           <div style={cardPad}>
-            <p style={label}>Clientes Inativos</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <span style={label}>Clientes Inativos</span>
+              <div style={iconBox('var(--color-negative)')}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-negative)" strokeWidth="1.5" width="15" height="15" aria-hidden="true">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <line x1="22" y1="11" x2="16" y2="11"/>
+                </svg>
+              </div>
+            </div>
             <p style={valor}>{fNum(clientes.inativos)}</p>
             <span style={pill(false)}>
               ↓ {fPct(clientes.inativos, clientes.ativos + clientes.inativos)} da base total
@@ -655,7 +698,16 @@ export default async function AnalisesPage({
         {/* Receita Total */}
         <div style={card}>
           <div style={cardPad}>
-            <p style={label}>Receita Total</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <span style={label}>Receita Total</span>
+              <div style={iconBox('var(--color-b-500)')}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-b-500)" strokeWidth="1.5" width="15" height="15" aria-hidden="true">
+                  <line x1="18" y1="20" x2="18" y2="10"/>
+                  <line x1="12" y1="20" x2="12" y2="4"/>
+                  <line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+              </div>
+            </div>
             <p style={valor}>{fBRL(receita.total)}</p>
             <span style={pill()}>todos os produtos</span>
           </div>
@@ -694,21 +746,26 @@ export default async function AnalisesPage({
           {/* Histórico */}
           {histRows.length > 0 && (
             <>
-              <div style={{ marginBottom: 12 }}>
-                <p
-                  style={{
-                    fontFamily: 'var(--f-text)',
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: 'var(--fg)',
-                    letterSpacing: '-.01em',
-                  }}
-                >
-                  Histórico
-                </p>
-                <p style={{ fontSize: 12, color: 'var(--fg-faint)', marginTop: 3 }}>
-                  Comparativo mensal 2025 vs 2026
-                </p>
+              <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <p style={{ fontFamily: 'var(--f-text)', fontSize: 14, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em' }}>
+                    Histórico
+                  </p>
+                  <p style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--fg-faint)', marginTop: 3, letterSpacing: '.03em' }}>
+                    Comparativo mensal 2025 vs 2026
+                  </p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontFamily: 'var(--f-mono)', fontSize: 9, letterSpacing: '.10em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: 4, background: 'var(--bg-elev)', color: 'var(--fg-mute)', border: '1px solid var(--line-strong)' }}>
+                    2025
+                  </span>
+                  <svg viewBox="0 0 16 6" fill="none" width="16" height="6" aria-hidden="true">
+                    <path d="M0 3h13M10 1l3 2-3 2" stroke="var(--fg-faint)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span style={{ fontFamily: 'var(--f-mono)', fontSize: 9, letterSpacing: '.10em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: 4, background: 'color-mix(in oklch, var(--color-b-500) 10%, transparent)', color: 'var(--color-b-500)', border: '1px solid color-mix(in oklch, var(--color-b-500) 25%, transparent)' }}>
+                    2026
+                  </span>
+                </div>
               </div>
 
               <div

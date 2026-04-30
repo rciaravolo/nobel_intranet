@@ -415,14 +415,7 @@ a {
 /* KPI stat cell — floating card */
 .ds-stat {
   padding: var(--s-5) var(--s-5);
-  /* P-02 dot texture — breathing pattern below the data */
-  background-color: var(--bg-elev);
-  background-image: radial-gradient(
-    circle,
-    color-mix(in oklch, var(--fg) 7%, transparent) 1px,
-    transparent 1px
-  );
-  background-size: 16px 16px;
+  background: var(--bg-elev);
   border: 1px solid var(--line);
   border-radius: var(--r-3);
   box-shadow: var(--e-float);
@@ -434,11 +427,11 @@ a {
   box-shadow: var(--e-float-hover);
 }
 .ds-stat .num {
-  font-family: var(--f-mono);
-  font-size: 30px;
+  font-family: var(--f-text);
+  font-size: 34px;
+  font-weight: 700;
   line-height: 1;
-  letter-spacing: -.01em;
-  font-feature-settings: "tnum";
+  letter-spacing: -.02em;
   color: var(--fg);
 }
 .ds-stat .lbl {
@@ -457,35 +450,9 @@ a {
   letter-spacing: .04em;
 }
 
-/* AUM card — P-04 cross-hatch gold overrides the dot pattern */
+/* AUM card — gold left border accent */
 .ds-stat.ds-stat-accent {
-  background-image: repeating-linear-gradient(
-      45deg,
-      rgba(184, 150, 62, 0.07) 0,
-      rgba(184, 150, 62, 0.07) 1px,
-      transparent 0,
-      transparent 50%
-    ),
-    repeating-linear-gradient(
-      -45deg,
-      rgba(184, 150, 62, 0.07) 0,
-      rgba(184, 150, 62, 0.07) 1px,
-      transparent 0,
-      transparent 50%
-    );
-  background-size: 14px 14px;
-}
-
-/* Gold accent bar at top of stat — cor sólida, sem gradiente (§7) */
-.ds-stat-accent::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--c-gold);
-  border-radius: var(--r-3) var(--r-3) 0 0;
+  border-left: 3px solid var(--c-gold);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -509,12 +476,14 @@ a {
   color: var(--c-gold-deep);
 }
 .ds-badge.pos {
-  border-color: var(--c-positive);
-  color: var(--c-positive);
+  background: var(--color-positive-bg);
+  color: var(--color-positive);
+  border-color: transparent;
 }
 .ds-badge.neg {
-  border-color: var(--c-negative);
-  color: var(--c-negative);
+  background: var(--color-negative-bg);
+  color: var(--color-negative);
+  border-color: transparent;
 }
 
 /* ═══════════════════════════════════════════════════════════

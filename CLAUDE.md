@@ -74,7 +74,7 @@ devops-intranet (infra base)
 ## Stack do Projeto
 
 ```
-Frontend:   Next.js 15 (App Router) + React 19 + TypeScript
+Frontend:   Next.js (App Router) + React 19 + TypeScript
 Styling:    Tailwind CSS v4 + shadcn/ui
 Linting:    Biome (lint + format — substitui ESLint + Prettier)
 Testes:     Vitest + Testing Library
@@ -83,7 +83,7 @@ ORM:        Prisma (com D1 adapter)
 Banco:      Cloudflare D1 (SQLite edge)
 Storage:    Cloudflare R2
 Auth:       Cloudflare Access (zero-trust)
-Deploy:     Vercel (frontend) + Cloudflare Workers (API)
+Deploy:     Cloudflare Pages (frontend) + Cloudflare Workers (API)
 CI/CD:      GitHub Actions
 Notif:      Telegram Bot
 ```
@@ -158,8 +158,8 @@ refactor/o-que-foi-refatorado
 
 ```bash
 # Desenvolvimento
-npm run dev              # Next.js dev server
-npm run dev:worker       # Cloudflare Worker local
+npm run dev              # Next.js dev server (local)
+cd server && npm run dev # Cloudflare Worker local
 
 # Qualidade
 npm run check            # Biome: lint + format check
@@ -168,12 +168,60 @@ npm run typecheck        # TypeScript check
 npm run test             # Vitest
 
 # Build
-npm run build            # Build frontend
-npm run build:worker     # Build Worker
+npm run pages:build      # Build frontend para Cloudflare Pages
+npm run deploy:worker    # Deploy Worker para produção
 
 # Deploy
-npm run deploy:worker    # Deploy Worker para produção
+npm run pages:deploy     # Deploy frontend para Cloudflare Pages
 ```
+
+## Design System — Regras Fundamentais (NUNCA violar)
+
+> Referência canônica: `design system nobel/Nobel Operational System.html`
+> Guidelines completas: `NOBEL_DESIGN_GUIDELINES.md`
+
+### Tipografia
+
+- **Inter Tight** é a única fonte permitida em telas operacionais (dashboard, analises, blocos de dados)
+- **JetBrains Mono** para: números financeiros, KPI values, labels mono, metadados, timestamps
+- **Cormorant Garamond** (`var(--f-display)`) é EXCLUSIVO da página de login (lado editorial/brand) e do logotipo na Sidebar — NUNCA usar em headings, títulos de página ou labels operacionais
+- Headings de página: `font-family: var(--f-text)`, `font-weight: 600`, `letter-spacing: -.02em`
+- Section headers de bloco: `font-family: var(--f-text)`, `font-weight: 600`, `font-size: 13px`
+- Valores financeiros grandes: `font-family: var(--f-mono)`, `font-weight: 500`, `font-feature-settings: "tnum"`
+
+### Tokens de Cor — Fonte de Verdade
+
+```
+Azul accent (light): --color-b-500: #2D5FA0   ← NÃO usar #6094D6 no light mode
+Azul accent (dark):  --b-500: #6094D6          ← apenas em .dark / [data-theme="dark"]
+Linha/border:        --line → var(--color-n-150) → #E2DDD3   (mais suave)
+Linha forte:         --line-strong → var(--color-n-200) → #D4CEC1
+```
+
+### Elevation — Regra de Uso
+
+- Cards operacionais padrão: `border: 1px solid var(--line)` + `box-shadow: 0 1px 4px var(--n-50)` (flat, sem float)
+- Float/destaque especial: `var(--e-float)` apenas para elementos que devem "descolar" visualmente
+- Tabelas e feeds: zero shadow, só `border: 1px solid var(--line)`
+
+### Sidebar — Active State
+
+- Item ativo: `background: var(--fg)` (invertido, fundo escuro), texto e ícone `var(--bg)`
+- Item hover: `background: var(--bg)` (leve tint)
+- Avatar do usuário: circular (`border-radius: 50%`), `background: var(--color-b-500)`, `color: #fff`, `font-family: var(--f-mono)`
+
+### Badges — pos/neg
+
+- Positivo: `background: var(--pos-bg)`, `color: var(--pos-fg)`, `border-color: transparent` (FILLED, não outline)
+- Negativo: `background: var(--neg-bg)`, `color: var(--neg-fg)`, `border-color: transparent` (FILLED, não outline)
+
+### Tailwind v4 com Turbopack — Armadilhas Conhecidas
+
+- `@theme` NÃO aceita `var()` — apenas valores estáticos (hex, px, etc.)
+- NÃO criar `postcss.config.mjs` — quebra o Turbopack (Next.js 15+ processa Tailwind v4 nativamente)
+- Utilities geradas automaticamente: `bg-b-500`, `text-fg`, `font-mono`, etc.
+
+---
 
 ## Regras de Segurança (NUNCA violar)
 
@@ -199,11 +247,9 @@ CF_ACCESS_TEAM_DOMAIN=
 # GitHub Secrets (CI/CD)
 CLOUDFLARE_API_TOKEN
 CLOUDFLARE_ACCOUNT_ID
+NEXT_PUBLIC_API_URL
 TELEGRAM_BOT_TOKEN
 TELEGRAM_CHAT_ID
-VERCEL_TOKEN
-VERCEL_ORG_ID
-VERCEL_PROJECT_ID
 ```
 
 ## Fluxo de PR
@@ -211,6 +257,6 @@ VERCEL_PROJECT_ID
 1. Agente cria branch e implementa
 2. `gh pr create` com título e descrição
 3. GitHub Actions executa: Biome → TypeScript → Vitest
-4. Cloudflare Pages / Vercel cria preview URL
+4. Cloudflare Pages cria preview URL automática
 5. Telegram envia link para o Rafa testar
 6. Rafa aprova → merge → deploy automático em produção

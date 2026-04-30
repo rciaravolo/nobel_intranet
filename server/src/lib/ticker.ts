@@ -2,7 +2,7 @@
  * Busca indicadores de mercado para o TickerBar do INTRA.
  *
  * Fontes (gratuitas, sem API key):
- *   - IBOV / S&P 500 : Yahoo Finance (unofficial chart API)
+ *   - IBOV / S&P 500 / PETR4 / VALE3 / BBAS3 / EUR/BRL : Yahoo Finance (unofficial chart API)
  *   - USD/BRL        : Banco Central do Brasil (série 1)
  *   - CDI a.a.       : BCB — Meta Selic (série 432)
  *   - IPCA acum.12m  : BCB — série 13522
@@ -165,6 +165,36 @@ async function fetchIpca(): Promise<TickerItem> {
 }
 
 // ---------------------------------------------------------------------------
+// EUR/BRL — Yahoo Finance
+// ---------------------------------------------------------------------------
+
+async function fetchEurBrl(): Promise<TickerItem> {
+  const r = await fetchYahoo('EURBRL=X')
+  if (!r) return { name: 'EUR/BRL', value: '—', change: '—', up: null }
+  return {
+    name: 'EUR/BRL',
+    value: fmt(r.price),
+    change: fmtChange(r.change),
+    up: r.change >= 0,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Ações B3 — Yahoo Finance (.SA)
+// ---------------------------------------------------------------------------
+
+async function fetchB3Stock(symbol: string, displayName: string): Promise<TickerItem> {
+  const r = await fetchYahoo(`${symbol}.SA`)
+  if (!r) return { name: displayName, value: '—', change: '—', up: null }
+  return {
+    name: displayName,
+    value: fmt(r.price),
+    change: fmtChange(r.change),
+    up: r.change >= 0,
+  }
+}
+
+// ---------------------------------------------------------------------------
 // BTC/USD — CoinGecko free API
 // ---------------------------------------------------------------------------
 
@@ -197,7 +227,11 @@ async function fetchBtc(): Promise<TickerItem> {
 export async function fetchAllTickers(): Promise<TickerPayload> {
   const results = await Promise.allSettled([
     fetchIbov(),
+    fetchB3Stock('PETR4', 'PETR4'),
+    fetchB3Stock('VALE3', 'VALE3'),
+    fetchB3Stock('BBAS3', 'BBAS3'),
     fetchUsdBrl(),
+    fetchEurBrl(),
     fetchCdi(),
     fetchIpca(),
     fetchSP500(),

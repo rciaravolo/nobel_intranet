@@ -60,6 +60,27 @@ function rColor(p: string): string {
   return RECEITA_COLOR[p] ?? '#B8963E'
 }
 
+/* ─── Table cell styles ──────────────────────────────────────────────────── */
+
+const thHead: React.CSSProperties = {
+  fontFamily: 'var(--f-mono)',
+  fontSize: 10,
+  fontWeight: 600,
+  color: 'var(--fg-faint)',
+  textTransform: 'uppercase',
+  letterSpacing: '0.12em',
+  padding: '0 0 8px 0',
+  textAlign: 'right',
+  borderBottom: '1px solid var(--line)',
+}
+
+const tdBase: React.CSSProperties = {
+  padding: '9px 0',
+  verticalAlign: 'middle',
+}
+
+/* ─── Component ──────────────────────────────────────────────────────────── */
+
 export function BlocoReceita({ porProduto, receitaTotal, filterType, filterValue }: Props) {
   const [produtoAberto, setProdutoAberto] = useState<string | null>(null)
   const [loading, setLoading] = useState<string | null>(null)
@@ -72,7 +93,6 @@ export function BlocoReceita({ porProduto, receitaTotal, filterType, filterValue
       return
     }
     setProdutoAberto(produto)
-
     if (cache[produto]) return
 
     const slug = PRODUTO_SLUG[produto]
@@ -100,42 +120,84 @@ export function BlocoReceita({ porProduto, receitaTotal, filterType, filterValue
     <div
       style={{
         background: 'var(--bg-elev)',
-        borderRadius: 8,
+        borderRadius: 12,
         marginBottom: 20,
         border: '1px solid var(--line)',
-        boxShadow: '0 1px 4px var(--n-50)',
+        boxShadow: 'var(--e-float)',
+        overflow: 'hidden',
       }}
     >
-      {/* Header */}
+      {/* ── Header ── */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '14px 20px 12px',
+          padding: '14px 20px',
           borderBottom: '1px solid var(--line)',
           background: 'var(--bg-deep)',
-          borderRadius: '8px 8px 0 0',
         }}
       >
-        <span
-          style={{
-            fontFamily: 'var(--f-text)',
-            fontSize: 13,
-            fontWeight: 600,
-            color: 'var(--fg)',
-            letterSpacing: '-.01em',
-          }}
-        >
-          Receita por Produto
-        </span>
-        <span style={{ fontSize: 11, color: 'var(--fg-faint)' }}>
-          {fBRL(receitaTotal)} total · clique para detalhar
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <svg viewBox="0 0 14 14" fill="none" width="13" height="13" aria-hidden="true">
+            <rect x="0" y="8" width="3" height="6" rx="1" fill="var(--c-gold)" opacity="0.5" />
+            <rect x="5" y="5" width="3" height="9" rx="1" fill="var(--c-gold)" opacity="0.7" />
+            <rect x="10" y="1" width="4" height="13" rx="1" fill="var(--c-gold)" />
+          </svg>
+          <span
+            style={{
+              fontFamily: 'var(--f-text)',
+              fontSize: 13,
+              fontWeight: 600,
+              color: 'var(--fg)',
+              letterSpacing: '-.01em',
+            }}
+          >
+            Receita por Produto
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span
+            style={{
+              fontFamily: 'var(--f-mono)',
+              fontSize: 13,
+              fontWeight: 600,
+              color: 'var(--fg)',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {fBRL(receitaTotal)}
+          </span>
+          <span
+            style={{
+              fontFamily: 'var(--f-mono)',
+              fontSize: 9,
+              color: 'var(--fg-faint)',
+              letterSpacing: '.12em',
+              textTransform: 'uppercase',
+            }}
+          >
+            total
+          </span>
+          <span
+            style={{ width: 1, height: 12, background: 'var(--line-strong)', display: 'inline-block' }}
+          />
+          <span
+            style={{
+              fontFamily: 'var(--f-mono)',
+              fontSize: 10,
+              color: 'var(--fg-faint)',
+              letterSpacing: '.04em',
+            }}
+          >
+            clique para detalhar
+          </span>
+        </div>
       </div>
 
-      {/* Linhas */}
-      <div style={{ padding: '8px 0' }}>
+      {/* ── Linhas de produto ── */}
+      <div>
         {porProduto.map((item, i) => {
           const pct = receitaTotal > 0 ? (item.receita / receitaTotal) * 100 : 0
           const color = rColor(item.produto)
@@ -143,6 +205,7 @@ export function BlocoReceita({ porProduto, receitaTotal, filterType, filterValue
           const isLoading = loading === item.produto
           const hasErro = erro === item.produto
           const deepdive = cache[item.produto]
+          const isLast = i === porProduto.length - 1
 
           return (
             <div key={item.produto}>
@@ -150,51 +213,64 @@ export function BlocoReceita({ porProduto, receitaTotal, filterType, filterValue
               <button
                 type="button"
                 onClick={() => handleClick(item.produto)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') handleClick(item.produto)
-                }}
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: '150px 1fr 100px 60px 22px',
+                  gridTemplateColumns: '180px 1fr 96px 68px 28px',
                   alignItems: 'center',
-                  gap: 12,
-                  padding: '9px 16px',
-                  borderBottom:
-                    !isOpen && i < porProduto.length - 1 ? '1px solid var(--line)' : 'none',
-                  cursor: 'pointer',
-                  borderLeft: isOpen ? `3px solid ${color}` : '3px solid transparent',
-                  background: isOpen ? `rgba(${hexToRgb(color)}, 0.03)` : 'transparent',
-                  transition: 'background 0.15s',
+                  gap: 16,
+                  padding: '13px 20px',
                   width: '100%',
-                  outline: 'none',
                   textAlign: 'left',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  border: 'none',
+                  borderLeft: `3px solid ${isOpen ? color : 'transparent'}`,
+                  borderBottom: !isLast && !isOpen ? '1px solid var(--line)' : 'none',
+                  background: isOpen
+                    ? `color-mix(in oklch, ${color} 4%, var(--bg-elev))`
+                    : 'transparent',
+                  transition: 'background .15s ease, border-color .15s ease',
                 }}
                 onMouseEnter={(e) => {
-                  if (!isOpen) e.currentTarget.style.background = 'var(--n-50)'
+                  if (!isOpen) e.currentTarget.style.background = 'var(--bg-deep)'
                 }}
                 onMouseLeave={(e) => {
                   if (!isOpen) e.currentTarget.style.background = 'transparent'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {/* Nome do produto */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
                   <div
                     style={{
-                      width: 10,
-                      height: 10,
-                      borderRadius: 3,
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
                       background: color,
                       flexShrink: 0,
+                      boxShadow: `0 0 0 2px color-mix(in oklch, ${color} 20%, transparent)`,
                     }}
                   />
-                  <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--fg)' }}>
+                  <span
+                    style={{
+                      fontFamily: 'var(--f-text)',
+                      fontSize: 13,
+                      fontWeight: 500,
+                      color: 'var(--fg)',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
                     {item.produto}
                   </span>
                 </div>
+
+                {/* Barra */}
                 <div
                   style={{
-                    height: 8,
-                    background: 'var(--n-100)',
-                    borderRadius: 3,
+                    height: 6,
+                    background: `color-mix(in oklch, ${color} 12%, var(--bg-deep))`,
+                    borderRadius: 99,
                     overflow: 'hidden',
                   }}
                 >
@@ -203,44 +279,92 @@ export function BlocoReceita({ porProduto, receitaTotal, filterType, filterValue
                       height: '100%',
                       width: `${pct}%`,
                       background: color,
-                      borderRadius: 3,
+                      borderRadius: 99,
                       opacity: 0.85,
+                      transition: 'width .4s ease',
                     }}
                   />
                 </div>
+
+                {/* Valor */}
                 <span
                   style={{
+                    fontFamily: 'var(--f-mono)',
                     fontSize: 13,
                     fontWeight: 500,
                     color: 'var(--fg)',
                     textAlign: 'right',
-                    fontFamily: 'var(--f-mono)',
+                    fontVariantNumeric: 'tabular-nums',
                   }}
                 >
                   {fBRL(item.receita)}
                 </span>
-                <span style={{ fontSize: 13, fontWeight: 600, color, textAlign: 'right' }}>
-                  {fPct(item.receita, receitaTotal)}
-                </span>
+
+                {/* Percentual */}
                 <span
                   style={{
-                    fontSize: 12,
-                    color: isOpen ? color : 'var(--fg-faint)',
-                    textAlign: 'center',
+                    fontFamily: 'var(--f-mono)',
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color,
+                    textAlign: 'right',
+                    fontVariantNumeric: 'tabular-nums',
                   }}
                 >
-                  {isLoading ? '·' : isOpen ? '▲' : '▼'}
+                  {fPct(item.receita, receitaTotal)}
                 </span>
+
+                {/* Chevron */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: isOpen ? color : 'var(--fg-faint)',
+                    transition: 'color .15s ease',
+                  }}
+                >
+                  {isLoading ? (
+                    <span
+                      style={{
+                        width: 14,
+                        height: 14,
+                        border: `1.5px solid ${color}`,
+                        borderTopColor: 'transparent',
+                        borderRadius: '50%',
+                        display: 'inline-block',
+                        animation: 'spin 0.6s linear infinite',
+                      }}
+                    />
+                  ) : (
+                    <svg
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.75"
+                      width="14"
+                      height="14"
+                      aria-hidden="true"
+                      style={{
+                        transform: isOpen ? 'rotate(180deg)' : 'none',
+                        transition: 'transform .2s ease',
+                      }}
+                    >
+                      <polyline points="4,6 8,10 12,6" />
+                    </svg>
+                  )}
+                </div>
               </button>
 
-              {/* Painel deepdive inline */}
+              {/* ── Painel deepdive ── */}
               {isOpen && (
                 <div
                   style={{
                     background: 'var(--bg-deep)',
-                    borderTop: `1px solid rgba(${hexToRgb(color)}, 0.12)`,
-                    borderBottom: i < porProduto.length - 1 ? '1px solid var(--line)' : 'none',
-                    padding: '16px 24px 20px',
+                    borderLeft: `3px solid ${color}`,
+                    borderTop: `1px solid color-mix(in oklch, ${color} 15%, var(--line))`,
+                    borderBottom: !isLast ? '1px solid var(--line)' : 'none',
+                    padding: '16px 20px 20px 24px',
                   }}
                 >
                   {isLoading && (
@@ -249,147 +373,169 @@ export function BlocoReceita({ porProduto, receitaTotal, filterType, filterValue
                         fontSize: 12,
                         color: 'var(--fg-faint)',
                         textAlign: 'center',
-                        padding: '8px 0',
+                        padding: '12px 0',
                       }}
                     >
                       Carregando…
                     </p>
                   )}
                   {hasErro && (
-                    <p style={{ fontSize: 12, color: 'var(--color-negative)' }}>
+                    <p
+                      style={{
+                        fontSize: 12,
+                        color: 'var(--color-negative)',
+                        padding: '4px 0',
+                      }}
+                    >
                       Erro ao carregar detalhes. Tente novamente.
                     </p>
                   )}
                   {deepdive && (
                     <>
-                      <p
+                      {/* Deepdive title */}
+                      <div
                         style={{
-                          fontSize: 10,
-                          fontWeight: 700,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.1em',
-                          color,
-                          marginBottom: 12,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          marginBottom: 14,
                         }}
                       >
-                        Top clientes — {deepdive.label}
-                      </p>
+                        <div
+                          style={{
+                            width: 3,
+                            height: 12,
+                            borderRadius: 2,
+                            background: color,
+                            flexShrink: 0,
+                          }}
+                        />
+                        <span
+                          style={{
+                            fontFamily: 'var(--f-mono)',
+                            fontSize: 10,
+                            fontWeight: 700,
+                            textTransform: 'uppercase',
+                            letterSpacing: '.12em',
+                            color,
+                          }}
+                        >
+                          Top clientes — {deepdive.label}
+                        </span>
+                      </div>
+
+                      {/* Tabela */}
                       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                           <tr>
-                            <th
-                              style={{
-                                fontSize: 11,
-                                color: 'var(--fg-faint)',
-                                textAlign: 'left',
-                                paddingBottom: 6,
-                                fontWeight: 600,
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.14em',
-                                fontFamily: 'var(--f-mono)',
-                              }}
-                            >
-                              #
-                            </th>
-                            <th
-                              style={{
-                                fontSize: 11,
-                                color: 'var(--fg-faint)',
-                                textAlign: 'left',
-                                paddingBottom: 6,
-                                fontWeight: 600,
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.14em',
-                                fontFamily: 'var(--f-mono)',
-                              }}
-                            >
-                              Cliente
-                            </th>
-                            <th
-                              style={{
-                                fontSize: 11,
-                                color: 'var(--fg-faint)',
-                                textAlign: 'right',
-                                paddingBottom: 6,
-                                fontWeight: 600,
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.14em',
-                                fontFamily: 'var(--f-mono)',
-                              }}
-                            >
-                              Receita
-                            </th>
-                            <th
-                              style={{
-                                fontSize: 11,
-                                color: 'var(--fg-faint)',
-                                textAlign: 'right',
-                                paddingBottom: 6,
-                                fontWeight: 600,
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.14em',
-                                fontFamily: 'var(--f-mono)',
-                              }}
-                            >
-                              % do produto
-                            </th>
+                            <th style={{ ...thHead, textAlign: 'left', width: 28 }}>#</th>
+                            <th style={{ ...thHead, textAlign: 'left' }}>Cliente</th>
+                            <th style={{ ...thHead, textAlign: 'right' }}>Receita</th>
+                            <th style={{ ...thHead, textAlign: 'right', width: 100 }}>% produto</th>
                           </tr>
                         </thead>
                         <tbody>
                           {deepdive.clientes.map((cli, idx) => {
                             const totalProd = deepdive.clientes.reduce((s, c) => s + c.valor, 0)
+                            const pctCli = totalProd > 0 ? (cli.valor / totalProd) * 100 : 0
                             return (
                               <tr
                                 key={cli.id_cliente}
                                 style={{ borderTop: '1px solid var(--line)' }}
                               >
+                                {/* Rank */}
                                 <td
                                   style={{
-                                    padding: '7px 8px 7px 0',
-                                    fontSize: 11,
+                                    ...tdBase,
+                                    width: 28,
+                                    fontFamily: 'var(--f-mono)',
+                                    fontSize: 10,
                                     color: 'var(--fg-faint)',
-                                    width: 24,
+                                    paddingRight: 8,
                                   }}
                                 >
                                   {idx + 1}
                                 </td>
-                                <td style={{ padding: '7px 0' }}>
+
+                                {/* Nome */}
+                                <td style={{ ...tdBase, paddingRight: 16 }}>
                                   <span
                                     style={{
+                                      fontFamily: 'var(--f-text)',
                                       fontSize: 12,
                                       fontWeight: 500,
                                       color: 'var(--fg)',
                                       display: 'block',
+                                      lineHeight: 1.3,
                                     }}
                                   >
                                     {cli.nome_cliente ?? `Cliente ${cli.id_cliente}`}
                                   </span>
-                                  <span style={{ fontSize: 10, color: 'var(--fg-faint)' }}>
+                                  <span
+                                    style={{
+                                      fontFamily: 'var(--f-mono)',
+                                      fontSize: 10,
+                                      color: 'var(--fg-faint)',
+                                    }}
+                                  >
                                     #{cli.id_cliente}
                                   </span>
                                 </td>
+
+                                {/* Receita */}
                                 <td
                                   style={{
-                                    padding: '7px 0',
+                                    ...tdBase,
                                     textAlign: 'right',
+                                    fontFamily: 'var(--f-mono)',
                                     fontSize: 13,
                                     fontWeight: 600,
                                     color,
-                                    fontFamily: 'var(--f-mono)',
+                                    fontVariantNumeric: 'tabular-nums',
                                   }}
                                 >
                                   {fBRL(cli.valor)}
                                 </td>
-                                <td
-                                  style={{
-                                    padding: '7px 0',
-                                    textAlign: 'right',
-                                    fontSize: 12,
-                                    color: 'var(--fg-mute)',
-                                    fontFamily: 'var(--f-mono)',
-                                  }}
-                                >
-                                  {fPct(cli.valor, totalProd)}
+
+                                {/* % + mini-bar */}
+                                <td style={{ ...tdBase, textAlign: 'right', width: 100, paddingLeft: 16 }}>
+                                  <div
+                                    style={{
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      alignItems: 'flex-end',
+                                      gap: 4,
+                                    }}
+                                  >
+                                    <span
+                                      style={{
+                                        fontFamily: 'var(--f-mono)',
+                                        fontSize: 11,
+                                        color: 'var(--fg-mute)',
+                                        fontVariantNumeric: 'tabular-nums',
+                                      }}
+                                    >
+                                      {fPct(cli.valor, totalProd)}
+                                    </span>
+                                    <div
+                                      style={{
+                                        width: 64,
+                                        height: 3,
+                                        background: `color-mix(in oklch, ${color} 12%, var(--bg-deep))`,
+                                        borderRadius: 99,
+                                      }}
+                                    >
+                                      <div
+                                        style={{
+                                          height: '100%',
+                                          width: `${pctCli}%`,
+                                          background: color,
+                                          borderRadius: 99,
+                                          opacity: 0.65,
+                                        }}
+                                      />
+                                    </div>
+                                  </div>
                                 </td>
                               </tr>
                             )
@@ -404,15 +550,8 @@ export function BlocoReceita({ porProduto, receitaTotal, filterType, filterValue
           )
         })}
       </div>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
   )
-}
-
-// Converte hex para rgb para uso em rgba()
-function hexToRgb(hex: string): string {
-  const clean = hex.replace('#', '')
-  const r = Number.parseInt(clean.substring(0, 2), 16)
-  const g = Number.parseInt(clean.substring(2, 4), 16)
-  const b = Number.parseInt(clean.substring(4, 6), 16)
-  return `${r},${g},${b}`
 }

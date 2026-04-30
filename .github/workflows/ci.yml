@@ -22,7 +22,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Biome check (lint + format)
         run: npm run check
@@ -33,20 +33,18 @@ jobs:
       - name: Unit tests
         run: npm run test
 
-      - name: Build
-        run: npm run build
+      - name: Build for Cloudflare Pages
+        run: npm run pages:build
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
 
-      - name: Deploy Preview (Vercel)
+      - name: Deploy Preview (Cloudflare Pages)
         id: deploy-preview
-        uses: amondnet/vercel-action@v25
+        uses: cloudflare/wrangler-action@v3
         with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          scope: ${{ secrets.VERCEL_ORG_ID }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy .vercel/output/static --project-name=intra --branch=pr-${{ github.event.pull_request.number }}
 
   notify-success:
     name: Notify Telegram
@@ -62,9 +60,9 @@ jobs:
           token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           format: markdown
           message: |
-            ✅ *CI passou!*
+            ✅ *CI passou\!*
 
-            PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}
+            PR \#${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}
 
             🔗 [Abrir Preview](${{ needs.quality.outputs.preview_url }})
 
@@ -86,6 +84,6 @@ jobs:
           message: |
             ❌ *CI falhou\!*
 
-            PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}
+            PR \#${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}
 
             🔍 [Ver logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
