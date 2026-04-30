@@ -44,16 +44,33 @@ jobs:
           echo "=== worker.js encontrados ==="
           find . -name "worker.js" -not -path "*/node_modules/*" 2>/dev/null || echo "nenhum"
 
-      - name: FALHAR se assets nao existem
+      - name: Validar conteudo dos assets
         run: |
+          # Verificar se o diretório existe
           test -d .open-next/assets || {
-            echo "ERRO CRITICO: .open-next/assets nao existe!"
-            echo "Listando tudo que foi gerado:"
+            echo "ERRO: .open-next/assets nao existe!"
             find . -maxdepth 4 -not -path "*/node_modules/*" -not -path "*/.git/*" -type d | sort
             exit 1
           }
-          echo "OK: .open-next/assets existe"
-          ls .open-next/assets/ | head -20
+
+          # Contar arquivos
+          COUNT=$(find .open-next/assets -type f 2>/dev/null | wc -l)
+          echo "Arquivos em .open-next/assets: $COUNT"
+
+          # Listar os arquivos
+          echo "=== Arquivos encontrados ==="
+          find .open-next/assets -type f | sort | head -30
+
+          # Falhar se muito poucos arquivos (build vazio)
+          [ "$COUNT" -gt 3 ] || {
+            echo "ERRO: build vazio ($COUNT arquivos) - next build pode ter falhado"
+            echo "Listando .next:"
+            ls -la .next/ 2>/dev/null || echo "sem .next"
+            exit 1
+          }
+
+          # Verificar _worker.js
+          test -f .open-next/assets/_worker.js && echo "OK: _worker.js presente" || echo "AVISO: sem _worker.js"
 
       - name: Deploy Worker (API)
         run: npm run deploy:worker
