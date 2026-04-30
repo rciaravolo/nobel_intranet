@@ -46,31 +46,31 @@ jobs:
 
       - name: Validar conteudo dos assets
         run: |
+          echo "=== Todos os arquivos em .open-next (recursivo) ==="
+          find .open-next -type f 2>/dev/null | sort
+
           # Verificar se o diretório existe
           test -d .open-next/assets || {
             echo "ERRO: .open-next/assets nao existe!"
-            find . -maxdepth 4 -not -path "*/node_modules/*" -not -path "*/.git/*" -type d | sort
             exit 1
           }
 
           # Contar arquivos
           COUNT=$(find .open-next/assets -type f 2>/dev/null | wc -l)
-          echo "Arquivos em .open-next/assets: $COUNT"
+          echo ""
+          echo "Total de arquivos em .open-next/assets: $COUNT"
 
-          # Listar os arquivos
-          echo "=== Arquivos encontrados ==="
-          find .open-next/assets -type f | sort | head -30
-
-          # Falhar se muito poucos arquivos (build vazio)
-          [ "$COUNT" -gt 3 ] || {
-            echo "ERRO: build vazio ($COUNT arquivos) - next build pode ter falhado"
-            echo "Listando .next:"
-            ls -la .next/ 2>/dev/null || echo "sem .next"
+          # Verificar _worker.js (OBRIGATÓRIO para SSR)
+          test -f .open-next/assets/_worker.js || {
+            echo "ERRO CRITICO: _worker.js nao existe em .open-next/assets!"
+            echo "Arquivos .js em .open-next:"
+            find .open-next -name "*.js" 2>/dev/null
             exit 1
           }
+          echo "OK: _worker.js presente"
 
-          # Verificar _worker.js
-          test -f .open-next/assets/_worker.js && echo "OK: _worker.js presente" || echo "AVISO: sem _worker.js"
+          # Verificar arquivos estáticos
+          test -d .open-next/assets/_next || echo "AVISO: sem _next/"
 
       - name: Deploy Worker (API)
         run: npm run deploy:worker
