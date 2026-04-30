@@ -27,29 +27,33 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
 
-      - name: Listar arquivos do build (para debug)
-        if: always()
+      - name: Verificar output do build
         run: |
-          echo "=== Todos os arquivos relevantes após build ==="
-          find . \
-            -not -path "*/node_modules/*" \
-            -not -path "*/.git/*" \
-            -not -path "*/.next/*" \
-            -not -path "*/src/*" \
-            -type f 2>/dev/null | sort > /tmp/build-files.txt
-          cat /tmp/build-files.txt
+          echo "=== raiz do projeto ==="
+          ls -la
           echo ""
-          echo "=== Diretórios .open-next ==="
-          find . -type d -name ".open-next" 2>/dev/null
-          ls -la .open-next/ 2>/dev/null || echo "sem .open-next"
-          ls -la .open-next/assets/ 2>/dev/null || echo "sem .open-next/assets"
+          echo "=== .open-next (se existir) ==="
+          ls -la .open-next/ 2>/dev/null || echo "NAO EXISTE: .open-next"
+          echo ""
+          echo "=== .open-next/assets (se existir) ==="
+          ls -la .open-next/assets/ 2>/dev/null || echo "NAO EXISTE: .open-next/assets"
+          echo ""
+          echo "=== _worker.js encontrados ==="
+          find . -name "_worker.js" -not -path "*/node_modules/*" 2>/dev/null || echo "nenhum"
+          echo ""
+          echo "=== worker.js encontrados ==="
+          find . -name "worker.js" -not -path "*/node_modules/*" 2>/dev/null || echo "nenhum"
 
-      - name: Upload artifact de debug
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-output-listing
-          path: /tmp/build-files.txt
+      - name: FALHAR se assets nao existem
+        run: |
+          test -d .open-next/assets || {
+            echo "ERRO CRITICO: .open-next/assets nao existe!"
+            echo "Listando tudo que foi gerado:"
+            find . -maxdepth 4 -not -path "*/node_modules/*" -not -path "*/.git/*" -type d | sort
+            exit 1
+          }
+          echo "OK: .open-next/assets existe"
+          ls .open-next/assets/ | head -20
 
       - name: Deploy Worker (API)
         run: npm run deploy:worker
