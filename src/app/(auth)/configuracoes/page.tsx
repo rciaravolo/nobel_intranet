@@ -5,15 +5,16 @@ export default async function ConfiguracoesPage() {
   return (
     <div style={{ maxWidth: 700 }}>
       <div style={{ marginBottom: 28 }}>
-        <p style={{ fontSize: 12, color: 'rgba(26,18,9,0.4)', marginBottom: 4 }}>
+        <p style={{ fontSize: 12, color: 'var(--fg-faint)', marginBottom: 4 }}>
           Conta e preferências
         </p>
         <h1
           style={{
-            fontFamily: 'var(--font-lora, serif)',
+            fontFamily: 'var(--f-text)',
             fontSize: 24,
             fontWeight: 600,
-            color: '#1A1209',
+            color: 'var(--fg)',
+            letterSpacing: '-.02em',
           }}
         >
           Configurações
@@ -23,27 +24,28 @@ export default async function ConfiguracoesPage() {
       {/* Perfil */}
       <div
         style={{
-          background: '#fff',
-          border: '1px solid rgba(184,150,62,0.12)',
-          borderRadius: 10,
+          background: 'var(--bg-elev)',
+          border: '1px solid var(--line)',
+          borderRadius: 12,
           overflow: 'hidden',
-          boxShadow: '0 1px 4px rgba(26,18,9,0.05)',
+          boxShadow: 'var(--e-float)',
           marginBottom: 16,
         }}
       >
         <div
           style={{
-            padding: '14px 20px 12px',
-            borderBottom: '1px solid rgba(184,150,62,0.09)',
-            background: '#F6F3ED',
+            padding: '13px 20px',
+            borderBottom: '1px solid var(--line)',
+            background: 'var(--bg-deep)',
           }}
         >
           <span
             style={{
-              fontFamily: 'var(--font-lora, serif)',
-              fontSize: 14,
-              fontWeight: 500,
-              color: '#1A1209',
+              fontFamily: 'var(--f-text)',
+              fontSize: 13,
+              fontWeight: 600,
+              color: 'var(--fg)',
+              letterSpacing: '-.01em',
             }}
           >
             Perfil
@@ -63,7 +65,7 @@ export default async function ConfiguracoesPage() {
                 fontSize: 20,
                 fontWeight: 700,
                 color: '#fff',
-                fontFamily: 'var(--font-lora, serif)',
+                fontFamily: 'var(--f-mono)',
                 flexShrink: 0,
               }}
             >
@@ -74,11 +76,11 @@ export default async function ConfiguracoesPage() {
                 .join('')}
             </div>
             <div>
-              <div style={{ fontSize: 16, fontWeight: 600, color: '#1A1209', marginBottom: 3 }}>
+              <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--fg)', marginBottom: 3 }}>
                 {session.name}
               </div>
               <div
-                style={{ fontSize: 12, color: 'rgba(26,18,9,0.45)', textTransform: 'capitalize' }}
+                style={{ fontSize: 12, color: 'var(--fg-mute)', textTransform: 'capitalize' }}
               >
                 {session.role} · Nobel Capital
               </div>
@@ -96,13 +98,13 @@ export default async function ConfiguracoesPage() {
                 alignItems: 'center',
                 gap: 16,
                 padding: '12px 0',
-                borderTop: '1px solid rgba(184,150,62,0.07)',
+                borderTop: '1px solid var(--line)',
               }}
             >
-              <span style={{ fontSize: 12, color: 'rgba(26,18,9,0.4)', width: 80, flexShrink: 0 }}>
+              <span style={{ fontSize: 12, color: 'var(--fg-faint)', width: 80, flexShrink: 0 }}>
                 {f.label}
               </span>
-              <span style={{ fontSize: 13, color: '#1A1209', fontWeight: 500 }}>{f.value}</span>
+              <span style={{ fontSize: 13, color: 'var(--fg)', fontWeight: 500 }}>{f.value}</span>
             </div>
           ))}
         </div>
@@ -111,27 +113,28 @@ export default async function ConfiguracoesPage() {
       {/* Integrações */}
       <div
         style={{
-          background: '#fff',
-          border: '1px solid rgba(184,150,62,0.12)',
-          borderRadius: 10,
+          background: 'var(--bg-elev)',
+          border: '1px solid var(--line)',
+          borderRadius: 12,
           overflow: 'hidden',
-          boxShadow: '0 1px 4px rgba(26,18,9,0.05)',
+          boxShadow: 'var(--e-float)',
           marginBottom: 16,
         }}
       >
         <div
           style={{
-            padding: '14px 20px 12px',
-            borderBottom: '1px solid rgba(184,150,62,0.09)',
-            background: '#F6F3ED',
+            padding: '13px 20px',
+            borderBottom: '1px solid var(--line)',
+            background: 'var(--bg-deep)',
           }}
         >
           <span
             style={{
-              fontFamily: 'var(--font-lora, serif)',
-              fontSize: 14,
-              fontWeight: 500,
-              color: '#1A1209',
+              fontFamily: 'var(--f-text)',
+              fontSize: 13,
+              fontWeight: 600,
+              color: 'var(--fg)',
+              letterSpacing: '-.01em',
             }}
           >
             Integrações
@@ -160,13 +163,13 @@ export default async function ConfiguracoesPage() {
                 alignItems: 'center',
                 gap: 14,
                 padding: '14px 24px',
-                borderBottom: '1px solid rgba(184,150,62,0.07)',
+                borderBottom: '1px solid var(--line)',
               }}
             >
               <span style={{ fontSize: 20 }}>{int.icon}</span>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 500, color: '#1A1209' }}>{int.name}</div>
-                <div style={{ fontSize: 11, color: 'rgba(26,18,9,0.4)', marginTop: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--fg)' }}>{int.name}</div>
+                <div style={{ fontSize: 11, color: 'var(--fg-faint)', marginTop: 1 }}>
                   {int.desc}
                 </div>
               </div>
@@ -203,11 +206,11 @@ export default async function ConfiguracoesPage() {
       <div
         style={{
           padding: '14px 18px',
-          background: 'rgba(184,150,62,0.05)',
-          border: '1px solid rgba(184,150,62,0.12)',
+          background: 'color-mix(in oklch, var(--c-gold) 5%, var(--bg-elev))',
+          border: '1px solid var(--line)',
           borderRadius: 8,
           fontSize: 12,
-          color: 'rgba(26,18,9,0.5)',
+          color: 'var(--fg-mute)',
           lineHeight: 1.6,
         }}
       >

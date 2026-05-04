@@ -2,6 +2,7 @@ import type { TickerPayload } from '@/../../server/src/lib/ticker'
 import { requireSession } from '@/lib/auth/session'
 import { Sidebar } from './_components/Sidebar'
 import { TickerBar } from './_components/TickerBar'
+import { Topbar } from './_components/Topbar'
 
 async function getTicker() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL
@@ -21,11 +22,12 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
 
   return (
     <div
-      style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg-deep)' }}
+      style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#F5F4F0' }}
     >
       <Sidebar session={session} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <TickerBar tickers={tickers} />
+        <Topbar session={session} />
         <main className="main-content">{children}</main>
       </div>
     </div>

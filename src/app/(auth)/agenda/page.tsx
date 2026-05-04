@@ -229,15 +229,16 @@ export default async function AgendaPage() {
         }}
       >
         <div>
-          <p style={{ fontSize: 12, color: 'rgba(26,18,9,0.4)', marginBottom: 4 }}>
+          <p style={{ fontSize: 12, color: 'var(--fg-faint)', marginBottom: 4 }}>
             Semana de {weekLabel}
           </p>
           <h1
             style={{
-              fontFamily: 'var(--font-lora, serif)',
+              fontFamily: 'var(--f-text)',
               fontSize: 24,
               fontWeight: 600,
-              color: '#1A1209',
+              color: 'var(--fg)',
+              letterSpacing: '-.02em',
               display: 'flex',
               alignItems: 'center',
               gap: 10,
@@ -247,6 +248,7 @@ export default async function AgendaPage() {
             {source === 'outlook' && (
               <span
                 style={{
+                  fontFamily: 'var(--f-mono)',
                   fontSize: 10,
                   fontWeight: 600,
                   letterSpacing: '0.1em',
@@ -263,6 +265,7 @@ export default async function AgendaPage() {
             {source === 'unconfigured' && (
               <span
                 style={{
+                  fontFamily: 'var(--f-mono)',
                   fontSize: 10,
                   fontWeight: 600,
                   letterSpacing: '0.1em',
@@ -283,7 +286,7 @@ export default async function AgendaPage() {
             style={{
               display: 'flex',
               gap: 1,
-              border: '1px solid rgba(184,150,62,0.2)',
+              border: '1px solid var(--line)',
               borderRadius: 6,
               overflow: 'hidden',
             }}
@@ -294,11 +297,11 @@ export default async function AgendaPage() {
                 type="button"
                 style={{
                   padding: '8px 16px',
-                  background: i === 0 ? '#1A1209' : '#fff',
+                  background: i === 0 ? 'var(--fg)' : 'var(--bg-elev)',
                   border: 'none',
                   fontSize: 12,
                   fontWeight: 500,
-                  color: i === 0 ? '#F6F3ED' : 'rgba(26,18,9,0.5)',
+                  color: i === 0 ? 'var(--bg)' : 'var(--fg-mute)',
                   cursor: 'pointer',
                 }}
               >
@@ -313,7 +316,7 @@ export default async function AgendaPage() {
               alignItems: 'center',
               gap: 7,
               padding: '9px 18px',
-              background: '#B8963E',
+              background: 'var(--c-gold)',
               border: 'none',
               borderRadius: 6,
               fontSize: 12,
@@ -393,11 +396,11 @@ export default async function AgendaPage() {
         {/* Grid do calendário */}
         <div
           style={{
-            background: '#fff',
-            border: '1px solid rgba(184,150,62,0.12)',
-            borderRadius: 10,
+            background: 'var(--bg-elev)',
+            border: '1px solid var(--line)',
+            borderRadius: 12,
             overflow: 'hidden',
-            boxShadow: '0 1px 4px rgba(26,18,9,0.05)',
+            boxShadow: 'var(--e-float)',
           }}
         >
           {/* Cabeçalho dos dias */}
@@ -405,10 +408,10 @@ export default async function AgendaPage() {
             style={{
               display: 'grid',
               gridTemplateColumns: '56px repeat(5, 1fr)',
-              borderBottom: '1px solid rgba(184,150,62,0.1)',
+              borderBottom: '1px solid var(--line)',
             }}
           >
-            <div style={{ background: '#F6F3ED' }} />
+            <div style={{ background: 'var(--bg-deep)' }} />
             {weekDays.map((d, i) => {
               const isToday = d.toDateString() === today.toDateString()
               return (
@@ -417,17 +420,20 @@ export default async function AgendaPage() {
                   style={{
                     padding: '12px 8px',
                     textAlign: 'center',
-                    background: isToday ? 'rgba(184,150,62,0.05)' : '#F6F3ED',
-                    borderLeft: '1px solid rgba(184,150,62,0.08)',
+                    background: isToday
+                      ? 'color-mix(in oklch, var(--c-gold) 5%, var(--bg-deep))'
+                      : 'var(--bg-deep)',
+                    borderLeft: '1px solid var(--line)',
                   }}
                 >
                   <div
                     style={{
+                      fontFamily: 'var(--f-mono)',
                       fontSize: 10,
                       fontWeight: 600,
                       letterSpacing: '0.1em',
                       textTransform: 'uppercase',
-                      color: isToday ? '#B8963E' : 'rgba(26,18,9,0.35)',
+                      color: isToday ? 'var(--c-gold)' : 'var(--fg-faint)',
                       marginBottom: 4,
                     }}
                   >
@@ -438,15 +444,15 @@ export default async function AgendaPage() {
                       width: 28,
                       height: 28,
                       borderRadius: '50%',
-                      background: isToday ? '#1A1209' : 'transparent',
+                      background: isToday ? 'var(--fg)' : 'transparent',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       margin: '0 auto',
-                      fontFamily: 'var(--font-lora, serif)',
+                      fontFamily: 'var(--f-mono)',
                       fontSize: 14,
                       fontWeight: 600,
-                      color: isToday ? '#F6F3ED' : '#1A1209',
+                      color: isToday ? 'var(--bg)' : 'var(--fg)',
                     }}
                   >
                     {d.getDate()}
@@ -467,14 +473,15 @@ export default async function AgendaPage() {
                     display: 'grid',
                     gridTemplateColumns: '56px repeat(5, 1fr)',
                     height: HOUR_H,
-                    borderBottom: '1px solid rgba(184,150,62,0.06)',
+                    borderBottom: '1px solid var(--line)',
                   }}
                 >
-                  <div style={{ padding: '4px 8px 0', textAlign: 'right' }}>
+                  <div style={{ padding: '4px 8px 0', textAlign: 'right', background: 'var(--bg-deep)' }}>
                     <span
                       style={{
+                        fontFamily: 'var(--f-mono)',
                         fontSize: 10,
-                        color: 'rgba(26,18,9,0.3)',
+                        color: 'var(--fg-faint)',
                         fontVariantNumeric: 'tabular-nums',
                       }}
                     >
@@ -487,9 +494,11 @@ export default async function AgendaPage() {
                       <div
                         key={d.toDateString()}
                         style={{
-                          borderLeft: '1px solid rgba(184,150,62,0.06)',
+                          borderLeft: '1px solid var(--line)',
                           position: 'relative',
-                          background: isToday ? 'rgba(184,150,62,0.015)' : 'transparent',
+                          background: isToday
+                            ? 'color-mix(in oklch, var(--c-gold) 2%, var(--bg-elev))'
+                            : 'transparent',
                         }}
                       >
                         {events
@@ -547,18 +556,18 @@ export default async function AgendaPage() {
           {/* Hoje */}
           <div
             style={{
-              background: '#fff',
-              border: '1px solid rgba(184,150,62,0.12)',
-              borderRadius: 10,
+              background: 'var(--bg-elev)',
+              border: '1px solid var(--line)',
+              borderRadius: 12,
               overflow: 'hidden',
-              boxShadow: '0 1px 4px rgba(26,18,9,0.05)',
+              boxShadow: 'var(--e-float)',
             }}
           >
             <div
               style={{
-                padding: '14px 18px 12px',
-                borderBottom: '1px solid rgba(184,150,62,0.1)',
-                background: '#F6F3ED',
+                padding: '13px 18px',
+                borderBottom: '1px solid var(--line)',
+                background: 'var(--bg-deep)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -566,15 +575,16 @@ export default async function AgendaPage() {
             >
               <span
                 style={{
-                  fontFamily: 'var(--font-lora, serif)',
-                  fontSize: 14,
-                  fontWeight: 500,
-                  color: '#1A1209',
+                  fontFamily: 'var(--f-text)',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: 'var(--fg)',
+                  letterSpacing: '-.01em',
                 }}
               >
                 Hoje · {todayLabel}
               </span>
-              <span style={{ fontSize: 11, color: '#B8963E', fontWeight: 500 }}>
+              <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--c-gold)', fontWeight: 500 }}>
                 {todayIdx !== -1
                   ? `${events.filter((e) => e.day === todayIdx).length} eventos`
                   : `${todayEvents.length} eventos`}
@@ -586,7 +596,7 @@ export default async function AgendaPage() {
               if (evs.length === 0) {
                 return (
                   <div style={{ padding: '20px 18px', textAlign: 'center' }}>
-                    <p style={{ fontSize: 12, color: 'rgba(26,18,9,0.35)' }}>
+                    <p style={{ fontSize: 12, color: 'var(--fg-faint)' }}>
                       {source === 'outlook'
                         ? 'Sem eventos hoje.'
                         : 'Conecte o Outlook para ver eventos reais.'}
@@ -601,7 +611,7 @@ export default async function AgendaPage() {
                     display: 'flex',
                     gap: 12,
                     padding: '12px 18px',
-                    borderBottom: '1px solid rgba(184,150,62,0.07)',
+                    borderBottom: '1px solid var(--line)',
                     cursor: 'pointer',
                   }}
                 >
@@ -617,16 +627,16 @@ export default async function AgendaPage() {
                   <div>
                     <div
                       style={{
-                        fontFamily: 'var(--font-lora, serif)',
+                        fontFamily: 'var(--f-text)',
                         fontSize: 12.5,
                         fontWeight: 500,
-                        color: '#1A1209',
+                        color: 'var(--fg)',
                         marginBottom: 2,
                       }}
                     >
                       {ev.title}
                     </div>
-                    <div style={{ fontSize: 11, color: 'rgba(26,18,9,0.4)' }}>
+                    <div style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--fg-faint)' }}>
                       {`${Math.floor(ev.startHour)}:${String(Math.round((ev.startHour % 1) * 60)).padStart(2, '0')}`}
                       {ev.where ? ` · ${ev.where}` : ''}
                     </div>
@@ -639,26 +649,27 @@ export default async function AgendaPage() {
           {/* Próximos dias */}
           <div
             style={{
-              background: '#fff',
-              border: '1px solid rgba(184,150,62,0.12)',
-              borderRadius: 10,
+              background: 'var(--bg-elev)',
+              border: '1px solid var(--line)',
+              borderRadius: 12,
               overflow: 'hidden',
-              boxShadow: '0 1px 4px rgba(26,18,9,0.05)',
+              boxShadow: 'var(--e-float)',
             }}
           >
             <div
               style={{
-                padding: '14px 18px 12px',
-                borderBottom: '1px solid rgba(184,150,62,0.1)',
-                background: '#F6F3ED',
+                padding: '13px 18px',
+                borderBottom: '1px solid var(--line)',
+                background: 'var(--bg-deep)',
               }}
             >
               <span
                 style={{
-                  fontFamily: 'var(--font-lora, serif)',
-                  fontSize: 14,
-                  fontWeight: 500,
-                  color: '#1A1209',
+                  fontFamily: 'var(--f-text)',
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: 'var(--fg)',
+                  letterSpacing: '-.01em',
                 }}
               >
                 Próximos dias
@@ -672,7 +683,7 @@ export default async function AgendaPage() {
               if (upcoming.length === 0) {
                 return (
                   <div style={{ padding: '20px 18px', textAlign: 'center' }}>
-                    <p style={{ fontSize: 12, color: 'rgba(26,18,9,0.35)' }}>
+                    <p style={{ fontSize: 12, color: 'var(--fg-faint)' }}>
                       {source === 'outlook' ? 'Sem próximos eventos.' : 'Calendário não conectado.'}
                     </p>
                   </div>
@@ -686,7 +697,7 @@ export default async function AgendaPage() {
                     alignItems: 'center',
                     gap: 10,
                     padding: '10px 18px',
-                    borderBottom: '1px solid rgba(184,150,62,0.07)',
+                    borderBottom: '1px solid var(--line)',
                   }}
                 >
                   <div
@@ -718,11 +729,11 @@ export default async function AgendaPage() {
                   </div>
                   <div>
                     <div
-                      style={{ fontSize: 12, fontWeight: 500, color: '#1A1209', lineHeight: 1.3 }}
+                      style={{ fontFamily: 'var(--f-text)', fontSize: 12, fontWeight: 500, color: 'var(--fg)', lineHeight: 1.3 }}
                     >
                       {ev.title}
                     </div>
-                    <div style={{ fontSize: 10, color: 'rgba(26,18,9,0.4)' }}>
+                    <div style={{ fontFamily: 'var(--f-mono)', fontSize: 10, color: 'var(--fg-faint)' }}>
                       {DAY_LABELS[ev.day]} {weekDays[ev.day]?.getDate()}/
                       {String((weekDays[ev.day]?.getMonth() ?? 0) + 1).padStart(2, '0')} ·{' '}
                       {`${Math.floor(ev.startHour)}:${String(Math.round((ev.startHour % 1) * 60)).padStart(2, '0')}`}

@@ -29,7 +29,7 @@ export function NobelCard({
     <div
       className={cn(
         // Base card — §4.3
-        'bg-[var(--bg-elev)] border border-[var(--line)] rounded-[var(--r-3)]',
+        'bg-[var(--bg-elev)] border border-[var(--line)] rounded-[12px]',
         'shadow-[var(--e-float)]',
         'transition-[transform,box-shadow] duration-[250ms] ease-[ease]',
         'hover:shadow-[var(--e-float-hover)] hover:-translate-y-[2px]',

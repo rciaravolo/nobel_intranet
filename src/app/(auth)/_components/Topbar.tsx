@@ -61,9 +61,9 @@ export function Topbar({ session }: Props) {
   return (
     <header
       style={{
-        height: 60,
-        background: '#FDFAF5',
-        borderBottom: '1px solid rgba(184,150,62,0.13)',
+        height: 64,
+        background: '#FFFFFF',
+        borderBottom: '1px solid rgba(0,0,0,0.08)',
         display: 'flex',
         alignItems: 'center',
         padding: '0 32px',
@@ -71,20 +71,20 @@ export function Topbar({ session }: Props) {
         flexShrink: 0,
       }}
     >
-      {/* Title */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
+      {/* Title + date */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
         <h1
           style={{
-            fontFamily: 'var(--font-lora, serif)',
-            fontSize: 17,
+            fontFamily: 'var(--font-lora, var(--f-display), serif)',
+            fontSize: 18,
             fontWeight: 500,
-            color: '#1A1209',
+            color: '#0A0A0A',
             letterSpacing: '0.01em',
           }}
         >
           {title}
         </h1>
-        <span style={{ fontSize: 12, color: 'rgba(26,18,9,0.3)' }}>— {formatDate()}</span>
+        <span style={{ fontSize: 12, color: '#8A8A8A', marginLeft: 4 }}>— {formatDate()}</span>
       </div>
 
       {/* Search */}
@@ -93,27 +93,31 @@ export function Topbar({ session }: Props) {
           display: 'flex',
           alignItems: 'center',
           gap: 8,
-          background: '#F6F3ED',
-          border: '1px solid rgba(184,150,62,0.18)',
-          borderRadius: 6,
+          background: '#F5F4F0',
+          border: '1px solid rgba(0,0,0,0.08)',
+          borderRadius: 8,
           padding: '8px 14px',
           width: 220,
           cursor: 'text',
+          transition: 'border-color .15s',
         }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = '#D4AF6A' }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(0,0,0,0.08)' }}
       >
         <svg
           aria-hidden="true"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="rgba(26,18,9,0.3)"
+          stroke="#8A8A8A"
           strokeWidth="1.5"
-          width="13"
-          height="13"
+          width="14"
+          height="14"
+          style={{ flexShrink: 0 }}
         >
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
-        <span style={{ fontSize: 13, color: 'rgba(26,18,9,0.3)' }}>Buscar...</span>
+        <span style={{ fontSize: 13, color: '#B0B0B0' }}>Buscar...</span>
       </div>
 
       {/* Notifications */}
@@ -121,64 +125,92 @@ export function Topbar({ session }: Props) {
         type="button"
         aria-label="Notificações"
         style={{
-          width: 34,
-          height: 34,
-          borderRadius: 6,
-          border: '1px solid rgba(184,150,62,0.18)',
+          width: 36,
+          height: 36,
+          borderRadius: 8,
+          border: '1px solid rgba(0,0,0,0.08)',
           background: 'transparent',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           cursor: 'pointer',
           position: 'relative',
+          transition: 'border-color .15s, background .15s',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = '#F5F4F0'
+          e.currentTarget.style.borderColor = '#B8963E'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent'
+          e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'
         }}
       >
         <svg
           aria-hidden="true"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="rgba(26,18,9,0.5)"
+          stroke="#3D3D3D"
           strokeWidth="1.5"
-          width="15"
-          height="15"
+          width="16"
+          height="16"
         >
           <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
         </svg>
+        {/* gold dot */}
         <div
           style={{
             position: 'absolute',
             top: 7,
             right: 7,
-            width: 6,
-            height: 6,
+            width: 7,
+            height: 7,
             background: '#B8963E',
             borderRadius: '50%',
-            border: '1.5px solid #FDFAF5',
+            border: '1.5px solid #FFFFFF',
           }}
         />
       </button>
 
-      {/* Avatar */}
-      <div
+      {/* User icon button */}
+      <button
+        type="button"
+        aria-label={session.name}
+        title={session.name}
         style={{
-          width: 32,
-          height: 32,
-          borderRadius: '50%',
-          background: 'linear-gradient(135deg, #B8963E 0%, #8B6914 100%)',
+          width: 36,
+          height: 36,
+          borderRadius: 8,
+          border: '1px solid rgba(0,0,0,0.08)',
+          background: 'transparent',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: 11,
-          fontWeight: 600,
-          color: '#fff',
           cursor: 'pointer',
-          fontFamily: 'var(--font-lora, serif)',
-          flexShrink: 0,
+          transition: 'border-color .15s, background .15s',
         }}
-        title={session.name}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = '#F5F4F0'
+          e.currentTarget.style.borderColor = '#B8963E'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent'
+          e.currentTarget.style.borderColor = 'rgba(0,0,0,0.08)'
+        }}
       >
-        {initials}
-      </div>
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#3D3D3D"
+          strokeWidth="1.5"
+          width="16"
+          height="16"
+        >
+          <circle cx="12" cy="8" r="4" />
+          <path d="M20 21a8 8 0 10-16 0" />
+        </svg>
+      </button>
     </header>
   )
 }

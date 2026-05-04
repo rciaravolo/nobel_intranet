@@ -1,6 +1,6 @@
 import { Providers } from '@/components/providers'
 import type { Metadata } from 'next'
-import { Cormorant_Garamond, Inter_Tight, JetBrains_Mono } from 'next/font/google'
+import { Cormorant_Garamond, Inter_Tight, JetBrains_Mono, Lora } from 'next/font/google'
 import './globals.css'
 
 /* Display / headings — Cormorant Garamond */
@@ -9,6 +9,14 @@ const cormorant = Cormorant_Garamond({
   weight: ['300', '400', '500', '600', '700'],
   style: ['normal', 'italic'],
   variable: '--font-display',
+  display: 'swap',
+})
+
+/* Login editorial headline — Lora */
+const lora = Lora({
+  subsets: ['latin'],
+  weight: ['700'],
+  variable: '--font-lora',
   display: 'swap',
 })
 
@@ -37,7 +45,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body className={`${cormorant.variable} ${interTight.variable} ${jetbrainsMono.variable}`}>
+      <body className={`${cormorant.variable} ${interTight.variable} ${jetbrainsMono.variable} ${lora.variable}`}>
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -67,6 +67,32 @@ const SEED_USERS: User[] = [
     department: 'Gestão',
     avatarInitials: 'VB',
   },
+  {
+    id: 'usr_a65954_001',
+    username: 'adriano.fonseca',
+    // scrypt hash de "nobel2026"
+    passwordHash:
+      '6d22e2f635075d005517d6cdc3819b45f0ab3486dddfa5f1007734ccd808da9b5b3898ada2d65e972c045d03fddc98fa38da0b6779fe061d58e84df09a450550.a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6',
+    name: 'Adriano Fonseca',
+    email: 'adriano.fonseca@nobelcapital.com.br',
+    role: 'assessor',
+    equipe: 'PRIVATE',
+    department: 'Assessoria — PRIVATE',
+    avatarInitials: 'AF',
+  },
+  {
+    id: 'usr_a74811_001',
+    username: 'igor.ladeira',
+    // scrypt hash de "nobel2026"
+    passwordHash:
+      '16384db6df3976b002c37cfae71075ede70b67283d2011c37aa7da3b1165835f6e8b70a203cced7ed1a921192794027993210e242a569d5ee5bbd88f5799d277.f1e2d3c4b5a6f7e8d9c0b1a2f3e4d5c6',
+    name: 'Igor Ladeira',
+    email: 'igor.ladeira@nobelcapital.com.br',
+    role: 'assessor',
+    equipe: 'SMART-Alfa',
+    department: 'Assessoria — SMART-Alfa',
+    avatarInitials: 'IL',
+  },
 ]
 
 export function findUserByUsername(username: string): User | undefined {

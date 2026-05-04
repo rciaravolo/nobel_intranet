@@ -13,7 +13,7 @@ export function KPI({ label, value, unit, delta, spark, className }: KPIProps) {
   return (
     <div
       className={cn(
-        'bg-card border border-border rounded-[var(--r-3)] p-4 flex flex-col gap-2.5',
+        'bg-card border border-border rounded-[12px] p-4 flex flex-col gap-2.5',
         'shadow-[var(--e-float)] transition-[transform,box-shadow] duration-[250ms] ease-[ease]',
         'hover:shadow-[var(--e-float-hover)] hover:-translate-y-[2px]',
         className,

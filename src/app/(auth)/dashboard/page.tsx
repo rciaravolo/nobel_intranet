@@ -187,6 +187,10 @@ export default async function DashboardPage() {
   const card: React.CSSProperties = {
     background: 'var(--bg-elev)',
     border: '1px solid var(--line)',
+    borderRadius: 12,
+    boxShadow: 'var(--e-float)',
+    overflow: 'hidden',
+    transition: 'transform .2s ease, box-shadow .2s ease',
   }
 
   const cardHeader: React.CSSProperties = {
@@ -195,7 +199,7 @@ export default async function DashboardPage() {
     justifyContent: 'space-between',
     padding: '11px 20px',
     borderBottom: '1px solid var(--line)',
-    background: 'var(--bg)',
+    background: 'var(--bg-deep)',
   }
 
   const sectionTitle: React.CSSProperties = {

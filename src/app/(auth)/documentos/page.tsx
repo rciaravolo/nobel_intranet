@@ -29,12 +29,13 @@ function ComingSoon({
       <div style={{ fontSize: 52, marginBottom: 20 }}>{icon}</div>
       <span
         style={{
+          fontFamily: 'var(--f-mono)',
           fontSize: 10,
           fontWeight: 700,
           letterSpacing: '0.18em',
           textTransform: 'uppercase',
-          color: '#B8963E',
-          background: 'rgba(184,150,62,0.1)',
+          color: 'var(--c-gold)',
+          background: 'color-mix(in oklch, var(--c-gold) 10%, transparent)',
           padding: '4px 12px',
           borderRadius: 20,
         }}
@@ -43,35 +44,37 @@ function ComingSoon({
       </span>
       <h1
         style={{
-          fontFamily: 'var(--font-lora, serif)',
+          fontFamily: 'var(--f-text)',
           fontSize: 32,
           fontWeight: 600,
-          color: '#1A1209',
+          color: 'var(--fg)',
+          letterSpacing: '-.02em',
           margin: '18px 0 12px',
         }}
       >
         {title}
       </h1>
-      <p style={{ fontSize: 15, color: 'rgba(26,18,9,0.5)', lineHeight: 1.7, marginBottom: 36 }}>
+      <p style={{ fontSize: 15, color: 'var(--fg-mute)', lineHeight: 1.7, marginBottom: 36 }}>
         {desc}
       </p>
       <div
         style={{
-          background: '#fff',
-          border: '1px solid rgba(184,150,62,0.12)',
+          background: 'var(--bg-elev)',
+          border: '1px solid var(--line)',
           borderRadius: 12,
           padding: '28px 32px',
           textAlign: 'left',
-          boxShadow: '0 1px 4px rgba(26,18,9,0.05)',
+          boxShadow: 'var(--e-float)',
         }}
       >
         <p
           style={{
+            fontFamily: 'var(--f-mono)',
             fontSize: 11,
             fontWeight: 600,
             letterSpacing: '0.12em',
             textTransform: 'uppercase',
-            color: 'rgba(26,18,9,0.35)',
+            color: 'var(--fg-faint)',
             marginBottom: 16,
           }}
         >
@@ -86,7 +89,7 @@ function ComingSoon({
                 alignItems: 'center',
                 gap: 10,
                 fontSize: 13,
-                color: '#1A1209',
+                color: 'var(--fg)',
               }}
             >
               <div
@@ -94,7 +97,7 @@ function ComingSoon({
                   width: 5,
                   height: 5,
                   borderRadius: '50%',
-                  background: '#B8963E',
+                  background: 'var(--c-gold)',
                   flexShrink: 0,
                 }}
               />

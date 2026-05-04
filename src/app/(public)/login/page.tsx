@@ -50,45 +50,33 @@ export default function LoginPage() {
 
   return (
     <div className="shell">
-      {/* ── LEFT — editorial brand panel ─────────────────────── */}
+      {/* ── LEFT ─────────────────────────────────────────────── */}
       <div className="left">
-        {/* Subtle gold radial */}
-        <div className="left-bg" />
+        <div className="left-glow" />
 
-        {/* Nobel lockup */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo-lockup.png" alt="Nobel Capital" className="lockup-img" />
+        <div className="logo-wrap">
+          <img src="/logo-lockup-ivory.png" alt="Nobel Capital" />
+        </div>
 
-        {/* Display headline */}
         <h1 className="headline">
-          Sistema interno
+          INTRA
           <br />
-          <em className="headline-em">INTRA</em>
+          NOBEL
         </h1>
 
-        {/* Hairline rule */}
         <div className="rule" />
-
-        {/* Tagline */}
-        <p className="tagline">Permanência · Rigor · Clareza</p>
-
-        {/* Bottom meta */}
-        <div className="left-meta">
-          <span>Nobel Capital &amp; XP Investimentos</span>
-          <span>Acesso restrito · colaboradores</span>
-        </div>
+        <p className="tagline">Sistema interno — Nobel Capital</p>
       </div>
 
-      {/* ── RIGHT — form panel ───────────────────────────────── */}
+      {/* ── RIGHT ────────────────────────────────────────────── */}
       <div className="right">
-        {/* Subtle grid texture */}
         <div className="right-grid" />
 
         <div className="card">
-          {/* Gold top accent line */}
-          <div className="card-accent" />
+          <div className="card-top-line" />
 
-          <p className="eyebrow">Acesso restrito</p>
+          <p className="card-eyebrow">Acesso restrito</p>
           <h2 className="card-title">Entre na sua conta</h2>
 
           <form onSubmit={handleSubmit} noValidate>
@@ -104,12 +92,9 @@ export default function LoginPage() {
                   value={username}
                   onChange={(e) => {
                     setUsername(e.target.value)
-                    setFieldErrors((p) => {
-                      const { username: _, ...r } = p
-                      return r
-                    })
+                    setFieldErrors((p) => { const { username: _, ...r } = p; return r })
                   }}
-                  data-error={!!fieldErrors.username}
+                  className={fieldErrors.username ? 'error' : ''}
                 />
               </div>
               {fieldErrors.username && <p className="error-msg">{fieldErrors.username}</p>}
@@ -127,12 +112,9 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value)
-                    setFieldErrors((p) => {
-                      const { password: _, ...r } = p
-                      return r
-                    })
+                    setFieldErrors((p) => { const { password: _, ...r } = p; return r })
                   }}
-                  data-error={!!fieldErrors.password}
+                  className={fieldErrors.password ? 'error' : ''}
                 />
                 <button
                   type="button"
@@ -141,25 +123,13 @@ export default function LoginPage() {
                   aria-label={showPw ? 'Ocultar senha' : 'Mostrar senha'}
                 >
                   {showPw ? (
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      aria-hidden="true"
-                    >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
                       <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" />
                       <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
                       <line x1="1" y1="1" x2="23" y2="23" />
                     </svg>
                   ) : (
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      aria-hidden="true"
-                    >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                       <circle cx="12" cy="12" r="3" />
                     </svg>
@@ -169,142 +139,134 @@ export default function LoginPage() {
               {fieldErrors.password && <p className="error-msg">{fieldErrors.password}</p>}
             </div>
 
-            {/* Global error */}
-            {error && (
-              <div className="global-error" role="alert">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  aria-hidden="true"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                  <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-                {error}
-              </div>
-            )}
-
             <button type="submit" className="btn-submit" disabled={loading}>
-              {loading ? <span className="spinner" /> : 'Entrar →'}
+              <span className="btn-inner">
+                {loading ? <span className="spinner" /> : <span>Entrar</span>}
+              </span>
             </button>
+
+            <button type="button" className="btn-forgot">Esqueci minha senha</button>
           </form>
 
           <div className="card-footer">
-            Acesso disponível apenas para colaboradores
-            <br />
+            Acesso disponível apenas para colaboradores<br />
             <strong>Nobel Capital &amp; XP Investimentos</strong>
           </div>
         </div>
       </div>
 
+      {/* Toast de erro */}
+      {error && (
+        <div className="toast" role="alert">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
+          <span>{error}</span>
+        </div>
+      )}
+
       <style jsx>{`
-        /* ── Shell ─────────────────────────────────────────── */
+        /* ── Tokens ─────────────────────────────────────────── */
         .shell {
-          display: flex;
-          min-height: 100vh;
-          font-family: var(--f-text);
-          background: var(--bg);
-          color: var(--fg);
+          --bg-left:       #1A1209;
+          --bg-right:      #231A0D;
+          --card-bg:       #2E2010;
+          --card-border:   #4A3520;
+          --input-bg:      #1A1209;
+          --gold-from:     #D4A96A;
+          --gold-to:       #B8963E;
+          --gold-shadow:   rgba(212,169,106,0.3);
+          --gold-text:     #C9A87C;
+          --gold-rule:     #D4A96A;
+          --cream:         #F5ECD7;
+          --btn-text:      #1A1209;
+          --error:         #e74c3c;
+          --font-lora:     var(--font-lora, 'Georgia', serif);
         }
 
-        /* ── LEFT ──────────────────────────────────────────── */
+        /* ── Shell ──────────────────────────────────────────── */
+        .shell {
+          display: flex;
+          width: 100%;
+          min-height: 100vh;
+          font-family: 'Geist', system-ui, sans-serif;
+          -webkit-font-smoothing: antialiased;
+          background: var(--bg-left);
+        }
+
+        /* ── LEFT ───────────────────────────────────────────── */
         .left {
-          width: 520px;
+          width: 695px;
           flex-shrink: 0;
-          /* P-04 cross-hatch gold — breathing texture for the brand panel */
-          background-color: var(--bg);
-          background-image:
-            repeating-linear-gradient(45deg, rgba(184, 150, 62, 0.055) 0, rgba(184, 150, 62, 0.055) 1px, transparent 0, transparent 50%),
-            repeating-linear-gradient(-45deg, rgba(184, 150, 62, 0.055) 0, rgba(184, 150, 62, 0.055) 1px, transparent 0, transparent 50%);
-          background-size: 18px 18px;
+          background: var(--bg-left);
           display: flex;
           flex-direction: column;
           justify-content: center;
-          padding: 72px 80px;
+          padding: 80px;
+          gap: 16px;
           position: relative;
-          border-right: 1px solid var(--line);
-          overflow: hidden;
         }
 
-        .left-bg {
+        .left-glow {
           position: absolute;
           inset: 0;
-          background: radial-gradient(ellipse 70% 50% at 20% 65%, color-mix(in oklch, var(--c-gold) 10%, transparent) 0%, transparent 65%);
+          background: radial-gradient(ellipse 60% 50% at 30% 50%, rgba(212,169,106,0.06) 0%, transparent 70%);
           pointer-events: none;
         }
 
-        /* Nobel lockup */
-        .lockup-img {
-          height: 52px;
+        .logo-wrap {
+          margin-bottom: 32px;
+          position: relative;
+          z-index: 1;
+        }
+
+        .logo-wrap img {
+          height: 94px;
           width: auto;
-          margin-bottom: 60px;
-          position: relative;
-          z-index: 1;
           display: block;
+          margin: 0 auto;
         }
 
-        /* Display headline */
         .headline {
-          font-family: var(--f-display);
+          font-family: var(--font-lora, 'Georgia', serif);
           font-size: 52px;
-          font-weight: 300;
-          color: var(--fg);
-          line-height: 1.05;
-          letter-spacing: -.01em;
+          font-weight: 700;
+          color: var(--cream);
+          line-height: 1.15;
+          margin-bottom: 32px;
           position: relative;
           z-index: 1;
-          margin: 0;
-        }
-
-        .headline-em {
-          font-style: italic;
-          color: var(--c-gold-deep);
-          font-weight: 400;
+          text-align: center;
         }
 
         .rule {
-          width: 40px;
-          height: 1px;
-          background: var(--c-gold);
-          margin: 32px 0 16px;
+          width: 48px;
+          height: 2px;
+          background: var(--gold-rule);
+          margin-bottom: 16px;
+          margin-left: auto;
+          margin-right: auto;
           position: relative;
           z-index: 1;
         }
 
         .tagline {
-          font-family: var(--f-mono);
-          font-size: 10px;
+          font-size: 14px;
+          color: var(--gold-text);
           font-weight: 400;
-          color: var(--fg-faint);
-          letter-spacing: .14em;
-          text-transform: uppercase;
-          line-height: 1.7;
+          opacity: 0.8;
+          letter-spacing: 0.02em;
           position: relative;
           z-index: 1;
+          text-align: center;
         }
 
-        .left-meta {
-          position: absolute;
-          bottom: 32px;
-          left: 80px;
-          right: 80px;
-          display: flex;
-          justify-content: space-between;
-          font-family: var(--f-mono);
-          font-size: 9px;
-          letter-spacing: .12em;
-          text-transform: uppercase;
-          color: var(--fg-faint);
-          z-index: 1;
-        }
-
-        /* ── RIGHT ─────────────────────────────────────────── */
+        /* ── RIGHT ──────────────────────────────────────────── */
         .right {
           flex: 1;
-          background: var(--bg-deep);
+          background: var(--bg-right);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -315,208 +277,256 @@ export default function LoginPage() {
           position: absolute;
           inset: 0;
           background-image:
-            linear-gradient(var(--line) 1px, transparent 1px),
-            linear-gradient(90deg, var(--line) 1px, transparent 1px);
-          background-size: 52px 52px;
+            linear-gradient(rgba(212,169,106,0.08) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(212,169,106,0.08) 1px, transparent 1px);
+          background-size: 48px 48px;
           pointer-events: none;
         }
 
-        /* ── Card ──────────────────────────────────────────── */
+        /* ── Card ───────────────────────────────────────────── */
         .card {
-          width: 440px;
-          background: var(--bg-elev);
-          border: 1px solid var(--line);
-          padding: 48px;
+          width: 480px;
+          background: var(--card-bg);
+          border: 1px solid var(--card-border);
+          border-radius: 20px;
+          padding: 56px;
+          box-shadow: 0 32px 80px rgba(0,0,0,0.5);
           position: relative;
           z-index: 1;
         }
 
-        .card-accent {
+        .card-top-line {
           position: absolute;
-          top: 0; left: 0; right: 0;
-          height: 2px;
-          background: linear-gradient(90deg, var(--c-gold), var(--c-gold-soft), transparent);
+          top: 0; left: 48px; right: 48px;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, var(--gold-rule), transparent);
+          opacity: 0.6;
         }
 
-        .eyebrow {
-          font-family: var(--f-mono);
-          font-size: 9px;
-          letter-spacing: .22em;
+        .card-eyebrow {
+          font-size: 11px;
+          letter-spacing: 0.15em;
           text-transform: uppercase;
-          color: var(--c-gold-deep);
-          font-weight: 500;
+          color: var(--gold-text);
+          font-weight: 600;
           margin-bottom: 8px;
+          opacity: 0.7;
         }
 
         .card-title {
-          font-family: var(--f-display);
+          font-family: var(--font-lora, 'Georgia', serif);
           font-size: 24px;
-          font-weight: 400;
-          color: var(--fg);
+          font-weight: 700;
+          color: var(--cream);
           margin-bottom: 36px;
           line-height: 1.2;
         }
 
-        /* ── Fields ────────────────────────────────────────── */
-        .field { margin-bottom: 22px; }
+        /* ── Fields ─────────────────────────────────────────── */
+        .field { margin-bottom: 20px; }
 
         .field label {
           display: block;
-          font-family: var(--f-mono);
-          font-size: 9px;
+          font-size: 13px;
           font-weight: 500;
-          letter-spacing: .16em;
-          text-transform: uppercase;
-          color: var(--fg-mute);
+          color: var(--gold-text);
           margin-bottom: 8px;
+          letter-spacing: 0.01em;
         }
 
         .input-wrap { position: relative; }
 
         .input-wrap input {
           width: 100%;
-          height: 46px;
-          background: var(--bg);
-          border: 1px solid var(--line-strong);
-          padding: 0 14px;
-          font-family: var(--f-text);
+          height: 52px;
+          background: var(--input-bg);
+          border: 1.5px solid var(--card-border);
+          border-radius: 10px;
+          padding: 0 16px;
           font-size: 14px;
-          color: var(--fg);
+          color: var(--cream);
           outline: none;
-          transition: border-color .18s, box-shadow .18s;
-          border-radius: var(--r-1);
+          transition: border-color 0.2s, box-shadow 0.2s;
           -webkit-appearance: none;
         }
 
-        .input-wrap input::placeholder { color: var(--fg-faint); }
+        .input-wrap input::placeholder { color: rgba(201,168,124,0.35); }
 
         .input-wrap input:focus {
-          border-color: var(--c-gold);
-          box-shadow: 0 0 0 3px color-mix(in oklch, var(--c-gold) 12%, transparent);
+          border-color: var(--gold-from);
+          box-shadow: 0 0 0 3px rgba(212,169,106,0.1);
         }
 
-        .input-wrap input[data-error='true'] {
-          border-color: var(--c-negative);
-          box-shadow: 0 0 0 3px color-mix(in oklch, var(--c-negative) 10%, transparent);
+        .input-wrap input.error {
+          border-color: #c0392b;
+          box-shadow: 0 0 0 3px rgba(192,57,43,0.1);
         }
 
         .toggle-pw {
           position: absolute;
-          right: 12px;
+          right: 14px;
           top: 50%;
           transform: translateY(-50%);
           background: none;
           border: none;
           cursor: pointer;
-          color: var(--fg-faint);
+          color: var(--gold-text);
+          opacity: 0.5;
           padding: 4px;
-          transition: color .15s;
+          transition: opacity 0.15s;
           display: flex;
           align-items: center;
         }
 
-        .toggle-pw:hover { color: var(--c-gold-deep); }
-        .toggle-pw svg { width: 14px; height: 14px; display: block; }
+        .toggle-pw:hover { opacity: 1; }
+
+        .toggle-pw svg {
+          width: 16px;
+          height: 16px;
+          stroke: currentColor;
+          fill: none;
+          stroke-width: 1.5;
+          display: block;
+        }
 
         .error-msg {
-          font-family: var(--f-mono);
-          font-size: 10px;
-          color: var(--c-negative);
-          margin-top: 5px;
-          letter-spacing: .04em;
+          font-size: 12px;
+          color: var(--error);
+          margin-top: 6px;
         }
 
-        .global-error {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          background: color-mix(in oklch, var(--c-negative) 8%, transparent);
-          border: 1px solid color-mix(in oklch, var(--c-negative) 30%, transparent);
-          padding: 10px 14px;
-          font-family: var(--f-text);
-          font-size: 13px;
-          color: var(--c-negative);
-          margin-top: 4px;
-          margin-bottom: 4px;
-          border-radius: var(--r-1);
-        }
-
-        .global-error svg { width: 14px; height: 14px; flex-shrink: 0; }
-
-        /* ── Buttons ───────────────────────────────────────── */
+        /* ── Buttons ────────────────────────────────────────── */
         .btn-submit {
           width: 100%;
-          height: 48px;
-          background: var(--fg);
+          height: 56px;
+          background: linear-gradient(135deg, var(--gold-from) 0%, var(--gold-to) 100%);
           border: none;
-          font-family: var(--f-text);
-          font-size: 11px;
-          font-weight: 500;
-          letter-spacing: .10em;
-          text-transform: uppercase;
-          color: var(--bg-elev);
+          border-radius: 12px;
+          font-size: 16px;
+          font-weight: 700;
+          letter-spacing: 0.5px;
+          color: var(--btn-text);
           cursor: pointer;
           margin-top: 28px;
-          margin-bottom: 10px;
-          transition: background .2s, transform .15s, box-shadow .2s;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: var(--r-1);
+          margin-bottom: 12px;
+          box-shadow: 0 8px 24px var(--gold-shadow);
+          transition: transform 0.2s, box-shadow 0.2s;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .btn-submit::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+          border-radius: inherit;
         }
 
         .btn-submit:hover:not(:disabled) {
-          background: var(--c-gold-deep);
-          color: #1a1408;
-          transform: translateY(-1px);
-          box-shadow: var(--e-2);
+          transform: translateY(-2px);
+          box-shadow: 0 12px 32px rgba(212,169,106,0.4);
         }
+
+        .btn-submit:active { transform: translateY(0); }
 
         .btn-submit:disabled {
-          opacity: 0.5;
+          opacity: 0.6;
           cursor: not-allowed;
+          transform: none;
         }
 
+        .btn-inner {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+
+        .btn-forgot {
+          width: 100%;
+          height: 52px;
+          background: transparent;
+          border: 1.5px solid var(--card-border);
+          border-radius: 12px;
+          font-size: 15px;
+          font-weight: 500;
+          color: var(--gold-text);
+          cursor: pointer;
+          transition: border-color 0.2s, background 0.2s;
+        }
+
+        .btn-forgot:hover {
+          border-color: var(--gold-text);
+          background: rgba(212,169,106,0.05);
+        }
+
+        /* ── Spinner ────────────────────────────────────────── */
         .spinner {
-          width: 16px;
-          height: 16px;
-          border: 1.5px solid rgba(255,255,255,.3);
-          border-top-color: #fff;
+          display: block;
+          width: 18px;
+          height: 18px;
+          border: 2px solid rgba(26,18,9,0.3);
+          border-top-color: var(--btn-text);
           border-radius: 50%;
-          animation: spin .7s linear infinite;
+          animation: spin 0.7s linear infinite;
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ── Footer ────────────────────────────────────────── */
+        /* ── Footer ─────────────────────────────────────────── */
         .card-footer {
-          margin-top: 28px;
-          padding-top: 20px;
-          border-top: 1px solid var(--line);
+          margin-top: 32px;
+          padding-top: 24px;
+          border-top: 1px solid rgba(74,53,32,0.5);
           text-align: center;
-          font-family: var(--f-mono);
-          font-size: 10px;
-          color: var(--fg-faint);
-          line-height: 1.8;
-          letter-spacing: .04em;
+          font-size: 12px;
+          color: rgba(201,168,124,0.4);
+          letter-spacing: 0.03em;
         }
 
         .card-footer strong {
-          color: var(--fg-mute);
+          color: rgba(201,168,124,0.6);
           font-weight: 500;
         }
 
-        /* ── Responsive ────────────────────────────────────── */
+        /* ── Toast ──────────────────────────────────────────── */
+        .toast {
+          position: fixed;
+          bottom: 32px;
+          right: 32px;
+          background: #1a0a0a;
+          border: 1px solid rgba(231,76,60,0.4);
+          color: #e74c3c;
+          padding: 14px 20px;
+          border-radius: 10px;
+          font-size: 13px;
+          font-weight: 500;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+          animation: slideUp 0.3s ease;
+          z-index: 999;
+        }
+
+        .toast svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(12px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Responsive ─────────────────────────────────────── */
         @media (max-width: 900px) {
           .shell { flex-direction: column; }
-          .left  { width: 100%; min-height: 40vh; padding: 48px; }
-          .left-meta { display: none; }
+          .left  { width: 100%; padding: 48px; }
           .headline { font-size: 36px; }
         }
 
         @media (max-width: 520px) {
           .right { padding: 24px; align-items: flex-start; padding-top: 40px; }
-          .card  { width: 100%; padding: 32px 24px; }
+          .card  { width: 100%; padding: 32px 24px; border-radius: 12px; }
           .left  { padding: 32px 24px; }
         }
       `}</style>

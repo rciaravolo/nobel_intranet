@@ -102,8 +102,8 @@ app.get('/kpis', async (c) => {
       .prepare(`SELECT COUNT(DISTINCT id_cliente) as clientes FROM tb_positivador WHERE status = 'ATIVO'${buildAndFilter(filter)}`)
       .first<{ clientes: number }>(),
     db
-      .prepare(`SELECT SUM(captacao) as cap FROM tb_cap WHERE strftime('%Y-%m', data) = strftime('%Y-%m', 'now')${buildAndFilter(filter)}`)
-      .first<{ cap: number | null }>(),
+      .prepare(`SELECT SUM(captacao) as cap, strftime('%Y-%m', MAX(data)) as mes_ref FROM tb_cap WHERE strftime('%Y-%m', data) = (SELECT strftime('%Y-%m', MAX(data)) FROM tb_cap)${buildAndFilter(filter)}`)
+      .first<{ cap: number | null; mes_ref: string | null }>(),
     Promise.all([
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_rv${w}`).first<{ v: number }>(),
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_rf${w}`).first<{ v: number }>(),
@@ -119,10 +119,12 @@ app.get('/kpis', async (c) => {
 
   const receitaTotal = (receitaRows as Array<{ v: number } | null>).reduce((s, r) => s + (r?.v ?? 0), 0)
 
-  const mesLabel = new Date()
-    .toLocaleDateString('pt-BR', { month: 'short', timeZone: 'America/Sao_Paulo' })
-    .replace(/^\w/, (c) => c.toUpperCase())
-    .replace(/\.$/, '') + '.'
+  const capMesRef = capRow?.mes_ref ?? null
+  const mesLabel = capMesRef
+    ? new Date(`${capMesRef}-15`).toLocaleDateString('pt-BR', { month: 'short', timeZone: 'UTC' })
+        .replace(/^\w/, (c) => c.toUpperCase()).replace(/\.$/, '') + '.'
+    : new Date().toLocaleDateString('pt-BR', { month: 'short', timeZone: 'America/Sao_Paulo' })
+        .replace(/^\w/, (c) => c.toUpperCase()).replace(/\.$/, '') + '.'
 
   return c.json({
     data: {
@@ -261,9 +263,10 @@ app.get('/onepage', async (c) => {
         SELECT
           SUM(CASE WHEN aux = 'C' THEN captacao ELSE 0 END) AS bruta,
           SUM(CASE WHEN aux = 'D' THEN captacao ELSE 0 END) AS resgates,
-          SUM(captacao)                                      AS liquida
+          SUM(captacao)                                      AS liquida,
+          strftime('%Y-%m', MAX(data))                       AS mes_ref
         FROM tb_cap
-        WHERE strftime('%Y-%m', data) = strftime('%Y-%m', 'now')${f}
+        WHERE strftime('%Y-%m', data) = (SELECT strftime('%Y-%m', MAX(data)) FROM tb_cap)${f}
       `)
       .first<{ bruta: number; resgates: number; liquida: number }>(),
     Promise.all([
@@ -347,7 +350,16 @@ app.get('/metas', async (c) => {
   const brt    = new Date(agora.getTime() - 3 * 60 * 60 * 1000)
   const mesISO = `${brt.getUTCFullYear()}-${String(brt.getUTCMonth() + 1).padStart(2, '0')}`
 
-  const metasMes = (metasJson as Record<string, Record<string, number>>)[mesISO]
+  const metasData = metasJson as Record<string, Record<string, number>>
+  let metasMes = metasData[mesISO]
+  let mesUsado = mesISO
+
+  if (!metasMes) {
+    // Fallback: usa o mês mais recente com meta definida
+    const ultimoMes = Object.keys(metasData).sort().at(-1)
+    if (ultimoMes) { metasMes = metasData[ultimoMes]; mesUsado = ultimoMes }
+  }
+
   if (!metasMes) return c.json({ data: { semMeta: true, mesISO } })
 
   const dias = diasUteisDoMes(agora)
@@ -382,7 +394,7 @@ app.get('/metas', async (c) => {
   return c.json({
     data: {
       semMeta: false as const,
-      mesISO,
+      mesISO: mesUsado,
       dias,
       produtos,
       total: {
@@ -420,7 +432,7 @@ app.get('/deepdive/captacao', async (c) => {
       FROM   tb_cap c
       LEFT JOIN base_clientes bc ON CAST(c.id_cliente AS INTEGER) = bc.id_cliente
       WHERE  c.aux = 'C'
-        AND  strftime('%Y-%m', c.data) = strftime('%Y-%m', 'now')${f}
+        AND  strftime('%Y-%m', c.data) = (SELECT strftime('%Y-%m', MAX(data)) FROM tb_cap)${f}
       GROUP  BY c.id_cliente
       ORDER  BY valor DESC
       LIMIT  20
@@ -433,7 +445,7 @@ app.get('/deepdive/captacao', async (c) => {
       FROM   tb_cap c
       LEFT JOIN base_clientes bc ON CAST(c.id_cliente AS INTEGER) = bc.id_cliente
       WHERE  c.aux = 'D'
-        AND  strftime('%Y-%m', c.data) = strftime('%Y-%m', 'now')${f}
+        AND  strftime('%Y-%m', c.data) = (SELECT strftime('%Y-%m', MAX(data)) FROM tb_cap)${f}
       GROUP  BY c.id_cliente
       ORDER  BY valor ASC
       LIMIT  20
@@ -585,6 +597,194 @@ app.get('/carteiras', async (c) => {
       aum: totalRow?.aum ?? 0,
       dataRef: totalRow?.data_ref ?? null,
       alocacao: alocacaoRows.results,
+    },
+  })
+})
+
+/* ─── /clientes ──────────────────────────────────────────────────────────── */
+
+app.get('/clientes', async (c) => {
+  const db = c.env.PERF_DB
+
+  const filter = await resolveFilter(
+    db,
+    c.req.header('X-User-Role'),
+    c.req.header('X-User-Email'),
+    c.req.header('X-User-Equipe'),
+  )
+  if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
+
+  const where = filter.type === 'all'
+    ? ''
+    : filter.type === 'assessor'
+    ? `WHERE p.id_assessor = '${filter.id}'`
+    : `WHERE p.id_assessor IN (SELECT id_assessor FROM assessores WHERE equipe = '${filter.equipe}')`
+
+  const [clientesRows, statsRow] = await Promise.all([
+    db.prepare(`
+      SELECT
+        p.id_cliente,
+        p.status,
+        p.tipo_pessoa,
+        p.net_em_m,
+        p.afd_ajustada,
+        p.nome_assessor,
+        p.equipe,
+        b.nome_cliente,
+        b.suitability,
+        b.email_cliente,
+        b.telefone
+      FROM tb_positivador p
+      LEFT JOIN base_clientes b ON p.id_cliente = b.id_cliente
+      ${where}
+      ORDER BY p.net_em_m DESC
+      LIMIT 500
+    `).all<{
+      id_cliente: number
+      status: string
+      tipo_pessoa: string
+      net_em_m: number
+      afd_ajustada: number
+      nome_assessor: string | null
+      equipe: string | null
+      nome_cliente: string | null
+      suitability: string | null
+      email_cliente: string | null
+      telefone: string | null
+    }>(),
+    db.prepare(`
+      SELECT
+        COUNT(*) as total,
+        SUM(CASE WHEN status = 'ATIVO' THEN 1 ELSE 0 END) as ativos,
+        SUM(CASE WHEN status = 'INATIVO' THEN 1 ELSE 0 END) as inativos,
+        SUM(net_em_m) as aum_total
+      FROM tb_positivador p
+      ${where}
+    `).first<{ total: number; ativos: number; inativos: number; aum_total: number }>(),
+  ])
+
+  return c.json({
+    data: {
+      clientes: clientesRows.results,
+      stats: {
+        total:     statsRow?.total     ?? 0,
+        ativos:    statsRow?.ativos    ?? 0,
+        inativos:  statsRow?.inativos  ?? 0,
+        aum_total: statsRow?.aum_total ?? 0,
+      },
+    },
+  })
+})
+
+/* ─── /carteiras/visao ────────────────────────────────────────────────────── */
+
+app.get('/carteiras/visao', async (c) => {
+  const db = c.env.PERF_DB
+
+  const JANELAS = ['0-6m', '6-12m', '1-2a', '2-5a', '5+a'] as const
+  const janelaExpr = `CASE
+    WHEN vencimento < date('now', '+6 months')  THEN '0-6m'
+    WHEN vencimento < date('now', '+12 months') THEN '6-12m'
+    WHEN vencimento < date('now', '+24 months') THEN '1-2a'
+    WHEN vencimento < date('now', '+60 months') THEN '2-5a'
+    ELSE '5+a'
+  END`
+
+  const [
+    rfTotalRow, rvTotalRow, coeTotalRow, ldTotalRow,
+    rfIdxRows, rfMatRows, rfMarcRows,
+    rvSetRows, rvTopRows,
+    coeRows, ldRows,
+  ] = await Promise.all([
+    db.prepare(`SELECT SUM(posicao_atual) as total FROM analitico_rf WHERE tipo_ativo IS NOT NULL AND posicao_atual IS NOT NULL`).first<{ total: number }>(),
+    db.prepare(`SELECT SUM(auc) as total FROM analitico_rv WHERE setor IS NOT NULL AND auc IS NOT NULL`).first<{ total: number }>(),
+    db.prepare(`SELECT SUM(posicao_atual) as total FROM posicao_coe WHERE tipo IS NOT NULL`).first<{ total: number }>(),
+    db.prepare(`SELECT SUM(custodia) as total FROM custodia_ld WHERE indexador IS NOT NULL`).first<{ total: number }>(),
+
+    db.prepare(`
+      SELECT indexador, SUM(posicao_atual) as total, COUNT(*) as posicoes, COUNT(DISTINCT id_cliente) as clientes
+      FROM analitico_rf WHERE indexador IS NOT NULL
+      GROUP BY indexador ORDER BY total DESC
+    `).all<{ indexador: string; total: number; posicoes: number; clientes: number }>(),
+
+    db.prepare(`
+      SELECT ${janelaExpr} as janela, tipo_ativo, SUM(posicao_atual) as total
+      FROM analitico_rf WHERE vencimento IS NOT NULL AND tipo_ativo IS NOT NULL
+      GROUP BY janela, tipo_ativo
+    `).all<{ janela: string; tipo_ativo: string; total: number }>(),
+
+    db.prepare(`
+      SELECT flag_marcacao, SUM(posicao_atual) as total, COUNT(*) as posicoes
+      FROM analitico_rf WHERE flag_marcacao IS NOT NULL
+      GROUP BY flag_marcacao
+    `).all<{ flag_marcacao: string; total: number; posicoes: number }>(),
+
+    db.prepare(`
+      SELECT setor, produto, SUM(auc) as total, COUNT(DISTINCT id_cliente) as clientes
+      FROM analitico_rv WHERE setor IS NOT NULL AND auc IS NOT NULL
+      GROUP BY setor, produto ORDER BY total DESC LIMIT 20
+    `).all<{ setor: string; produto: string; total: number; clientes: number }>(),
+
+    db.prepare(`
+      SELECT ativo, setor, produto, SUM(auc) as total,
+             COUNT(DISTINCT id_cliente) as clientes, AVG(variacao) as variacao
+      FROM analitico_rv WHERE ativo IS NOT NULL AND auc IS NOT NULL
+      GROUP BY ativo, setor, produto ORDER BY total DESC LIMIT 12
+    `).all<{ ativo: string; setor: string; produto: string; total: number; clientes: number; variacao: number }>(),
+
+    db.prepare(`
+      SELECT tipo, COUNT(*) as posicoes, SUM(posicao_atual) as total_atual,
+             SUM(valor_compra) as total_compra, SUM(cupom_recebido) as total_cupom,
+             COUNT(DISTINCT id_cliente) as clientes
+      FROM posicao_coe WHERE tipo IS NOT NULL
+      GROUP BY tipo ORDER BY total_atual DESC
+    `).all<{ tipo: string; posicoes: number; total_atual: number; total_compra: number; total_cupom: number; clientes: number }>(),
+
+    db.prepare(`
+      SELECT indexador, SUM(custodia) as total, COUNT(*) as posicoes, COUNT(DISTINCT id_cliente) as clientes
+      FROM custodia_ld WHERE indexador IS NOT NULL
+      GROUP BY indexador ORDER BY total DESC
+    `).all<{ indexador: string; total: number; posicoes: number; clientes: number }>(),
+  ])
+
+  const rfTotal  = rfTotalRow?.total  ?? 0
+  const rvTotal  = rvTotalRow?.total  ?? 0
+  const coeTotal = coeTotalRow?.total ?? 0
+  const ldTotal  = ldTotalRow?.total  ?? 0
+
+  // Build wall-of-maturities
+  const matMap: Record<string, Record<string, number>> = {}
+  for (const r of rfMatRows.results) {
+    if (!matMap[r.janela]) matMap[r.janela] = {}
+    matMap[r.janela][r.tipo_ativo] = (matMap[r.janela][r.tipo_ativo] ?? 0) + r.total
+  }
+  const maturities = JANELAS.map((j) => ({
+    janela: j,
+    total: Object.values(matMap[j] ?? {}).reduce((s, v) => s + v, 0),
+    itens: Object.entries(matMap[j] ?? {})
+      .sort((a, b) => b[1] - a[1])
+      .map(([tipo, total]) => ({ tipo, total })),
+  }))
+
+  return c.json({
+    data: {
+      totais: { rf: rfTotal, rv: rvTotal, coe: coeTotal, liquidez: ldTotal, total: rfTotal + rvTotal + coeTotal + ldTotal },
+      rf: {
+        porIndexador: rfIdxRows.results,
+        maturities,
+        marcacao: rfMarcRows.results,
+      },
+      rv: {
+        setorial: rvSetRows.results,
+        topAtivos: rvTopRows.results,
+      },
+      coe: {
+        porTipo: coeRows.results.map((r) => ({
+          ...r,
+          pl: r.total_atual + r.total_cupom - r.total_compra,
+        })),
+      },
+      liquidez: { porIndexador: ldRows.results },
     },
   })
 })
