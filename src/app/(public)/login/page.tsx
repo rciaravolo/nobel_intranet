@@ -92,7 +92,10 @@ export default function LoginPage() {
                   value={username}
                   onChange={(e) => {
                     setUsername(e.target.value)
-                    setFieldErrors((p) => { const { username: _, ...r } = p; return r })
+                    setFieldErrors((p) => {
+                      const { username: _, ...r } = p
+                      return r
+                    })
                   }}
                   className={fieldErrors.username ? 'error' : ''}
                 />
@@ -112,7 +115,10 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value)
-                    setFieldErrors((p) => { const { password: _, ...r } = p; return r })
+                    setFieldErrors((p) => {
+                      const { password: _, ...r } = p
+                      return r
+                    })
                   }}
                   className={fieldErrors.password ? 'error' : ''}
                 />
@@ -145,11 +151,14 @@ export default function LoginPage() {
               </span>
             </button>
 
-            <button type="button" className="btn-forgot">Esqueci minha senha</button>
+            <button type="button" className="btn-forgot">
+              Esqueci minha senha
+            </button>
           </form>
 
           <div className="card-footer">
-            Acesso disponível apenas para colaboradores<br />
+            Acesso disponível apenas para colaboradores
+            <br />
             <strong>Nobel Capital &amp; XP Investimentos</strong>
           </div>
         </div>
@@ -158,7 +167,13 @@ export default function LoginPage() {
       {/* Toast de erro */}
       {error && (
         <div className="toast" role="alert">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+          >
             <circle cx="12" cy="12" r="10" />
             <line x1="12" y1="8" x2="12" y2="12" />
             <line x1="12" y1="16" x2="12.01" y2="16" />

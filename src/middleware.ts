@@ -7,7 +7,7 @@
  */
 import { type NextRequest, NextResponse } from 'next/server'
 
-const PUBLIC = ['/login', '/api/auth/login', '/api/auth/logout', '/_next', '/favicon']
+const PUBLIC = ['/login', '/api/auth/login', '/api/auth/logout', '/api/auth/demo', '/api/mock', '/demo', '/_next', '/favicon']
 const ASSET_RE = /\.(png|jpg|jpeg|svg|ico|webp|woff2?|css|js|map)$/
 
 export function middleware(req: NextRequest) {

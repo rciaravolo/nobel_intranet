@@ -181,7 +181,12 @@ export function BlocoReceita({ porProduto, receitaTotal, filterType, filterValue
             total
           </span>
           <span
-            style={{ width: 1, height: 12, background: 'var(--line-strong)', display: 'inline-block' }}
+            style={{
+              width: 1,
+              height: 12,
+              background: 'var(--line-strong)',
+              display: 'inline-block',
+            }}
           />
           <span
             style={{
@@ -498,7 +503,14 @@ export function BlocoReceita({ porProduto, receitaTotal, filterType, filterValue
                                 </td>
 
                                 {/* % + mini-bar */}
-                                <td style={{ ...tdBase, textAlign: 'right', width: 100, paddingLeft: 16 }}>
+                                <td
+                                  style={{
+                                    ...tdBase,
+                                    textAlign: 'right',
+                                    width: 100,
+                                    paddingLeft: 16,
+                                  }}
+                                >
                                   <div
                                     style={{
                                       display: 'flex',
@@ -551,7 +563,7 @@ export function BlocoReceita({ porProduto, receitaTotal, filterType, filterValue
         })}
       </div>
 
-      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+      <style>{'@keyframes spin { to { transform: rotate(360deg) } }'}</style>
     </div>
   )
 }

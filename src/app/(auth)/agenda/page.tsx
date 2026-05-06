@@ -476,7 +476,13 @@ export default async function AgendaPage() {
                     borderBottom: '1px solid var(--line)',
                   }}
                 >
-                  <div style={{ padding: '4px 8px 0', textAlign: 'right', background: 'var(--bg-deep)' }}>
+                  <div
+                    style={{
+                      padding: '4px 8px 0',
+                      textAlign: 'right',
+                      background: 'var(--bg-deep)',
+                    }}
+                  >
                     <span
                       style={{
                         fontFamily: 'var(--f-mono)',
@@ -584,7 +590,14 @@ export default async function AgendaPage() {
               >
                 Hoje · {todayLabel}
               </span>
-              <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--c-gold)', fontWeight: 500 }}>
+              <span
+                style={{
+                  fontFamily: 'var(--f-mono)',
+                  fontSize: 11,
+                  color: 'var(--c-gold)',
+                  fontWeight: 500,
+                }}
+              >
                 {todayIdx !== -1
                   ? `${events.filter((e) => e.day === todayIdx).length} eventos`
                   : `${todayEvents.length} eventos`}
@@ -636,7 +649,13 @@ export default async function AgendaPage() {
                     >
                       {ev.title}
                     </div>
-                    <div style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--fg-faint)' }}>
+                    <div
+                      style={{
+                        fontFamily: 'var(--f-mono)',
+                        fontSize: 11,
+                        color: 'var(--fg-faint)',
+                      }}
+                    >
                       {`${Math.floor(ev.startHour)}:${String(Math.round((ev.startHour % 1) * 60)).padStart(2, '0')}`}
                       {ev.where ? ` · ${ev.where}` : ''}
                     </div>
@@ -729,11 +748,23 @@ export default async function AgendaPage() {
                   </div>
                   <div>
                     <div
-                      style={{ fontFamily: 'var(--f-text)', fontSize: 12, fontWeight: 500, color: 'var(--fg)', lineHeight: 1.3 }}
+                      style={{
+                        fontFamily: 'var(--f-text)',
+                        fontSize: 12,
+                        fontWeight: 500,
+                        color: 'var(--fg)',
+                        lineHeight: 1.3,
+                      }}
                     >
                       {ev.title}
                     </div>
-                    <div style={{ fontFamily: 'var(--f-mono)', fontSize: 10, color: 'var(--fg-faint)' }}>
+                    <div
+                      style={{
+                        fontFamily: 'var(--f-mono)',
+                        fontSize: 10,
+                        color: 'var(--fg-faint)',
+                      }}
+                    >
                       {DAY_LABELS[ev.day]} {weekDays[ev.day]?.getDate()}/
                       {String((weekDays[ev.day]?.getMonth() ?? 0) + 1).padStart(2, '0')} ·{' '}
                       {`${Math.floor(ev.startHour)}:${String(Math.round((ev.startHour % 1) * 60)).padStart(2, '0')}`}

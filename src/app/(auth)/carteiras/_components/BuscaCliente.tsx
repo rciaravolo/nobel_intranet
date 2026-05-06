@@ -187,7 +187,14 @@ export function BuscaCliente() {
           </form>
 
           {erro && (
-            <p style={{ marginTop: 12, fontSize: 13, color: 'var(--color-negative)', fontFamily: 'var(--f-text)' }}>
+            <p
+              style={{
+                marginTop: 12,
+                fontSize: 13,
+                color: 'var(--color-negative)',
+                fontFamily: 'var(--f-text)',
+              }}
+            >
               {erro}
             </p>
           )}
@@ -199,10 +206,10 @@ export function BuscaCliente() {
             {/* Resumo do cliente */}
             <div style={{ padding: '0 20px 20px', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               {[
-                { label: 'Cliente',    value: `#${data.id_cliente}` },
-                { label: 'Patrimônio', value: fBRL(data.aum)        },
-                { label: 'Posições',   value: String(data.posicoes.length) },
-                { label: 'Classes',    value: String(data.breakdown.length) },
+                { label: 'Cliente', value: `#${data.id_cliente}` },
+                { label: 'Patrimônio', value: fBRL(data.aum) },
+                { label: 'Posições', value: String(data.posicoes.length) },
+                { label: 'Classes', value: String(data.breakdown.length) },
               ].map(({ label, value }) => (
                 <div
                   key={label}
@@ -245,11 +252,28 @@ export function BuscaCliente() {
                     border: `1px solid ${cor(b.produto)}30`,
                   }}
                 >
-                  <div style={{ width: 8, height: 8, borderRadius: 2, background: cor(b.produto) }} />
-                  <span style={{ fontFamily: 'var(--f-text)', fontSize: 11, fontWeight: 500, color: 'var(--fg)' }}>
+                  <div
+                    style={{ width: 8, height: 8, borderRadius: 2, background: cor(b.produto) }}
+                  />
+                  <span
+                    style={{
+                      fontFamily: 'var(--f-text)',
+                      fontSize: 11,
+                      fontWeight: 500,
+                      color: 'var(--fg)',
+                    }}
+                  >
                     {b.produto}
                   </span>
-                  <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: cor(b.produto), fontWeight: 600, fontFeatureSettings: '"tnum"' }}>
+                  <span
+                    style={{
+                      fontFamily: 'var(--f-mono)',
+                      fontSize: 11,
+                      color: cor(b.produto),
+                      fontWeight: 600,
+                      fontFeatureSettings: '"tnum"',
+                    }}
+                  >
                     {fPct(b.total, data.aum)}
                   </span>
                 </div>
@@ -284,8 +308,22 @@ export function BuscaCliente() {
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                 <thead>
-                  <tr style={{ background: 'var(--bg-deep)', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
-                    {['Produto', 'Sub-Produto', 'Ativo', 'Emissor', 'Vencimento', 'Qtd.', 'Net'].map((h) => (
+                  <tr
+                    style={{
+                      background: 'var(--bg-deep)',
+                      borderTop: '1px solid var(--line)',
+                      borderBottom: '1px solid var(--line)',
+                    }}
+                  >
+                    {[
+                      'Produto',
+                      'Sub-Produto',
+                      'Ativo',
+                      'Emissor',
+                      'Vencimento',
+                      'Qtd.',
+                      'Net',
+                    ].map((h) => (
                       <th
                         key={h}
                         style={{
@@ -307,7 +345,10 @@ export function BuscaCliente() {
                 </thead>
                 <tbody>
                   {posicoesFiltradas.map((p) => (
-                    <tr key={`${p.produto}-${p.ativo}`} style={{ borderBottom: '1px solid var(--line)' }}>
+                    <tr
+                      key={`${p.produto}-${p.ativo}`}
+                      style={{ borderBottom: '1px solid var(--line)' }}
+                    >
                       <td style={{ padding: '9px 12px' }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                           <span
@@ -320,12 +361,26 @@ export function BuscaCliente() {
                               display: 'inline-block',
                             }}
                           />
-                          <span style={{ fontFamily: 'var(--f-text)', fontSize: 11, fontWeight: 500, color: 'var(--fg)' }}>
+                          <span
+                            style={{
+                              fontFamily: 'var(--f-text)',
+                              fontSize: 11,
+                              fontWeight: 500,
+                              color: 'var(--fg)',
+                            }}
+                          >
                             {p.produto}
                           </span>
                         </span>
                       </td>
-                      <td style={{ padding: '9px 12px', fontFamily: 'var(--f-text)', color: 'var(--fg-mute)', fontSize: 11 }}>
+                      <td
+                        style={{
+                          padding: '9px 12px',
+                          fontFamily: 'var(--f-text)',
+                          color: 'var(--fg-mute)',
+                          fontSize: 11,
+                        }}
+                      >
                         {p.sub_produto}
                       </td>
                       <td

@@ -30,13 +30,15 @@ export function TickerBar({ tickers = FALLBACK }: { tickers?: TickerItem[] }) {
       }}
     >
       {items.map((t, i) => (
-        <div
-          key={t.name}
-          style={{ display: 'flex', alignItems: 'center', gap: 0, flexShrink: 0 }}
-        >
+        <div key={t.name} style={{ display: 'flex', alignItems: 'center', gap: 0, flexShrink: 0 }}>
           {i > 0 && (
             <div
-              style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.1)', margin: '0 32px' }}
+              style={{
+                width: 1,
+                height: 16,
+                background: 'rgba(255,255,255,0.1)',
+                margin: '0 32px',
+              }}
             />
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -67,12 +69,7 @@ export function TickerBar({ tickers = FALLBACK }: { tickers?: TickerItem[] }) {
                 fontFamily: 'var(--f-mono)',
                 fontSize: 11,
                 fontWeight: 500,
-                color:
-                  t.up === true
-                    ? '#4ade80'
-                    : t.up === false
-                      ? '#f87171'
-                      : '#f59e0b',
+                color: t.up === true ? '#4ade80' : t.up === false ? '#f87171' : '#f59e0b',
               }}
             >
               {t.change}

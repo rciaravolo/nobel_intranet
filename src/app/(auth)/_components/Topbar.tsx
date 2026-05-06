@@ -52,7 +52,7 @@ interface Props {
 export function Topbar({ session }: Props) {
   const pathname = usePathname()
   const title = PAGE_TITLES[pathname] ?? 'INTRA'
-  const initials = session.name
+  const _initials = session.name
     .split(' ')
     .map((n) => n[0])
     .slice(0, 2)
@@ -101,8 +101,12 @@ export function Topbar({ session }: Props) {
           cursor: 'text',
           transition: 'border-color .15s',
         }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = '#D4AF6A' }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(0,0,0,0.08)' }}
+        onMouseEnter={(e) => {
+          ;(e.currentTarget as HTMLDivElement).style.borderColor = '#D4AF6A'
+        }}
+        onMouseLeave={(e) => {
+          ;(e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(0,0,0,0.08)'
+        }}
       >
         <svg
           aria-hidden="true"

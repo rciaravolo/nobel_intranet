@@ -79,9 +79,7 @@ export default async function ConfiguracoesPage() {
               <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--fg)', marginBottom: 3 }}>
                 {session.name}
               </div>
-              <div
-                style={{ fontSize: 12, color: 'var(--fg-mute)', textTransform: 'capitalize' }}
-              >
+              <div style={{ fontSize: 12, color: 'var(--fg-mute)', textTransform: 'capitalize' }}>
                 {session.role} · Nobel Capital
               </div>
             </div>

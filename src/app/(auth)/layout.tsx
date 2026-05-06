@@ -21,9 +21,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
   const [session, tickers] = await Promise.all([requireSession(), getTicker()])
 
   return (
-    <div
-      style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#F5F4F0' }}
-    >
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#F5F4F0' }}>
       <Sidebar session={session} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <TickerBar tickers={tickers} />

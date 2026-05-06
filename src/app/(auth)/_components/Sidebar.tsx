@@ -26,7 +26,13 @@ const NAV = [
         href: '/dashboard',
         label: 'Dashboard',
         icon: (
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
             <rect x="3" y="3" width="7" height="7" rx="1" />
             <rect x="14" y="3" width="7" height="7" rx="1" />
             <rect x="3" y="14" width="7" height="7" rx="1" />
@@ -38,7 +44,13 @@ const NAV = [
         href: '/analises',
         label: 'Análises',
         icon: (
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
             <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
           </svg>
         ),
@@ -47,7 +59,13 @@ const NAV = [
         href: '/carteiras',
         label: 'Carteiras',
         icon: (
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
             <path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" />
             <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16" />
           </svg>
@@ -57,7 +75,13 @@ const NAV = [
         href: '/clientes',
         label: 'Clientes',
         icon: (
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
             <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
             <circle cx="9" cy="7" r="4" />
             <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
@@ -68,7 +92,13 @@ const NAV = [
         href: '/relatorios',
         label: 'Relatórios',
         icon: (
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
             <path d="M3 3h18v18H3z M3 9h18 M9 3v18" />
           </svg>
         ),
@@ -82,7 +112,13 @@ const NAV = [
         href: '/configuracoes',
         label: 'Configurações',
         icon: (
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
             <circle cx="12" cy="12" r="3" />
             <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
           </svg>
@@ -235,7 +271,8 @@ export function Sidebar({ session }: Props) {
                     marginBottom: 2,
                     position: 'relative',
                     background: active ? C.goldDim : 'transparent',
-                    borderLeft: active && !collapsed ? `2px solid ${C.gold}` : '2px solid transparent',
+                    borderLeft:
+                      active && !collapsed ? `2px solid ${C.gold}` : '2px solid transparent',
                     transition: 'background .15s',
                     justifyContent: collapsed ? 'center' : 'flex-start',
                   }}
@@ -334,8 +371,12 @@ export function Sidebar({ session }: Props) {
             transition: 'background .15s',
             justifyContent: collapsed ? 'center' : 'flex-start',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = C.hover }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'none' }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = C.hover
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'none'
+          }}
         >
           {/* Avatar */}
           <div
