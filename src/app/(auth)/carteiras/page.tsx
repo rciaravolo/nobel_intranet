@@ -97,9 +97,9 @@ async function getVisao(email: string, role: string): Promise<VisaoPayload | nul
 
 function SectionHeader({ title, sub }: { title: string; sub?: string }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 20px', borderBottom: '1px solid var(--line)', background: 'var(--bg)' }}>
-      <span style={{ fontFamily: 'var(--f-text)', fontSize: 13, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em' }}>{title}</span>
-      {sub && <span style={{ fontFamily: 'var(--f-mono)', fontSize: 10, color: 'var(--fg-faint)', letterSpacing: '.06em', textTransform: 'uppercase' }}>{sub}</span>}
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 20px', borderBottom: '1px solid var(--line)', background: 'var(--bg-deep)' }}>
+      <span style={{ fontFamily: 'var(--f-text)', fontSize: 14, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em' }}>{title}</span>
+      {sub && <span style={{ fontFamily: 'var(--f-mono)', fontSize: 9, color: 'var(--fg-faint)', letterSpacing: '.18em', textTransform: 'uppercase' }}>{sub}</span>}
     </div>
   )
 }
@@ -131,13 +131,13 @@ function HBar({ label, total, max, color, sub }: { label: string; total: number;
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr 100px', alignItems: 'center', gap: 14, padding: '9px 20px' }}>
       <div>
-        <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--fg)' }}>{label}</span>
-        {sub && <span style={{ display: 'block', fontFamily: 'var(--f-mono)', fontSize: 9, color: 'var(--fg-faint)', letterSpacing: '.08em', textTransform: 'uppercase', marginTop: 1 }}>{sub}</span>}
+        <span style={{ fontFamily: 'var(--f-text)', fontSize: 12, fontWeight: 500, color: 'var(--fg)' }}>{label}</span>
+        {sub && <span style={{ display: 'block', fontFamily: 'var(--f-mono)', fontSize: 9, color: 'var(--fg-faint)', letterSpacing: '.18em', textTransform: 'uppercase', marginTop: 1 }}>{sub}</span>}
       </div>
       <div style={{ height: 7, background: 'var(--bg-deep)', borderRadius: 2, overflow: 'hidden' }}>
         <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 2, opacity: 0.85 }} />
       </div>
-      <span style={{ fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 500, color: 'var(--fg)', textAlign: 'right' }}>{fBRL(total)}</span>
+      <span style={{ fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 500, color: 'var(--fg)', textAlign: 'right', fontFeatureSettings: '"tnum"' }}>{fBRL(total)}</span>
     </div>
   )
 }
@@ -157,8 +157,8 @@ export default async function CarteirasPage() {
   const coeTypes = d?.coe.porTipo ?? []
   const ldIdx    = d?.liquidez.porIndexador ?? []
 
-  const cardStyle: React.CSSProperties = { background: 'var(--bg-elev)', border: '1px solid var(--line)', overflow: 'hidden' }
-  const mono10: React.CSSProperties    = { fontFamily: 'var(--f-mono)', fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--fg-faint)' }
+  const cardStyle: React.CSSProperties = { background: 'var(--bg-elev)', border: '1px solid var(--line)', borderRadius: 12, overflow: 'hidden' }
+  const mono10: React.CSSProperties    = { fontFamily: 'var(--f-mono)', fontSize: 9, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--fg-faint)' }
 
   /* Wall-of-maturities: max total determines bar scale */
   const matMax = Math.max(...rfMat.map((m) => m.total), 1)
@@ -209,11 +209,11 @@ export default async function CarteirasPage() {
           { key: 'coe',      label: 'COE',             sub: 'posicao_coe',   accent: MACRO_COLOR.coe      },
           { key: 'liquidez', label: 'Liquidez Diária', sub: 'custodia_ld',   accent: MACRO_COLOR.liquidez },
         ] as const).map(({ key, label, sub, accent }) => (
-          <div key={key} style={{ ...cardStyle, position: 'relative' }}>
+          <div key={key} style={{ ...cardStyle, boxShadow: 'var(--e-float)', position: 'relative' }}>
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: accent }} />
             <div style={{ padding: '18px 20px' }}>
               <p style={mono10}>{label}</p>
-              <p style={{ fontFamily: 'var(--f-text)', fontSize: 28, fontWeight: 700, color: 'var(--fg)', letterSpacing: '-.02em', lineHeight: 1, margin: '10px 0 10px' }}>
+              <p style={{ fontFamily: 'var(--f-mono)', fontSize: 28, fontWeight: 500, color: 'var(--fg)', letterSpacing: '-.01em', lineHeight: 1, margin: '10px 0 10px', fontFeatureSettings: '"tnum"' }}>
                 {fBRL(totais[key])}
               </p>
               <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: accent, fontWeight: 600 }}>
@@ -229,7 +229,7 @@ export default async function CarteirasPage() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--s-4)', marginBottom: 'var(--s-4)' }}>
 
         {/* Macro Allocation */}
-        <div style={cardStyle}>
+        <div style={{ ...cardStyle, boxShadow: 'var(--e-float)' }}>
           <SectionHeader title="Alocação por Classe" sub={fBRL(totais.total)} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '20px 24px' }}>
             <Donut size={140} segments={[
@@ -247,9 +247,9 @@ export default async function CarteirasPage() {
               ]).map(({ label, value, color }) => (
                 <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <div style={{ width: 8, height: 8, borderRadius: 2, background: color, flexShrink: 0 }} />
-                  <span style={{ fontSize: 12, color: 'var(--fg)', flex: 1 }}>{label}</span>
-                  <span style={{ fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 600, color }}>{totais.total > 0 ? fPct((value / totais.total) * 100) : '—'}</span>
-                  <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--fg-faint)', width: 72, textAlign: 'right' }}>{fBRL(value)}</span>
+                  <span style={{ fontFamily: 'var(--f-text)', fontSize: 12, color: 'var(--fg)', flex: 1 }}>{label}</span>
+                  <span style={{ fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 600, color, fontFeatureSettings: '"tnum"' }}>{totais.total > 0 ? fPct((value / totais.total) * 100) : '—'}</span>
+                  <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--fg-faint)', width: 72, textAlign: 'right', fontFeatureSettings: '"tnum"' }}>{fBRL(value)}</span>
                 </div>
               ))}
             </div>
@@ -257,7 +257,7 @@ export default async function CarteirasPage() {
         </div>
 
         {/* RF Marcação */}
-        <div style={cardStyle}>
+        <div style={{ ...cardStyle, boxShadow: 'var(--e-float)' }}>
           <SectionHeader title="RF — Marcação a Mercado vs Curva" />
           {rfMarc.length > 0 ? (() => {
             const marcTotal = rfMarc.reduce((s, m) => s + m.total, 0)
@@ -277,14 +277,14 @@ export default async function CarteirasPage() {
                     <div key={label}>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
                         <div style={{ width: 8, height: 8, borderRadius: 2, background: color, flexShrink: 0, marginBottom: 1 }} />
-                        <span style={{ fontSize: 12, color: 'var(--fg)', fontWeight: 500 }}>{label}</span>
-                        <span style={{ fontFamily: 'var(--f-mono)', fontSize: 14, fontWeight: 700, color, marginLeft: 'auto' }}>
+                        <span style={{ fontFamily: 'var(--f-text)', fontSize: 12, color: 'var(--fg)', fontWeight: 500 }}>{label}</span>
+                        <span style={{ fontFamily: 'var(--f-mono)', fontSize: 14, fontWeight: 700, color, marginLeft: 'auto', fontFeatureSettings: '"tnum"' }}>
                           {marcTotal > 0 ? fPct(((data?.total ?? 0) / marcTotal) * 100) : '—'}
                         </span>
                       </div>
                       <div style={{ paddingLeft: 16 }}>
-                        <p style={{ fontFamily: 'var(--f-mono)', fontSize: 12, color: 'var(--fg)', fontWeight: 500 }}>{fBRL(data?.total ?? 0)}</p>
-                        <p style={{ fontFamily: 'var(--f-mono)', fontSize: 9, color: 'var(--fg-faint)', letterSpacing: '.08em', textTransform: 'uppercase', marginTop: 2 }}>
+                        <p style={{ fontFamily: 'var(--f-mono)', fontSize: 12, color: 'var(--fg)', fontWeight: 500, fontFeatureSettings: '"tnum"' }}>{fBRL(data?.total ?? 0)}</p>
+                        <p style={{ fontFamily: 'var(--f-mono)', fontSize: 9, color: 'var(--fg-faint)', letterSpacing: '.18em', textTransform: 'uppercase', marginTop: 2 }}>
                           {data?.posicoes.toLocaleString('pt-BR') ?? '0'} posições · {desc}
                         </p>
                       </div>
@@ -335,17 +335,17 @@ export default async function CarteirasPage() {
                     ))}
                   </div>
                 </div>
-                <span style={{ fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 600, color: 'var(--fg)', textAlign: 'right' }}>{fBRL(m.total)}</span>
+                <span style={{ fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 600, color: 'var(--fg)', textAlign: 'right', fontFeatureSettings: '"tnum"' }}>{fBRL(m.total)}</span>
               </div>
             )
           })}
         </div>
         {/* Legenda */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 20px', padding: '12px 20px', borderTop: '1px solid var(--line)', background: 'var(--bg)' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 20px', padding: '12px 20px', borderTop: '1px solid var(--line)', background: 'var(--bg-deep)' }}>
           {tipos.map((tipo) => (
             <div key={tipo} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
               <div style={{ width: 8, height: 8, borderRadius: 2, background: TIPO_COLOR[tipo] ?? '#94A3B8' }} />
-              <span style={{ fontFamily: 'var(--f-mono)', fontSize: 9, color: 'var(--fg-faint)', letterSpacing: '.06em', textTransform: 'uppercase' }}>{tipo}</span>
+              <span style={{ fontFamily: 'var(--f-mono)', fontSize: 9, color: 'var(--fg-faint)', letterSpacing: '.18em', textTransform: 'uppercase' }}>{tipo}</span>
             </div>
           ))}
         </div>
@@ -377,9 +377,9 @@ export default async function CarteirasPage() {
           <SectionHeader title="Renda Variável — Top Ativos" sub="retorno vs custo médio" />
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ background: 'var(--bg)' }}>
+              <tr style={{ background: 'var(--bg-deep)' }}>
                 {['Ativo', 'Setor', 'AUC', 'Clientes', 'P&L Médio'].map((h) => (
-                  <th key={h} style={{ fontFamily: 'var(--f-mono)', fontSize: 9, fontWeight: 500, color: 'var(--fg-faint)', letterSpacing: '.12em', textTransform: 'uppercase', padding: '8px 16px', textAlign: h === 'Ativo' || h === 'Setor' ? 'left' : 'right', borderBottom: '1px solid var(--line)' }}>{h}</th>
+                  <th key={h} style={{ fontFamily: 'var(--f-mono)', fontSize: 9, fontWeight: 500, color: 'var(--fg-faint)', letterSpacing: '.18em', textTransform: 'uppercase', padding: '8px 16px', textAlign: h === 'Ativo' || h === 'Setor' ? 'left' : 'right', borderBottom: '1px solid var(--line)' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -390,12 +390,12 @@ export default async function CarteirasPage() {
                   <tr key={a.ativo} style={{ borderBottom: i < rvTop.length - 1 ? '1px solid var(--line)' : 'none' }}>
                     <td style={{ padding: '9px 16px' }}>
                       <span style={{ fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 700, color: 'var(--fg)' }}>{a.ativo}</span>
-                      <span style={{ display: 'block', fontFamily: 'var(--f-mono)', fontSize: 9, color: 'var(--fg-faint)', textTransform: 'uppercase', letterSpacing: '.06em' }}>{a.produto}</span>
+                      <span style={{ display: 'block', fontFamily: 'var(--f-mono)', fontSize: 9, color: 'var(--fg-faint)', textTransform: 'uppercase', letterSpacing: '.18em' }}>{a.produto}</span>
                     </td>
                     <td style={{ padding: '9px 16px' }}>
-                      <span style={{ fontSize: 11, color: 'var(--fg-mute)' }}>{a.setor}</span>
+                      <span style={{ fontFamily: 'var(--f-text)', fontSize: 11, color: 'var(--fg-mute)' }}>{a.setor}</span>
                     </td>
-                    <td style={{ padding: '9px 16px', textAlign: 'right', fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 500, color: 'var(--fg)' }}>
+                    <td style={{ padding: '9px 16px', textAlign: 'right', fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 500, color: 'var(--fg)', fontFeatureSettings: '"tnum"' }}>
                       {fBRL(a.total)}
                     </td>
                     <td style={{ padding: '9px 16px', textAlign: 'right', fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--fg-faint)' }}>
@@ -403,10 +403,13 @@ export default async function CarteirasPage() {
                     </td>
                     <td style={{ padding: '9px 16px', textAlign: 'right' }}>
                       <span style={{
-                        fontFamily: 'var(--f-mono)', fontSize: 11, fontWeight: 600,
-                        color: up ? 'var(--pos-fg)' : 'var(--neg-fg)',
-                        background: up ? 'var(--pos-bg)' : 'var(--neg-bg)',
-                        padding: '2px 7px', borderRadius: 4,
+                        display: 'inline-flex', alignItems: 'center',
+                        fontFamily: 'var(--f-mono)', fontSize: 10, fontWeight: 500,
+                        letterSpacing: '.08em', fontFeatureSettings: '"tnum"',
+                        color: up ? 'var(--color-positive)' : 'var(--color-negative)',
+                        background: up ? 'var(--color-positive-bg)' : 'var(--color-negative-bg)',
+                        border: '1px solid transparent',
+                        padding: '2px 7px', borderRadius: 999,
                       }}>
                         {fVar(a.variacao)}
                       </span>
@@ -428,12 +431,12 @@ export default async function CarteirasPage() {
           {[
             { label: 'Valor Investido',  value: coeTotalCompra, color: 'var(--fg-mute)' },
             { label: 'Posição Atual',    value: coeTotalAtual,  color: 'var(--fg)'      },
-            { label: 'Cupom Recebido',   value: coeTotalCupom,  color: '#10B981'        },
-            { label: 'P&L Total',        value: coeTotalPL,     color: coeTotalPL >= 0 ? 'var(--pos-fg)' : 'var(--neg-fg)' },
+            { label: 'Cupom Recebido',   value: coeTotalCupom,  color: 'var(--color-positive)'                                                      },
+            { label: 'P&L Total',        value: coeTotalPL,     color: coeTotalPL >= 0 ? 'var(--color-positive)' : 'var(--color-negative)'          },
           ].map(({ label, value, color }) => (
             <div key={label} style={{ padding: '16px 20px', borderRight: '1px solid var(--line)' }}>
               <p style={mono10}>{label}</p>
-              <p style={{ fontFamily: 'var(--f-mono)', fontSize: 20, fontWeight: 700, color, marginTop: 8, letterSpacing: '-.01em' }}>{fBRL(value)}</p>
+              <p style={{ fontFamily: 'var(--f-mono)', fontSize: 20, fontWeight: 700, color, marginTop: 8, letterSpacing: '-.01em', fontFeatureSettings: '"tnum"' }}>{fBRL(value)}</p>
             </div>
           ))}
         </div>
@@ -447,23 +450,23 @@ export default async function CarteirasPage() {
               <div key={t.tipo} style={{ padding: '16px 20px', borderRight: i < coeTypes.length - 1 ? '1px solid var(--line)' : 'none' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                   <div style={{ width: 10, height: 10, borderRadius: 3, background: color }} />
-                  <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, fontWeight: 600, color: 'var(--fg)', letterSpacing: '.04em' }}>{t.tipo}</span>
+                  <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, fontWeight: 600, color: 'var(--fg)', letterSpacing: '.18em' }}>{t.tipo}</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {[
                     { label: 'Investido',  v: fBRL(t.total_compra), color: 'var(--fg-mute)' },
                     { label: 'Atual',      v: fBRL(t.total_atual),  color: 'var(--fg)'      },
-                    { label: 'Cupom',      v: fBRL(t.total_cupom),  color: '#10B981'        },
-                    { label: 'P&L',        v: fBRL(t.pl),           color: plUp ? 'var(--pos-fg)' : 'var(--neg-fg)' },
+                    { label: 'Cupom',      v: fBRL(t.total_cupom),  color: 'var(--color-positive)'                                           },
+                    { label: 'P&L',        v: fBRL(t.pl),           color: plUp ? 'var(--color-positive)' : 'var(--color-negative)'          },
                   ].map(({ label, v, color: c }) => (
                     <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                      <span style={{ fontFamily: 'var(--f-mono)', fontSize: 9, color: 'var(--fg-faint)', textTransform: 'uppercase', letterSpacing: '.10em' }}>{label}</span>
-                      <span style={{ fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 600, color: c }}>{v}</span>
+                      <span style={{ fontFamily: 'var(--f-mono)', fontSize: 9, color: 'var(--fg-faint)', textTransform: 'uppercase', letterSpacing: '.18em' }}>{label}</span>
+                      <span style={{ fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 600, color: c, fontFeatureSettings: '"tnum"' }}>{v}</span>
                     </div>
                   ))}
                 </div>
                 <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--line)' }}>
-                  <span style={{ fontFamily: 'var(--f-mono)', fontSize: 9, color: 'var(--fg-faint)', textTransform: 'uppercase', letterSpacing: '.10em' }}>
+                  <span style={{ fontFamily: 'var(--f-mono)', fontSize: 9, color: 'var(--fg-faint)', textTransform: 'uppercase', letterSpacing: '.18em' }}>
                     {t.posicoes.toLocaleString('pt-BR')} pos · {t.clientes.toLocaleString('pt-BR')} clientes
                   </span>
                 </div>

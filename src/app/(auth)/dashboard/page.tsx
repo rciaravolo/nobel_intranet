@@ -256,8 +256,8 @@ export default async function DashboardPage() {
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {[
             { label: 'XP Hub', url: 'http://hub.xpi.com.br' },
-            { label: 'B3 Live', url: 'https://www.b3.com.br' },
-            { label: 'ANCORD', url: 'https://credenciamento.ancord.org.br/login.html#' },
+            { label: 'Alocação', url: 'https://alocacao.nobelcapital.com.br' },
+            { label: 'Tom Ticket', url: 'https://nobel-capital.tomticket.com' },
           ].map((l) => (
             <a
               key={l.label}

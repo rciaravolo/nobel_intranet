@@ -39,7 +39,7 @@ const PRODUTO_COLOR: Record<string, string> = {
   Compromissadas: '#EC4899',
   Disney: '#A78BFA',
 }
-const cor = (p: string) => PRODUTO_COLOR[p] ?? '#B8963E'
+const cor = (p: string) => PRODUTO_COLOR[p] ?? '#2D5FA0'
 
 /* ─── Formatação ─────────────────────────────────────────────────────────── */
 
@@ -96,10 +96,19 @@ export function BuscaCliente() {
   }
 
   const card: React.CSSProperties = {
-    background: '#fff',
-    borderRadius: 10,
-    border: '1px solid rgba(184,150,62,0.12)',
-    boxShadow: '0 1px 4px rgba(26,18,9,0.05)',
+    background: 'var(--bg-elev)',
+    borderRadius: 12,
+    border: '1px solid var(--line)',
+    boxShadow: 'var(--e-float)',
+    overflow: 'hidden',
+  }
+
+  const monoLabel: React.CSSProperties = {
+    fontFamily: 'var(--f-mono)',
+    fontSize: 9,
+    letterSpacing: '.18em',
+    textTransform: 'uppercase',
+    color: 'var(--fg-faint)',
   }
 
   const produtos = data ? ['Todos', ...data.breakdown.map((b) => b.produto)] : []
@@ -111,24 +120,25 @@ export function BuscaCliente() {
 
   return (
     <div style={{ marginTop: 24 }}>
-      {/* ── Título da seção ── */}
       <div style={{ ...card }}>
+        {/* ── Header ── */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '14px 20px 12px',
-            borderBottom: '1px solid rgba(184,150,62,0.09)',
-            background: '#FDFAF5',
+            padding: '11px 20px',
+            borderBottom: '1px solid var(--line)',
+            background: 'var(--bg-deep)',
           }}
         >
           <span
             style={{
-              fontFamily: 'var(--font-lora, serif)',
+              fontFamily: 'var(--f-text)',
               fontSize: 14,
-              fontWeight: 500,
-              color: '#1A1209',
+              fontWeight: 600,
+              color: 'var(--fg)',
+              letterSpacing: '-.01em',
             }}
           >
             Busca de Carteira por Cliente
@@ -147,12 +157,12 @@ export function BuscaCliente() {
                 flex: 1,
                 padding: '9px 14px',
                 fontSize: 13,
-                border: '1px solid rgba(184,150,62,0.25)',
+                fontFamily: 'var(--f-text)',
+                border: '1px solid var(--line)',
                 borderRadius: 6,
-                background: '#FDFAF5',
-                color: '#1A1209',
+                background: 'var(--bg)',
+                color: 'var(--fg)',
                 outline: 'none',
-                fontFamily: 'inherit',
               }}
             />
             <button
@@ -162,20 +172,25 @@ export function BuscaCliente() {
                 padding: '9px 20px',
                 fontSize: 13,
                 fontWeight: 600,
-                background: loading ? 'rgba(184,150,62,0.4)' : '#1A1209',
-                color: '#F6F3ED',
+                fontFamily: 'var(--f-text)',
+                background: loading ? 'var(--fg-faint)' : 'var(--fg)',
+                color: 'var(--bg)',
                 border: 'none',
                 borderRadius: 6,
                 cursor: loading ? 'not-allowed' : 'pointer',
                 whiteSpace: 'nowrap',
-                fontFamily: 'inherit',
+                opacity: loading ? 0.6 : 1,
               }}
             >
               {loading ? 'Buscando…' : 'Buscar'}
             </button>
           </form>
 
-          {erro && <p style={{ marginTop: 12, fontSize: 13, color: '#dc2626' }}>{erro}</p>}
+          {erro && (
+            <p style={{ marginTop: 12, fontSize: 13, color: 'var(--color-negative)', fontFamily: 'var(--f-text)' }}>
+              {erro}
+            </p>
+          )}
         </div>
 
         {/* ── Resultado ── */}
@@ -183,130 +198,36 @@ export function BuscaCliente() {
           <>
             {/* Resumo do cliente */}
             <div style={{ padding: '0 20px 20px', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <div
-                style={{
-                  padding: '12px 16px',
-                  background: 'rgba(184,150,62,0.05)',
-                  borderRadius: 8,
-                  border: '1px solid rgba(184,150,62,0.12)',
-                  minWidth: 140,
-                }}
-              >
-                <p
+              {[
+                { label: 'Cliente',    value: `#${data.id_cliente}` },
+                { label: 'Patrimônio', value: fBRL(data.aum)        },
+                { label: 'Posições',   value: String(data.posicoes.length) },
+                { label: 'Classes',    value: String(data.breakdown.length) },
+              ].map(({ label, value }) => (
+                <div
+                  key={label}
                   style={{
-                    fontSize: 9,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.12em',
-                    color: 'rgba(26,18,9,0.38)',
-                    marginBottom: 4,
+                    padding: '12px 16px',
+                    background: 'var(--bg-deep)',
+                    borderRadius: 8,
+                    border: '1px solid var(--line)',
+                    minWidth: 140,
                   }}
                 >
-                  Cliente
-                </p>
-                <p
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 600,
-                    fontFamily: 'var(--font-lora, serif)',
-                    color: '#1A1209',
-                  }}
-                >
-                  #{data.id_cliente}
-                </p>
-              </div>
-              <div
-                style={{
-                  padding: '12px 16px',
-                  background: 'rgba(184,150,62,0.05)',
-                  borderRadius: 8,
-                  border: '1px solid rgba(184,150,62,0.12)',
-                  minWidth: 140,
-                }}
-              >
-                <p
-                  style={{
-                    fontSize: 9,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.12em',
-                    color: 'rgba(26,18,9,0.38)',
-                    marginBottom: 4,
-                  }}
-                >
-                  Patrimônio
-                </p>
-                <p
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 600,
-                    fontFamily: 'var(--font-lora, serif)',
-                    color: '#1A1209',
-                  }}
-                >
-                  {fBRL(data.aum)}
-                </p>
-              </div>
-              <div
-                style={{
-                  padding: '12px 16px',
-                  background: 'rgba(184,150,62,0.05)',
-                  borderRadius: 8,
-                  border: '1px solid rgba(184,150,62,0.12)',
-                  minWidth: 140,
-                }}
-              >
-                <p
-                  style={{
-                    fontSize: 9,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.12em',
-                    color: 'rgba(26,18,9,0.38)',
-                    marginBottom: 4,
-                  }}
-                >
-                  Posições
-                </p>
-                <p
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 600,
-                    fontFamily: 'var(--font-lora, serif)',
-                    color: '#1A1209',
-                  }}
-                >
-                  {data.posicoes.length}
-                </p>
-              </div>
-              <div
-                style={{
-                  padding: '12px 16px',
-                  background: 'rgba(184,150,62,0.05)',
-                  borderRadius: 8,
-                  border: '1px solid rgba(184,150,62,0.12)',
-                  minWidth: 140,
-                }}
-              >
-                <p
-                  style={{
-                    fontSize: 9,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.12em',
-                    color: 'rgba(26,18,9,0.38)',
-                    marginBottom: 4,
-                  }}
-                >
-                  Classes
-                </p>
-                <p
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 600,
-                    fontFamily: 'var(--font-lora, serif)',
-                    color: '#1A1209',
-                  }}
-                >
-                  {data.breakdown.length}
-                </p>
-              </div>
+                  <p style={{ ...monoLabel, marginBottom: 4 }}>{label}</p>
+                  <p
+                    style={{
+                      fontFamily: 'var(--f-mono)',
+                      fontSize: 18,
+                      fontWeight: 600,
+                      color: 'var(--fg)',
+                      fontFeatureSettings: '"tnum"',
+                    }}
+                  >
+                    {value}
+                  </p>
+                </div>
+              ))}
             </div>
 
             {/* Mini breakdown */}
@@ -324,13 +245,11 @@ export function BuscaCliente() {
                     border: `1px solid ${cor(b.produto)}30`,
                   }}
                 >
-                  <div
-                    style={{ width: 8, height: 8, borderRadius: 2, background: cor(b.produto) }}
-                  />
-                  <span style={{ fontSize: 11, fontWeight: 500, color: '#1A1209' }}>
+                  <div style={{ width: 8, height: 8, borderRadius: 2, background: cor(b.produto) }} />
+                  <span style={{ fontFamily: 'var(--f-text)', fontSize: 11, fontWeight: 500, color: 'var(--fg)' }}>
                     {b.produto}
                   </span>
-                  <span style={{ fontSize: 11, color: cor(b.produto), fontWeight: 600 }}>
+                  <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: cor(b.produto), fontWeight: 600, fontFeatureSettings: '"tnum"' }}>
                     {fPct(b.total, data.aum)}
                   </span>
                 </div>
@@ -347,12 +266,12 @@ export function BuscaCliente() {
                   style={{
                     padding: '4px 12px',
                     fontSize: 11,
+                    fontFamily: 'var(--f-text)',
                     borderRadius: 20,
-                    border: `1px solid ${filtro === p ? '#1A1209' : 'rgba(26,18,9,0.12)'}`,
-                    background: filtro === p ? '#1A1209' : 'transparent',
-                    color: filtro === p ? '#F6F3ED' : 'rgba(26,18,9,0.5)',
+                    border: `1px solid ${filtro === p ? 'var(--fg)' : 'var(--line)'}`,
+                    background: filtro === p ? 'var(--fg)' : 'transparent',
+                    color: filtro === p ? 'var(--bg)' : 'var(--fg-mute)',
                     cursor: 'pointer',
-                    fontFamily: 'inherit',
                     fontWeight: filtro === p ? 600 : 400,
                   }}
                 >
@@ -365,32 +284,19 @@ export function BuscaCliente() {
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                 <thead>
-                  <tr
-                    style={{
-                      background: '#FDFAF5',
-                      borderTop: '1px solid rgba(184,150,62,0.09)',
-                      borderBottom: '1px solid rgba(184,150,62,0.09)',
-                    }}
-                  >
-                    {[
-                      'Produto',
-                      'Sub-Produto',
-                      'Ativo',
-                      'Emissor',
-                      'Vencimento',
-                      'Qtd.',
-                      'Net',
-                    ].map((h) => (
+                  <tr style={{ background: 'var(--bg-deep)', borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
+                    {['Produto', 'Sub-Produto', 'Ativo', 'Emissor', 'Vencimento', 'Qtd.', 'Net'].map((h) => (
                       <th
                         key={h}
                         style={{
                           padding: '8px 12px',
                           textAlign: h === 'Net' || h === 'Qtd.' ? 'right' : 'left',
+                          fontFamily: 'var(--f-mono)',
                           fontSize: 9,
-                          fontWeight: 700,
-                          letterSpacing: '0.1em',
+                          fontWeight: 500,
+                          letterSpacing: '.18em',
                           textTransform: 'uppercase',
-                          color: 'rgba(26,18,9,0.38)',
+                          color: 'var(--fg-faint)',
                           whiteSpace: 'nowrap',
                         }}
                       >
@@ -401,10 +307,7 @@ export function BuscaCliente() {
                 </thead>
                 <tbody>
                   {posicoesFiltradas.map((p) => (
-                    <tr
-                      key={`${p.produto}-${p.ativo}`}
-                      style={{ borderBottom: '1px solid rgba(184,150,62,0.06)' }}
-                    >
+                    <tr key={`${p.produto}-${p.ativo}`} style={{ borderBottom: '1px solid var(--line)' }}>
                       <td style={{ padding: '9px 12px' }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                           <span
@@ -417,20 +320,19 @@ export function BuscaCliente() {
                               display: 'inline-block',
                             }}
                           />
-                          <span style={{ fontSize: 11, fontWeight: 500, color: '#1A1209' }}>
+                          <span style={{ fontFamily: 'var(--f-text)', fontSize: 11, fontWeight: 500, color: 'var(--fg)' }}>
                             {p.produto}
                           </span>
                         </span>
                       </td>
-                      <td
-                        style={{ padding: '9px 12px', color: 'rgba(26,18,9,0.55)', fontSize: 11 }}
-                      >
+                      <td style={{ padding: '9px 12px', fontFamily: 'var(--f-text)', color: 'var(--fg-mute)', fontSize: 11 }}>
                         {p.sub_produto}
                       </td>
                       <td
                         style={{
                           padding: '9px 12px',
-                          color: '#1A1209',
+                          fontFamily: 'var(--f-text)',
+                          color: 'var(--fg)',
                           fontSize: 11,
                           maxWidth: 220,
                           overflow: 'hidden',
@@ -443,7 +345,8 @@ export function BuscaCliente() {
                       <td
                         style={{
                           padding: '9px 12px',
-                          color: 'rgba(26,18,9,0.5)',
+                          fontFamily: 'var(--f-text)',
+                          color: 'var(--fg-faint)',
                           fontSize: 11,
                           maxWidth: 160,
                           overflow: 'hidden',
@@ -456,7 +359,8 @@ export function BuscaCliente() {
                       <td
                         style={{
                           padding: '9px 12px',
-                          color: 'rgba(26,18,9,0.5)',
+                          fontFamily: 'var(--f-mono)',
+                          color: 'var(--fg-faint)',
                           fontSize: 11,
                           whiteSpace: 'nowrap',
                         }}
@@ -467,8 +371,10 @@ export function BuscaCliente() {
                         style={{
                           padding: '9px 12px',
                           textAlign: 'right',
-                          color: 'rgba(26,18,9,0.55)',
+                          fontFamily: 'var(--f-mono)',
+                          color: 'var(--fg-mute)',
                           fontSize: 11,
+                          fontFeatureSettings: '"tnum"',
                         }}
                       >
                         {p.quantidade.toLocaleString('pt-BR')}
@@ -477,10 +383,12 @@ export function BuscaCliente() {
                         style={{
                           padding: '9px 12px',
                           textAlign: 'right',
+                          fontFamily: 'var(--f-mono)',
                           fontWeight: 600,
-                          color: '#1A1209',
+                          color: 'var(--fg)',
                           fontSize: 12,
                           whiteSpace: 'nowrap',
+                          fontFeatureSettings: '"tnum"',
                         }}
                       >
                         {fBRL(p.net)}

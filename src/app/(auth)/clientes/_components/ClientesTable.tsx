@@ -18,6 +18,8 @@ export type Cliente = {
 
 type Props = { clientes: Cliente[]; isAdmin: boolean }
 
+const PAGE_SIZE = 100
+
 /* ─── Formatters ─────────────────────────────────────────────────────────── */
 
 function fBRL(v: number): string {
@@ -34,32 +36,72 @@ function initials(nome: string | null): string {
   return (parts[0]![0]! + parts[parts.length - 1]![0]!).toUpperCase()
 }
 
-/* ─── Cores via CSS vars (sem hardcode de brand colors) ──────────────────── */
+/* ─── Design tokens ──────────────────────────────────────────────────────── */
 
 const SUIT_STYLE: Record<string, React.CSSProperties> = {
-  'Conservador':     { background: 'color-mix(in oklch, var(--color-b-500) 12%, var(--bg-elev))', color: 'var(--color-b-500)' },
-  'Moderado':        { background: 'color-mix(in oklch, var(--c-gold) 15%, var(--bg-elev))',      color: 'var(--c-gold)'       },
-  'Agressivo':       { background: 'var(--neg-bg)',                                                color: 'var(--neg-fg)'       },
-  'Super Agressivo': { background: 'color-mix(in oklch, #8B5CF6 12%, var(--bg-elev))',            color: '#8B5CF6'             },
+  'Conservador':     { background: 'color-mix(in oklch, var(--color-b-500) 12%, var(--bg-elev))', color: 'var(--color-b-500)'    },
+  'Moderado':        { background: 'color-mix(in oklch, var(--c-gold) 15%, var(--bg-elev))',      color: 'var(--c-gold)'         },
+  'Agressivo':       { background: 'var(--color-negative-bg)',                                     color: 'var(--color-negative)' },
+  'Super Agressivo': { background: 'color-mix(in oklch, #8B5CF6 12%, var(--bg-elev))',            color: '#8B5CF6'               },
 }
 
 const AVATAR_COLORS = ['#2D5FA0', '#B8963E', '#10B981', '#8B5CF6', '#EF4444', '#F97316', '#06B6D4']
 function avatarColor(id: number): string { return AVATAR_COLORS[id % AVATAR_COLORS.length]! }
 
-/* ─── Tipos de filtro separados ──────────────────────────────────────────── */
+/* ─── Tipos de filtro ────────────────────────────────────────────────────── */
 
 type StatusFilter = 'todos' | 'ativos' | 'inativos'
 type TipoFilter   = 'todos' | 'pf'    | 'pj'
 
+/* ─── Export CSV ─────────────────────────────────────────────────────────── */
+
+function exportCSV(clientes: Cliente[], isAdmin: boolean) {
+  const headers = [
+    'Código', 'Nome', 'Email', 'Telefone', 'Tipo', 'Status',
+    'AUM (R$)', 'Suitability',
+    ...(isAdmin ? ['Assessor', 'Equipe'] : []),
+  ]
+  const rows = clientes.map((c) => [
+    c.id_cliente,
+    c.nome_cliente ?? '',
+    c.email_cliente ?? '',
+    c.telefone ?? '',
+    c.tipo_pessoa,
+    c.status,
+    c.net_em_m.toFixed(2).replace('.', ','),
+    c.suitability ?? '',
+    ...(isAdmin ? [c.nome_assessor ?? '', c.equipe ?? ''] : []),
+  ])
+
+  const escape = (v: unknown) => `"${String(v).replace(/"/g, '""')}"`
+  const csv = '﻿' + [headers, ...rows].map((r) => r.map(escape).join(';')).join('\n')
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `clientes-nobel-${new Date().toISOString().slice(0, 10)}.csv`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
 /* ─── Componente ─────────────────────────────────────────────────────────── */
 
 export function ClientesTable({ clientes, isAdmin }: Props) {
-  const [search, setSearch]           = useState('')
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('ativos')
-  const [tipoFilter, setTipoFilter]   = useState<TipoFilter>('todos')
-  const [hoveredId, setHoveredId]     = useState<number | null>(null)
+  const [search, setSearch]               = useState('')
+  const [statusFilter, setStatusFilter]   = useState<StatusFilter>('ativos')
+  const [tipoFilter, setTipoFilter]       = useState<TipoFilter>('todos')
+  const [page, setPage]                   = useState(1)
+  const [hoveredId, setHoveredId]         = useState<number | null>(null)
 
-  /* Filtros compostos — status E tipo são independentes */
+  /* Reset page ao mudar qualquer filtro */
+  function setStatus(v: StatusFilter) { setStatusFilter(v); setPage(1) }
+  function setTipo(v: TipoFilter)     { setTipoFilter(v);   setPage(1) }
+  function setQuery(v: string)        { setSearch(v);        setPage(1) }
+
+  /* Filtros compostos */
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim()
     return clientes.filter((c) => {
@@ -69,13 +111,17 @@ export function ClientesTable({ clientes, isAdmin }: Props) {
       if (tipoFilter   === 'pj'       && c.tipo_pessoa !== 'PJ') return false
       if (!q) return true
       return (
-        (c.nome_cliente   ?? '').toLowerCase().includes(q) ||
-        (c.email_cliente  ?? '').toLowerCase().includes(q) ||
-        (c.nome_assessor  ?? '').toLowerCase().includes(q) ||
+        (c.nome_cliente  ?? '').toLowerCase().includes(q) ||
+        (c.email_cliente ?? '').toLowerCase().includes(q) ||
+        (c.nome_assessor ?? '').toLowerCase().includes(q) ||
         String(c.id_cliente).includes(q)
       )
     })
   }, [clientes, search, statusFilter, tipoFilter])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
   /* ─── Estilos base ───────────────────────────────────────────────────── */
 
@@ -92,9 +138,9 @@ export function ClientesTable({ clientes, isAdmin }: Props) {
       border: '1px solid',
       cursor: 'pointer',
       transition: 'all .12s',
-      background:   active ? 'var(--fg)'   : 'transparent',
-      color:        active ? 'var(--bg)'   : 'var(--fg-mute)',
-      borderColor:  active ? 'var(--fg)'   : 'var(--line)',
+      background:  active ? 'var(--fg)'      : 'transparent',
+      color:       active ? 'var(--bg)'      : 'var(--fg-mute)',
+      borderColor: active ? 'var(--fg)'      : 'var(--line)',
     }
   }
 
@@ -141,7 +187,7 @@ export function ClientesTable({ clientes, isAdmin }: Props) {
             type="text"
             placeholder="Buscar por nome, e-mail, assessor ou código..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => setQuery(e.target.value)}
             style={{
               width: '100%', boxSizing: 'border-box',
               paddingLeft: 32, paddingRight: 12, paddingTop: 7, paddingBottom: 7,
@@ -155,7 +201,7 @@ export function ClientesTable({ clientes, isAdmin }: Props) {
         {/* Filtro Status */}
         <div style={{ display: 'flex', gap: 3 }}>
           {STATUS_FILTERS.map(({ key, label }) => (
-            <button key={key} onClick={() => setStatusFilter(key)} style={pillBtn(statusFilter === key)}>
+            <button key={key} onClick={() => setStatus(key)} style={pillBtn(statusFilter === key)}>
               {label}
             </button>
           ))}
@@ -167,11 +213,36 @@ export function ClientesTable({ clientes, isAdmin }: Props) {
         {/* Filtro Tipo */}
         <div style={{ display: 'flex', gap: 3 }}>
           {TIPO_FILTERS.map(({ key, label }) => (
-            <button key={key} onClick={() => setTipoFilter(key)} style={pillBtn(tipoFilter === key)}>
+            <button key={key} onClick={() => setTipo(key)} style={pillBtn(tipoFilter === key)}>
               {label}
             </button>
           ))}
         </div>
+
+        {/* Separador */}
+        <div style={{ width: 1, height: 20, background: 'var(--line)' }} />
+
+        {/* Export */}
+        <button
+          onClick={() => exportCSV(filtered, isAdmin)}
+          title="Exportar lista filtrada para Excel (.csv)"
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            fontFamily: 'var(--f-mono)', fontSize: 10, fontWeight: 600,
+            letterSpacing: '.10em', textTransform: 'uppercase',
+            padding: '5px 12px', borderRadius: 6,
+            border: '1px solid var(--line)',
+            background: 'transparent',
+            color: 'var(--color-positive)',
+            cursor: 'pointer',
+            transition: 'all .12s',
+          }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" width="13" height="13">
+            <path d="M12 15V3m0 12-4-4m4 4 4-4M2 17l.621 2.485A2 2 0 0 0 4.561 21h14.878a2 2 0 0 0 1.94-1.515L22 17"/>
+          </svg>
+          Excel
+        </button>
 
         <span style={{ ...mono9, color: 'var(--fg-faint)', marginLeft: 'auto' }}>
           {filtered.length.toLocaleString('pt-BR')} cliente{filtered.length !== 1 ? 's' : ''}
@@ -182,7 +253,7 @@ export function ClientesTable({ clientes, isAdmin }: Props) {
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ background: 'var(--bg)' }}>
+            <tr style={{ background: 'var(--bg-deep)' }}>
               {COLS.map((h) => (
                 <th key={h} style={{
                   ...mono9, color: 'var(--fg-faint)', fontWeight: 500,
@@ -197,14 +268,14 @@ export function ClientesTable({ clientes, isAdmin }: Props) {
             </tr>
           </thead>
           <tbody>
-            {filtered.slice(0, 300).map((c, i) => {
+            {paginated.map((c, i) => {
               const nome    = c.nome_cliente ?? `Cliente ${c.id_cliente}`
               const ini     = initials(c.nome_cliente)
               const color   = avatarColor(c.id_cliente)
               const isAtivo = c.status === 'ATIVO'
               const isPJ    = c.tipo_pessoa === 'PJ'
               const suit    = SUIT_STYLE[c.suitability ?? '']
-              const isLast  = i === Math.min(filtered.length, 300) - 1
+              const isLast  = i === paginated.length - 1
               const hovered = hoveredId === c.id_cliente
 
               return (
@@ -266,8 +337,8 @@ export function ClientesTable({ clientes, isAdmin }: Props) {
                     <span style={{
                       ...mono9, fontWeight: 600,
                       padding: '2px 8px', borderRadius: 4,
-                      background: isAtivo ? 'var(--pos-bg)' : 'var(--bg-deep)',
-                      color:      isAtivo ? 'var(--pos-fg)' : 'var(--fg-faint)',
+                      background: isAtivo ? 'var(--color-positive-bg)' : 'var(--bg-deep)',
+                      color:      isAtivo ? 'var(--color-positive)'    : 'var(--fg-faint)',
                     }}>
                       {isAtivo ? 'ATIVO' : 'INATIVO'}
                     </span>
@@ -278,6 +349,7 @@ export function ClientesTable({ clientes, isAdmin }: Props) {
                     <span style={{
                       fontFamily: 'var(--f-mono)', fontSize: 13, fontWeight: 600,
                       color: c.net_em_m > 0 ? 'var(--fg)' : 'var(--fg-faint)',
+                      fontFeatureSettings: '"tnum"',
                     }}>
                       {c.net_em_m > 0 ? fBRL(c.net_em_m) : '—'}
                     </span>
@@ -297,7 +369,9 @@ export function ClientesTable({ clientes, isAdmin }: Props) {
                   {/* Assessor — apenas admin/master */}
                   {isAdmin && (
                     <td style={{ padding: '10px 16px' }}>
-                      <p style={{ fontSize: 12, color: 'var(--fg-mute)', whiteSpace: 'nowrap' }}>{c.nome_assessor ?? '—'}</p>
+                      <p style={{ fontFamily: 'var(--f-text)', fontSize: 12, color: 'var(--fg-mute)', whiteSpace: 'nowrap' }}>
+                        {c.nome_assessor ?? '—'}
+                      </p>
                       {c.equipe && (
                         <p style={{ fontFamily: 'var(--f-mono)', fontSize: 9, color: 'var(--fg-faint)', letterSpacing: '.06em', marginTop: 2 }}>
                           {c.equipe}
@@ -324,25 +398,125 @@ export function ClientesTable({ clientes, isAdmin }: Props) {
               Nenhum cliente encontrado
             </p>
             {search && (
-              <p style={{ fontSize: 12, color: 'var(--fg-faint)' }}>
+              <p style={{ fontFamily: 'var(--f-text)', fontSize: 12, color: 'var(--fg-faint)' }}>
                 Tente ajustar os filtros ou a busca
               </p>
             )}
           </div>
         )}
-
-        {/* Aviso de truncamento */}
-        {filtered.length > 300 && (
-          <div style={{
-            padding: '11px 20px', borderTop: '1px solid var(--line)',
-            background: 'var(--bg-deep)',
-            fontFamily: 'var(--f-mono)', fontSize: 10, color: 'var(--fg-faint)',
-            letterSpacing: '.06em', textAlign: 'center',
-          }}>
-            Exibindo 300 de {filtered.length.toLocaleString('pt-BR')} resultados — refine a busca para ver mais
-          </div>
-        )}
       </div>
+
+      {/* ── Paginação ────────────────────────────────────────────────── */}
+      {filtered.length > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '10px 16px',
+          borderTop: '1px solid var(--line)',
+          background: 'var(--bg-deep)',
+          gap: 12,
+          flexWrap: 'wrap',
+        }}>
+          {/* Info */}
+          <span style={{
+            fontFamily: 'var(--f-mono)', fontSize: 10, color: 'var(--fg-faint)',
+            letterSpacing: '.10em', textTransform: 'uppercase',
+          }}>
+            {((currentPage - 1) * PAGE_SIZE + 1).toLocaleString('pt-BR')}–
+            {Math.min(currentPage * PAGE_SIZE, filtered.length).toLocaleString('pt-BR')}
+            {' '}de{' '}
+            {filtered.length.toLocaleString('pt-BR')}
+          </span>
+
+          {/* Controles */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            {/* Anterior */}
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 4,
+                fontFamily: 'var(--f-mono)', fontSize: 10, fontWeight: 600,
+                letterSpacing: '.08em', textTransform: 'uppercase',
+                padding: '5px 10px', borderRadius: 6,
+                border: '1px solid var(--line)',
+                background: 'transparent',
+                color: currentPage === 1 ? 'var(--fg-faint)' : 'var(--fg-mute)',
+                cursor: currentPage === 1 ? 'default' : 'pointer',
+                opacity: currentPage === 1 ? 0.4 : 1,
+              }}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="11" height="11">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+              Anterior
+            </button>
+
+            {/* Páginas numéricas */}
+            <div style={{ display: 'flex', gap: 2 }}>
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter((p) => {
+                  if (totalPages <= 7) return true
+                  return p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1
+                })
+                .reduce<(number | '…')[]>((acc, p, idx, arr) => {
+                  if (idx > 0 && typeof arr[idx - 1] === 'number' && (p as number) - (arr[idx - 1] as number) > 1) {
+                    acc.push('…')
+                  }
+                  acc.push(p)
+                  return acc
+                }, [])
+                .map((p, idx) =>
+                  p === '…' ? (
+                    <span key={`ellipsis-${idx}`} style={{
+                      fontFamily: 'var(--f-mono)', fontSize: 10, color: 'var(--fg-faint)',
+                      padding: '5px 4px', lineHeight: 1,
+                    }}>…</span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => setPage(p as number)}
+                      style={{
+                        fontFamily: 'var(--f-mono)', fontSize: 10, fontWeight: 600,
+                        padding: '5px 9px', borderRadius: 6,
+                        border: '1px solid',
+                        cursor: 'pointer',
+                        minWidth: 30,
+                        background:  currentPage === p ? 'var(--fg)'   : 'transparent',
+                        color:       currentPage === p ? 'var(--bg)'   : 'var(--fg-mute)',
+                        borderColor: currentPage === p ? 'var(--fg)'   : 'var(--line)',
+                      }}
+                    >
+                      {p}
+                    </button>
+                  )
+                )
+              }
+            </div>
+
+            {/* Próxima */}
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 4,
+                fontFamily: 'var(--f-mono)', fontSize: 10, fontWeight: 600,
+                letterSpacing: '.08em', textTransform: 'uppercase',
+                padding: '5px 10px', borderRadius: 6,
+                border: '1px solid var(--line)',
+                background: 'transparent',
+                color: currentPage === totalPages ? 'var(--fg-faint)' : 'var(--fg-mute)',
+                cursor: currentPage === totalPages ? 'default' : 'pointer',
+                opacity: currentPage === totalPages ? 0.4 : 1,
+              }}
+            >
+              Próxima
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="11" height="11">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

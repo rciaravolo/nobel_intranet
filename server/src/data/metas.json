@@ -8,6 +8,8 @@
     "seguros":       159000.00,
     "consorcio":     281100.90,
     "dominion":      0,
-    "oferta_fundos": 123664.63
+    "oferta_fundos": 123664.63,
+    "fundos":        123664.63,
+    "previdencia":   41519.27
   }
 }

@@ -330,6 +330,8 @@ const PRODUTOS_METAS = [
   { slug: 'consorcio',     tabela: 'receita_consorcio',     label: 'Consórcio'        },
   { slug: 'dominion',      tabela: 'receita_dominion',      label: 'Dominion'         },
   { slug: 'oferta_fundos', tabela: 'receita_oferta_fundos', label: 'Oferta de Fundos' },
+  { slug: 'fundos',        tabela: 'receita_fundos',        label: 'Fundos'           },
+  { slug: 'previdencia',   tabela: 'receita_prev',          label: 'Previdência'      },
 ] as const
 
 app.get('/metas', async (c) => {
@@ -615,10 +617,10 @@ app.get('/clientes', async (c) => {
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
   const where = filter.type === 'all'
-    ? ''
+    ? `WHERE b.cliente_nobel = 'Sim'`
     : filter.type === 'assessor'
-    ? `WHERE p.id_assessor = '${filter.id}'`
-    : `WHERE p.id_assessor IN (SELECT id_assessor FROM assessores WHERE equipe = '${filter.equipe}')`
+    ? `WHERE p.id_assessor = '${filter.id}' AND b.cliente_nobel = 'Sim'`
+    : `WHERE p.id_assessor IN (SELECT id_assessor FROM assessores WHERE equipe = '${filter.equipe}') AND b.cliente_nobel = 'Sim'`
 
   const [clientesRows, statsRow] = await Promise.all([
     db.prepare(`
@@ -635,7 +637,7 @@ app.get('/clientes', async (c) => {
         b.email_cliente,
         b.telefone
       FROM tb_positivador p
-      LEFT JOIN base_clientes b ON p.id_cliente = b.id_cliente
+      INNER JOIN base_clientes b ON p.id_cliente = b.id_cliente
       ${where}
       ORDER BY p.net_em_m DESC
       LIMIT 500
@@ -655,10 +657,11 @@ app.get('/clientes', async (c) => {
     db.prepare(`
       SELECT
         COUNT(*) as total,
-        SUM(CASE WHEN status = 'ATIVO' THEN 1 ELSE 0 END) as ativos,
-        SUM(CASE WHEN status = 'INATIVO' THEN 1 ELSE 0 END) as inativos,
-        SUM(net_em_m) as aum_total
+        SUM(CASE WHEN p.status = 'ATIVO' THEN 1 ELSE 0 END) as ativos,
+        SUM(CASE WHEN p.status = 'INATIVO' THEN 1 ELSE 0 END) as inativos,
+        SUM(p.net_em_m) as aum_total
       FROM tb_positivador p
+      INNER JOIN base_clientes b ON p.id_cliente = b.id_cliente
       ${where}
     `).first<{ total: number; ativos: number; inativos: number; aum_total: number }>(),
   ])
