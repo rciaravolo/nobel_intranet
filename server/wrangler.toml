@@ -10,7 +10,7 @@ crons = ["30 9 * * 1-5"]
 [[d1_databases]]
 binding = "DB"
 database_name = "intra-db"
-database_id = "448fb0a7-f020-4eb7-a9a2-b00b9e993e52"
+database_id = "83cc3359-4703-42a1-95f7-84e68b48347b"
 
 [[d1_databases]]
 binding = "PERF_DB"
