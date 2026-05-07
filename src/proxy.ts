@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
+export const runtime = 'edge'
+
 const PUBLIC = ['/login', '/api/auth/login', '/api/auth/logout', '/api/auth/demo', '/api/mock', '/demo', '/_next', '/favicon']
 const ASSET_RE = /\.(png|jpg|jpeg|svg|ico|webp|woff2?|css|js|map)$/
 
