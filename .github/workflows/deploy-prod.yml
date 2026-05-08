@@ -49,26 +49,17 @@ jobs:
 
       - name: Preparar _worker.js para deploy
         run: |
-          # @opennextjs/cloudflare gera o worker em .open-next/worker.js
-          # Cloudflare Pages precisa de _worker.js na RAIZ do diretório deployado
-          echo "=== Estrutura de .open-next ==="
-          find .open-next -type f 2>/dev/null | sort
+          test -f .open-next/worker.js || { echo "ERRO: worker.js nao encontrado!"; exit 1; }
+          test -d .open-next/assets    || { echo "ERRO: assets nao existe!";        exit 1; }
 
-          test -f .open-next/worker.js || {
-            echo "ERRO: .open-next/worker.js nao encontrado!"
-            exit 1
-          }
-
-          test -d .open-next/assets || {
-            echo "ERRO: .open-next/assets nao existe!"
-            exit 1
-          }
-
-          echo "Copiando worker.js → assets/_worker.js"
+          # worker.js + todos os módulos dependentes precisam estar em assets/
           cp .open-next/worker.js .open-next/assets/_worker.js
+          [ -d .open-next/cloudflare        ] && cp -r .open-next/cloudflare        .open-next/assets/
+          [ -d .open-next/middleware        ] && cp -r .open-next/middleware        .open-next/assets/
+          [ -d .open-next/.build            ] && cp -r .open-next/.build            .open-next/assets/
+          [ -d .open-next/server-functions  ] && cp -r .open-next/server-functions  .open-next/assets/
 
-          echo "=== Assets prontos para deploy ==="
-          ls -la .open-next/assets/ | head -20
+          echo "Assets prontos: $(ls .open-next/assets/ | wc -l) itens"
 
       - name: Deploy Worker (API)
         run: npm run deploy:worker
