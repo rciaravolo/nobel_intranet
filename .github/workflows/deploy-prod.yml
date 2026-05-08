@@ -33,10 +33,6 @@ jobs:
       - name: Preparar worker para deploy
         run: |
           cp .open-next/worker.js .open-next/assets/_worker.js
-          [ -d .open-next/cloudflare       ] && cp -r .open-next/cloudflare       .open-next/assets/
-          [ -d .open-next/middleware       ] && cp -r .open-next/middleware       .open-next/assets/
-          [ -d .open-next/.build           ] && cp -r .open-next/.build           .open-next/assets/
-          [ -d .open-next/server-functions ] && cp -r .open-next/server-functions .open-next/assets/
 
       - name: Deploy Worker API
         run: cd server && npx wrangler deploy
