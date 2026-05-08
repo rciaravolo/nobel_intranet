@@ -1,4 +1,4 @@
 name = "intra"
 pages_build_output_dir = ".open-next/assets"
-compatibility_date = "2025-09-01"
-compatibility_flags = ["nodejs_compat_v2"]
+compatibility_date = "2025-04-30"
+compatibility_flags = ["nodejs_compat"]
