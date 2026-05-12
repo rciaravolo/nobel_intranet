@@ -1,4 +1,5 @@
-import type { NoticiasPayload } from '@/../../server/src/lib/rss'
+type NoticiaRSS = { id: string; source: string; sourceColor: string; category: string; headline: string; summary: string; url: string; publishedAt: string }
+type NoticiasPayload = { noticias: NoticiaRSS[]; atualizadoEm: string }
 import { requireSession } from '@/lib/auth/session'
 
 /* ─── Types ──────────────────────────────────────────────────────────────── */

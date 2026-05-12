@@ -1,4 +1,4 @@
-import type { TickerItem } from '@/../../server/src/lib/ticker'
+type TickerItem = { name: string; value: string; change: string; up: boolean | null }
 
 const FALLBACK: TickerItem[] = [
   { name: 'IBOV', value: '—', change: '—', up: null },

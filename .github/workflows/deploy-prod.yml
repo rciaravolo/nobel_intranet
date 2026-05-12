@@ -33,6 +33,10 @@ jobs:
       - name: Preparar worker para deploy
         run: |
           cp .open-next/worker.js .open-next/assets/_worker.js
+          cp -r .open-next/cloudflare .open-next/assets/
+          cp -r .open-next/middleware .open-next/assets/
+          cp -r .open-next/.build .open-next/assets/
+          cp -r .open-next/server-functions .open-next/assets/
 
       - name: Verificar token Cloudflare
         run: npx wrangler whoami

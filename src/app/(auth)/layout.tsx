@@ -1,4 +1,4 @@
-import type { TickerPayload } from '@/../../server/src/lib/ticker'
+type TickerPayload = { tickers: { name: string; value: string; change: string; up: boolean | null }[]; atualizadoEm: string }
 import { requireSession } from '@/lib/auth/session'
 import { Sidebar } from './_components/Sidebar'
 import { TickerBar } from './_components/TickerBar'
