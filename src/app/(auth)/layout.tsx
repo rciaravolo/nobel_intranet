@@ -3,7 +3,6 @@ type TickerPayload = { tickers: { name: string; value: string; change: string; u
 import { requireSession } from '@/lib/auth/session'
 import { Sidebar } from './_components/Sidebar'
 import { TickerBar } from './_components/TickerBar'
-import { Topbar } from './_components/Topbar'
 
 async function getTicker() {
   try {
@@ -24,7 +23,6 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
       <Sidebar session={session} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <TickerBar tickers={tickers} />
-        <Topbar session={session} />
         <main className="main-content">{children}</main>
       </div>
     </div>

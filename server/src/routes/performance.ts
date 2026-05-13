@@ -114,6 +114,8 @@ app.get('/kpis', async (c) => {
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_consorcio${w}`).first<{ v: number }>(),
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_dominion${w}`).first<{ v: number }>(),
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_oferta_fundos${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_fundos${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_prev${w}`).first<{ v: number }>(),
     ]),
   ])
 
@@ -279,6 +281,8 @@ app.get('/onepage', async (c) => {
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_consorcio${buildWhereFilter(filter)}`).first<{ v: number }>(),
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_dominion${buildWhereFilter(filter)}`).first<{ v: number }>(),
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_oferta_fundos${buildWhereFilter(filter)}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_fundos${buildWhereFilter(filter)}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_prev${buildWhereFilter(filter)}`).first<{ v: number }>(),
     ]),
   ])
 
@@ -290,6 +294,7 @@ app.get('/onepage', async (c) => {
   const LABELS = [
     'Renda Variável', 'Renda Fixa', 'COE', 'Câmbio', 'Fee Fixo',
     'Seguros', 'Consórcio', 'Dominion', 'Oferta de Fundos',
+    'Fundos', 'Previdência',
   ]
   const porProduto = receitaRows
     .map((r, i) => ({ produto: LABELS[i]!, receita: r?.v ?? 0 }))
@@ -481,6 +486,8 @@ app.get('/deepdive/receita/:produto', async (c) => {
     consorcio:     { tabela: 'receita_consorcio',     label: 'Consórcio'        },
     dominion:      { tabela: 'receita_dominion',      label: 'Dominion'         },
     oferta_fundos: { tabela: 'receita_oferta_fundos', label: 'Oferta de Fundos' },
+    fundos:        { tabela: 'receita_fundos',        label: 'Fundos'           },
+    previdencia:   { tabela: 'receita_prev',          label: 'Previdência'      },
   }
 
   const info = PRODUTO_MAP[produto]
