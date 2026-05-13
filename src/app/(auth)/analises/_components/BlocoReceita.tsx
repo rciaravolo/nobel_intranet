@@ -29,6 +29,8 @@ const PRODUTO_SLUG: Record<string, string> = {
   Consórcio: 'consorcio',
   Dominion: 'dominion',
   'Oferta de Fundos': 'oferta_fundos',
+  Fundos: 'fundos',
+  Previdência: 'previdencia',
 }
 
 const RECEITA_COLOR: Record<string, string> = {
@@ -41,6 +43,8 @@ const RECEITA_COLOR: Record<string, string> = {
   Consórcio: '#F97316',
   Dominion: '#6366F1',
   'Oferta de Fundos': '#EC4899',
+  Fundos: '#0EA5E9',
+  Previdência: '#84CC16',
 }
 
 function fBRL(val: number): string {
