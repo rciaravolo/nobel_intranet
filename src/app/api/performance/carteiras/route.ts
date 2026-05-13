@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api/fetch'
 import { getSession } from '@/lib/auth/session'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -8,11 +9,8 @@ export async function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get('id')
   if (!id) return NextResponse.json({ error: 'id obrigatório' }, { status: 400 })
 
-  const apiUrl = process.env.API_URL
-  const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
 
-  const res = await fetch(`${apiUrl}/performance/carteiras/cliente?id=${encodeURIComponent(id)}`, {
-    headers: { Authorization: `Bearer ${secret}` },
+  const res = await apiFetch(`/performance/carteiras/cliente?id=${encodeURIComponent(id)}`, {
   })
 
   const json = await res.json()

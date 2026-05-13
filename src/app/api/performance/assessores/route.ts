@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api/fetch'
 import { getSession } from '@/lib/auth/session'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -8,13 +9,10 @@ export async function GET(_req: NextRequest) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const apiUrl = process.env.API_URL
-  const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
 
-  const res = await fetch(`${apiUrl}/performance/assessores`, {
+  const res = await apiFetch(`/performance/assessores`, {
     cache: 'no-store',
     headers: {
-      Authorization: `Bearer ${secret}`,
       'X-User-Role': session.role,
       'X-User-Email': session.email,
     },

@@ -10,3 +10,7 @@ binding = "ASSETS"
 [vars]
 API_URL = "https://intra-api.rafaelciaravolo.workers.dev"
 INTERNAL_API_SECRET = "dev-perf-secret-2026"
+
+[[services]]
+binding = "INTRA_API"
+service = "intra-api"

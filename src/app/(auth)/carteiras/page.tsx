@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api/fetch'
 import { requireSession } from '@/lib/auth/session'
 
 /* ─── Tipos ──────────────────────────────────────────────────────────────── */
@@ -112,14 +113,10 @@ function fVar(v: number): string {
 /* ─── Fetch ──────────────────────────────────────────────────────────────── */
 
 async function getVisao(email: string, role: string): Promise<VisaoPayload | null> {
-  const apiUrl = process.env.API_URL
-  const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
-  if (!apiUrl) return null
   try {
-    const res = await fetch(`${apiUrl}/performance/carteiras/visao`, {
+    const res = await apiFetch(`/performance/carteiras/visao`, {
       next: { revalidate: 3600 },
       headers: {
-        Authorization: `Bearer ${secret}`,
         'X-User-Email': email,
         'X-User-Role': role,
       },

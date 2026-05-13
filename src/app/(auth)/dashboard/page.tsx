@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api/fetch'
 type NoticiaRSS = { id: string; source: string; sourceColor: string; category: string; headline: string; summary: string; url: string; publishedAt: string }
 type NoticiasPayload = { noticias: NoticiaRSS[]; atualizadoEm: string }
 import { requireSession } from '@/lib/auth/session'
@@ -64,14 +65,10 @@ async function getKpis(
   role: string,
   equipe: string | undefined,
 ): Promise<KpisPayload | null> {
-  const apiUrl = process.env.API_URL
-  const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
-  if (!apiUrl) return null
   try {
-    const res = await fetch(`${apiUrl}/performance/kpis`, {
+    const res = await apiFetch(`/performance/kpis`, {
       cache: 'no-store',
       headers: {
-        Authorization: `Bearer ${secret}`,
         'X-User-Email': email,
         'X-User-Role': role,
         'X-User-Equipe': equipe ?? '',
@@ -86,10 +83,8 @@ async function getKpis(
 }
 
 async function getNoticias(): Promise<NoticiasPayload> {
-  const apiUrl = process.env.API_URL
-  if (!apiUrl) return { noticias: [], atualizadoEm: null as unknown as string }
   try {
-    const res = await fetch(`${apiUrl}/noticias`, { next: { revalidate: 3600 } })
+    const res = await apiFetch(`/noticias`, { next: { revalidate: 3600 } })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const json = (await res.json()) as { data: NoticiasPayload }
     return json.data

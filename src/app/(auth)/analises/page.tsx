@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api/fetch'
 import { requireSession } from '@/lib/auth/session'
 import { AnalisesFilters } from './_components/AnalisesFilters'
 import { BlocoCaptacao } from './_components/BlocoCaptacao'
@@ -134,12 +135,10 @@ function perfHeaders(
   email: string,
   role: string,
   equipe: string | undefined,
-  secret: string,
   filterType?: string,
   filterValue?: string,
 ) {
   return {
-    Authorization: `Bearer ${secret}`,
     'X-User-Email': email,
     'X-User-Role': role,
     'X-User-Equipe': equipe ?? '',
@@ -157,17 +156,13 @@ type FetchOpts = {
 }
 
 async function getOnepage(opts: FetchOpts): Promise<OnepagePayload | null> {
-  const apiUrl = process.env.API_URL
-  const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
-  if (!apiUrl) return null
   try {
-    const res = await fetch(`${apiUrl}/performance/onepage`, {
+    const res = await apiFetch(`/performance/onepage`, {
       cache: 'no-store',
       headers: perfHeaders(
         opts.email,
         opts.role,
         opts.equipe,
-        secret,
         opts.filterType,
         opts.filterValue,
       ),
@@ -181,16 +176,12 @@ async function getOnepage(opts: FetchOpts): Promise<OnepagePayload | null> {
 }
 
 async function getMetas(opts: FetchOpts): Promise<MetasPayload | null> {
-  const apiUrl = process.env.API_URL
-  const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
-  if (!apiUrl) return null
   try {
-    const res = await fetch(`${apiUrl}/performance/metas`, {
+    const res = await apiFetch(`/performance/metas`, {
       headers: perfHeaders(
         opts.email,
         opts.role,
         opts.equipe,
-        secret,
         opts.filterType,
         opts.filterValue,
       ),
@@ -204,17 +195,13 @@ async function getMetas(opts: FetchOpts): Promise<MetasPayload | null> {
 }
 
 async function getHistorico(opts: FetchOpts): Promise<HistoricoPayload | null> {
-  const apiUrl = process.env.API_URL
-  const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
-  if (!apiUrl) return null
   try {
-    const res = await fetch(`${apiUrl}/performance/historico`, {
+    const res = await apiFetch(`/performance/historico`, {
       cache: 'no-store',
       headers: perfHeaders(
         opts.email,
         opts.role,
         opts.equipe,
-        secret,
         opts.filterType,
         opts.filterValue,
       ),
@@ -234,14 +221,10 @@ type AssessoresPayload = {
 
 async function getAssessores(role: string, email: string): Promise<AssessoresPayload | null> {
   if (role !== 'admin' && role !== 'master') return null
-  const apiUrl = process.env.API_URL
-  const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
-  if (!apiUrl) return null
   try {
-    const res = await fetch(`${apiUrl}/performance/assessores`, {
+    const res = await apiFetch(`/performance/assessores`, {
       cache: 'no-store',
       headers: {
-        Authorization: `Bearer ${secret}`,
         'X-User-Role': role,
         'X-User-Email': email,
       },

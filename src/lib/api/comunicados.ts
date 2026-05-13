@@ -1,9 +1,4 @@
-/**
- * Cliente tipado para a API de comunicados.
- * Consome o Cloudflare Worker em NEXT_PUBLIC_API_URL.
- */
-
-const BASE_URL = process.env.API_URL ?? ''
+import { apiFetch as workerFetch } from '@/lib/api/fetch'
 
 export type ComunicadoCategoria = 'RH' | 'Produtos' | 'PJ2'
 
@@ -37,8 +32,7 @@ export type ListarComunicadosParams = {
 // ---------------------------------------------------------------------------
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const url = `${BASE_URL}${path}`
-  const res = await fetch(url, {
+  const res = await workerFetch(path, {
     ...init,
     headers: {
       'Content-Type': 'application/json',

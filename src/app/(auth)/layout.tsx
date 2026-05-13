@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api/fetch'
 type TickerPayload = { tickers: { name: string; value: string; change: string; up: boolean | null }[]; atualizadoEm: string }
 import { requireSession } from '@/lib/auth/session'
 import { Sidebar } from './_components/Sidebar'
@@ -5,10 +6,8 @@ import { TickerBar } from './_components/TickerBar'
 import { Topbar } from './_components/Topbar'
 
 async function getTicker() {
-  const apiUrl = process.env.API_URL
-  if (!apiUrl) return []
   try {
-    const res = await fetch(`${apiUrl}/ticker`, { next: { revalidate: 3600 } })
+    const res = await apiFetch(`/ticker`, { next: { revalidate: 3600 } })
     if (!res.ok) return []
     const json = (await res.json()) as { data: TickerPayload }
     return json.data.tickers ?? []

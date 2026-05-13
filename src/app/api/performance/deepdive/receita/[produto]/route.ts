@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api/fetch'
 import { getSession } from '@/lib/auth/session'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -22,17 +23,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prod
     return NextResponse.json({ error: 'produto inválido' }, { status: 400 })
   }
 
-  const apiUrl = process.env.API_URL
-  const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
 
   const sp = req.nextUrl.searchParams
   const filterType = sp.get('filter_type')
   const filterValue = sp.get('filter_value')
 
-  const res = await fetch(`${apiUrl}/performance/deepdive/receita/${encodeURIComponent(produto)}`, {
+  const res = await apiFetch(`/performance/deepdive/receita/${encodeURIComponent(produto)}`, {
     cache: 'no-store',
     headers: {
-      Authorization: `Bearer ${secret}`,
       'X-User-Email': session.email,
       'X-User-Role': session.role,
       'X-User-Equipe': session.equipe ?? '',

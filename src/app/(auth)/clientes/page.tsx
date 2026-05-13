@@ -1,3 +1,4 @@
+import { apiFetch } from '@/lib/api/fetch'
 import { requireSession } from '@/lib/auth/session'
 import { type Cliente, ClientesTable } from './_components/ClientesTable'
 
@@ -29,14 +30,10 @@ async function getClientes(
   role: string,
   equipe?: string,
 ): Promise<ClientesPayload | null> {
-  const apiUrl = process.env.API_URL
-  const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
-  if (!apiUrl) return null
   try {
-    const res = await fetch(`${apiUrl}/performance/clientes`, {
+    const res = await apiFetch(`/performance/clientes`, {
       cache: 'no-store',
       headers: {
-        Authorization: `Bearer ${secret}`,
         'X-User-Email': email,
         'X-User-Role': role,
         'X-User-Equipe': equipe ?? '',
