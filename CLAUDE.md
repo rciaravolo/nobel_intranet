@@ -218,7 +218,7 @@ Linha forte:         --line-strong → var(--color-n-200) → #D4CEC1
 ### Tailwind v4 com Turbopack — Armadilhas Conhecidas
 
 - `@theme` NÃO aceita `var()` — apenas valores estáticos (hex, px, etc.)
-- NÃO criar `postcss.config.mjs` — quebra o Turbopack (Next.js 15+ processa Tailwind v4 nativamente)
+- `postcss.config.mjs` com `@tailwindcss/postcss` É NECESSÁRIO para o build webpack (produção/Cloudflare Pages). Sem ele, o CSS não é gerado no bundle de produção. O `dev --turbopack` funciona com ou sem ele.
 - Utilities geradas automaticamente: `bg-b-500`, `text-fg`, `font-mono`, etc.
 
 ---
