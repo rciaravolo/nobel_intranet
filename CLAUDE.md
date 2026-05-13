@@ -83,7 +83,7 @@ ORM:        Prisma (com D1 adapter)
 Banco:      Cloudflare D1 (SQLite edge)
 Storage:    Cloudflare R2
 Auth:       Cloudflare Access (zero-trust)
-Deploy:     Cloudflare Pages (frontend) + Cloudflare Workers (API)
+Deploy:     Cloudflare Workers Assets (frontend) + Cloudflare Workers (API)
 CI/CD:      GitHub Actions
 Notif:      Telegram Bot
 ```
@@ -172,7 +172,7 @@ npm run pages:build      # opennextjs-cloudflare build → .open-next/
 npm run deploy:worker    # Deploy Worker para produção
 
 # Deploy
-npm run pages:deploy     # Deploy frontend para Cloudflare Pages
+npx wrangler deploy      # Deploy frontend (Cloudflare Workers Assets)
 ```
 
 ## Design System — Regras Fundamentais (NUNCA violar)
@@ -218,7 +218,8 @@ Linha forte:         --line-strong → var(--color-n-200) → #D4CEC1
 ### Tailwind v4 com Turbopack — Armadilhas Conhecidas
 
 - `@theme` NÃO aceita `var()` — apenas valores estáticos (hex, px, etc.)
-- `postcss.config.mjs` com `@tailwindcss/postcss` É NECESSÁRIO para o build webpack (produção/Cloudflare Pages). Sem ele, o CSS não é gerado no bundle de produção. O `dev --turbopack` funciona com ou sem ele.
+- `postcss.config.mjs` com `@tailwindcss/postcss` É NECESSÁRIO para o build webpack (produção). Sem ele, o CSS não é gerado. O `dev --turbopack` funciona sem ele.
+- Deploy usa **Cloudflare Workers Assets** (`main` + `[assets]` no wrangler.toml). NÃO usar `pages_build_output_dir` nem `wrangler pages deploy` — eles não vinculam o ASSETS binding e CSS nunca carrega.
 - Utilities geradas automaticamente: `bg-b-500`, `text-fg`, `font-mono`, etc.
 
 ---
