@@ -1,5 +1,6 @@
 import { apiFetch } from '@/lib/api/fetch'
 import { requireSession } from '@/lib/auth/session'
+import { PageGreeting } from '../_components/PageGreeting'
 import { AnalisesFilters } from './_components/AnalisesFilters'
 import { BlocoCaptacao } from './_components/BlocoCaptacao'
 import { BlocoMetas } from './_components/BlocoMetas'
@@ -676,35 +677,10 @@ export default async function AnalisesPage({
   return (
     <div style={{ maxWidth: 1340 }}>
       {/* ── Header ── */}
-      <div className="page-header">
-        <div>
-          <p style={{ fontSize: 12, color: 'var(--fg-faint)', marginBottom: 5 }}>
-            Posição em {fDataRef(data?.dataRef ?? null)}
-          </p>
-          <h1
-            style={{
-              fontFamily: 'var(--f-text)',
-              fontSize: 24,
-              fontWeight: 600,
-              color: 'var(--fg)',
-              letterSpacing: '-.02em',
-            }}
-          >
-            Onepage —{' '}
-            <span style={{ color: 'var(--color-b-500)' }}>
-              {filterType === 'equipe' && filterValue
-                ? `Equipe ${filterValue}`
-                : filterType === 'assessor' && assessoresData
-                  ? (assessoresData.assessores
-                      .find((a) => a.id_assessor === filterValue)
-                      ?.nome_assessor?.split(' ')
-                      .slice(0, 2)
-                      .join(' ') ?? filterValue)
-                  : firstName}
-            </span>
-          </h1>
-        </div>
-      </div>
+      <PageGreeting
+        name={session.name}
+        label={`Posição em ${fDataRef(data?.dataRef ?? null)}`}
+      />
 
       {/* ── Filtros (admin / master) ── */}
       {canFilter && (
