@@ -691,6 +691,16 @@ app.get('/clientes', async (c) => {
 app.get('/carteiras/visao', async (c) => {
   const db = c.env.PERF_DB
 
+  const filter = await resolveFilter(
+    db,
+    c.req.header('X-User-Role'),
+    c.req.header('X-User-Email'),
+    c.req.header('X-User-Equipe'),
+  )
+  if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
+
+  const wa = buildAndFilter(filter)
+
   const JANELAS = ['0-6m', '6-12m', '1-2a', '2-5a', '5+a'] as const
   const janelaExpr = `CASE
     WHEN vencimento < date('now', '+6 months')  THEN '0-6m'
@@ -706,39 +716,39 @@ app.get('/carteiras/visao', async (c) => {
     rvSetRows, rvTopRows,
     coeRows, ldRows,
   ] = await Promise.all([
-    db.prepare(`SELECT SUM(posicao_atual) as total FROM analitico_rf WHERE tipo_ativo IS NOT NULL AND posicao_atual IS NOT NULL`).first<{ total: number }>(),
-    db.prepare(`SELECT SUM(auc) as total FROM analitico_rv WHERE setor IS NOT NULL AND auc IS NOT NULL`).first<{ total: number }>(),
-    db.prepare(`SELECT SUM(posicao_atual) as total FROM posicao_coe WHERE tipo IS NOT NULL`).first<{ total: number }>(),
-    db.prepare(`SELECT SUM(custodia) as total FROM custodia_ld WHERE indexador IS NOT NULL`).first<{ total: number }>(),
+    db.prepare(`SELECT SUM(posicao_atual) as total FROM analitico_rf WHERE tipo_ativo IS NOT NULL AND posicao_atual IS NOT NULL${wa}`).first<{ total: number }>(),
+    db.prepare(`SELECT SUM(auc) as total FROM analitico_rv WHERE setor IS NOT NULL AND auc IS NOT NULL${wa}`).first<{ total: number }>(),
+    db.prepare(`SELECT SUM(posicao_atual) as total FROM posicao_coe WHERE tipo IS NOT NULL${wa}`).first<{ total: number }>(),
+    db.prepare(`SELECT SUM(custodia) as total FROM custodia_ld WHERE indexador IS NOT NULL${wa}`).first<{ total: number }>(),
 
     db.prepare(`
       SELECT indexador, SUM(posicao_atual) as total, COUNT(*) as posicoes, COUNT(DISTINCT id_cliente) as clientes
-      FROM analitico_rf WHERE indexador IS NOT NULL
+      FROM analitico_rf WHERE indexador IS NOT NULL${wa}
       GROUP BY indexador ORDER BY total DESC
     `).all<{ indexador: string; total: number; posicoes: number; clientes: number }>(),
 
     db.prepare(`
       SELECT ${janelaExpr} as janela, tipo_ativo, SUM(posicao_atual) as total
-      FROM analitico_rf WHERE vencimento IS NOT NULL AND tipo_ativo IS NOT NULL
+      FROM analitico_rf WHERE vencimento IS NOT NULL AND tipo_ativo IS NOT NULL${wa}
       GROUP BY janela, tipo_ativo
     `).all<{ janela: string; tipo_ativo: string; total: number }>(),
 
     db.prepare(`
       SELECT flag_marcacao, SUM(posicao_atual) as total, COUNT(*) as posicoes
-      FROM analitico_rf WHERE flag_marcacao IS NOT NULL
+      FROM analitico_rf WHERE flag_marcacao IS NOT NULL${wa}
       GROUP BY flag_marcacao
     `).all<{ flag_marcacao: string; total: number; posicoes: number }>(),
 
     db.prepare(`
       SELECT setor, produto, SUM(auc) as total, COUNT(DISTINCT id_cliente) as clientes
-      FROM analitico_rv WHERE setor IS NOT NULL AND auc IS NOT NULL
+      FROM analitico_rv WHERE setor IS NOT NULL AND auc IS NOT NULL${wa}
       GROUP BY setor, produto ORDER BY total DESC LIMIT 20
     `).all<{ setor: string; produto: string; total: number; clientes: number }>(),
 
     db.prepare(`
       SELECT ativo, setor, produto, SUM(auc) as total,
              COUNT(DISTINCT id_cliente) as clientes, AVG(variacao) as variacao
-      FROM analitico_rv WHERE ativo IS NOT NULL AND auc IS NOT NULL
+      FROM analitico_rv WHERE ativo IS NOT NULL AND auc IS NOT NULL${wa}
       GROUP BY ativo, setor, produto ORDER BY total DESC LIMIT 12
     `).all<{ ativo: string; setor: string; produto: string; total: number; clientes: number; variacao: number }>(),
 
@@ -746,13 +756,13 @@ app.get('/carteiras/visao', async (c) => {
       SELECT tipo, COUNT(*) as posicoes, SUM(posicao_atual) as total_atual,
              SUM(valor_compra) as total_compra, SUM(cupom_recebido) as total_cupom,
              COUNT(DISTINCT id_cliente) as clientes
-      FROM posicao_coe WHERE tipo IS NOT NULL
+      FROM posicao_coe WHERE tipo IS NOT NULL${wa}
       GROUP BY tipo ORDER BY total_atual DESC
     `).all<{ tipo: string; posicoes: number; total_atual: number; total_compra: number; total_cupom: number; clientes: number }>(),
 
     db.prepare(`
       SELECT indexador, SUM(custodia) as total, COUNT(*) as posicoes, COUNT(DISTINCT id_cliente) as clientes
-      FROM custodia_ld WHERE indexador IS NOT NULL
+      FROM custodia_ld WHERE indexador IS NOT NULL${wa}
       GROUP BY indexador ORDER BY total DESC
     `).all<{ indexador: string; total: number; posicoes: number; clientes: number }>(),
   ])

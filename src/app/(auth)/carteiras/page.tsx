@@ -113,13 +113,14 @@ function fVar(v: number): string {
 
 /* ─── Fetch ──────────────────────────────────────────────────────────────── */
 
-async function getVisao(email: string, role: string): Promise<VisaoPayload | null> {
+async function getVisao(email: string, role: string, equipe?: string): Promise<VisaoPayload | null> {
   try {
     const res = await apiFetch(`/performance/carteiras/visao`, {
-      next: { revalidate: 3600 },
+      cache: 'no-store',
       headers: {
         'X-User-Email': email,
         'X-User-Role': role,
+        'X-User-Equipe': equipe ?? '',
       },
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -286,7 +287,7 @@ function HBar({
 
 export default async function CarteirasPage() {
   const session = await requireSession()
-  const d = await getVisao(session.email, session.role)
+  const d = await getVisao(session.email, session.role, session.equipe)
 
   const totais = d?.totais ?? { rf: 0, rv: 0, coe: 0, liquidez: 0, total: 0 }
   const rfIdx = d?.rf.porIndexador ?? []
