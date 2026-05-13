@@ -1,37 +1,13 @@
+import { PageGreeting } from '../_components/PageGreeting'
 import { requireSession } from '@/lib/auth/session'
 
 export default async function RelatoriosPage() {
-  await requireSession()
+  const session = await requireSession()
 
   return (
     <div style={{ maxWidth: 1400 }}>
-      <div className="page-header">
-        <div>
-          <p
-            style={{
-              fontFamily: 'var(--f-mono)',
-              fontSize: 10,
-              letterSpacing: '.14em',
-              textTransform: 'uppercase',
-              color: 'var(--fg-faint)',
-              marginBottom: 4,
-            }}
-          >
-            Nobel Capital
-          </p>
-          <h1
-            style={{
-              fontFamily: 'var(--f-text)',
-              fontSize: 26,
-              fontWeight: 600,
-              color: 'var(--fg)',
-              letterSpacing: '-.02em',
-            }}
-          >
-            Relatórios
-          </h1>
-        </div>
-      </div>
+      <PageGreeting name={session.name} label="Nobel Capital" />
+
 
       <div
         style={{

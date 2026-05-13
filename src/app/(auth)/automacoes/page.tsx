@@ -1,20 +1,24 @@
+import { PageGreeting } from '../_components/PageGreeting'
 import { requireSession } from '@/lib/auth/session'
 
 export default async function AutomacoesPage() {
-  await requireSession()
+  const session = await requireSession()
   return (
-    <ComingSoon
-      title="Automações"
-      desc="Central de automações internas: robôs de coleta de dados, envio de relatórios e integração com sistemas XP."
-      icon="⚡"
-      items={[
-        'XPerformance — coleta automática de dados',
-        'Envio de relatórios mensais por e-mail',
-        'Integração com sistemas internos XP',
-        'Alertas de captação e resgates',
-        'Logs e monitoramento de execução',
-      ]}
-    />
+    <>
+      <PageGreeting name={session.name} />
+      <ComingSoon
+        title="Automações"
+        desc="Central de automações internas: robôs de coleta de dados, envio de relatórios e integração com sistemas XP."
+        icon="⚡"
+        items={[
+          'XPerformance — coleta automática de dados',
+          'Envio de relatórios mensais por e-mail',
+          'Integração com sistemas internos XP',
+          'Alertas de captação e resgates',
+          'Logs e monitoramento de execução',
+        ]}
+      />
+    </>
   )
 }
 

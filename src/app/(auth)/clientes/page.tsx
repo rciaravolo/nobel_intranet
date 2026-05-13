@@ -1,3 +1,4 @@
+import { PageGreeting } from '../_components/PageGreeting'
 import { apiFetch } from '@/lib/api/fetch'
 import { requireSession } from '@/lib/auth/session'
 import { type Cliente, ClientesTable } from './_components/ClientesTable'
@@ -111,23 +112,8 @@ export default async function ClientesPage() {
   return (
     <div style={{ maxWidth: 1400 }}>
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="page-header">
-        <div>
-          <p style={mono10}>Base de clientes</p>
-          <h1
-            style={{
-              fontFamily: 'var(--f-text)',
-              fontSize: 26,
-              fontWeight: 600,
-              color: 'var(--fg)',
-              letterSpacing: '-.02em',
-              marginTop: 4,
-            }}
-          >
-            Clientes
-          </h1>
-        </div>
-      </div>
+      <PageGreeting name={session.name} label="Base de clientes" />
+
 
       {/* ── KPI Cards ──────────────────────────────────────────────────── */}
       <div

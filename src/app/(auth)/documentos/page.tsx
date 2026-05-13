@@ -1,20 +1,24 @@
+import { PageGreeting } from '../_components/PageGreeting'
 import { requireSession } from '@/lib/auth/session'
 
 export default async function DocumentosPage() {
-  await requireSession()
+  const session = await requireSession()
   return (
-    <ComingSoon
-      title="Documentos"
-      desc="Repositório centralizado de documentos, contratos, formulários e materiais regulatórios da Nobel Capital."
-      icon="📁"
-      items={[
-        'Contratos e termos de adesão',
-        'Formulários ANBIMA e CVM',
-        'Materiais de suitability',
-        'Procurações e documentos PJ',
-        'Templates de proposta comercial',
-      ]}
-    />
+    <>
+      <PageGreeting name={session.name} />
+      <ComingSoon
+        title="Documentos"
+        desc="Repositório centralizado de documentos, contratos, formulários e materiais regulatórios da Nobel Capital."
+        icon="📁"
+        items={[
+          'Contratos e termos de adesão',
+          'Formulários ANBIMA e CVM',
+          'Materiais de suitability',
+          'Procurações e documentos PJ',
+          'Templates de proposta comercial',
+        ]}
+      />
+    </>
   )
 }
 

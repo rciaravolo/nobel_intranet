@@ -1,3 +1,4 @@
+import { PageGreeting } from '../_components/PageGreeting'
 import { apiFetch } from '@/lib/api/fetch'
 import { requireSession } from '@/lib/auth/session'
 
@@ -341,23 +342,8 @@ export default async function CarteirasPage() {
   return (
     <div style={{ maxWidth: 1400 }}>
       {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="page-header">
-        <div>
-          <p style={mono10}>Posição analítica</p>
-          <h1
-            style={{
-              fontFamily: 'var(--f-text)',
-              fontSize: 26,
-              fontWeight: 600,
-              color: 'var(--fg)',
-              letterSpacing: '-.02em',
-              marginTop: 4,
-            }}
-          >
-            Carteiras
-          </h1>
-        </div>
-      </div>
+      <PageGreeting name={session.name} label="Posição analítica" />
+
 
       {/* ── 4 KPI Cards ────────────────────────────────────────────────── */}
       <div

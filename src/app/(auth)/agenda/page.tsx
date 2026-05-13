@@ -1,3 +1,4 @@
+import { PageGreeting } from '../_components/PageGreeting'
 import { requireSession } from '@/lib/auth/session'
 
 /* ─── Tipos ─────────────────────────────────────────────────────────────── */
@@ -189,7 +190,7 @@ const HOUR_H = 64 // px por hora
 /* ─── Page ──────────────────────────────────────────────────────────────── */
 
 export default async function AgendaPage() {
-  await requireSession()
+  const session = await requireSession()
 
   // Semana atual dinâmica
   const today = new Date()
@@ -219,128 +220,7 @@ export default async function AgendaPage() {
 
   return (
     <div style={{ maxWidth: 1200 }}>
-      {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 28,
-        }}
-      >
-        <div>
-          <p style={{ fontSize: 12, color: 'var(--fg-faint)', marginBottom: 4 }}>
-            Semana de {weekLabel}
-          </p>
-          <h1
-            style={{
-              fontFamily: 'var(--f-text)',
-              fontSize: 24,
-              fontWeight: 600,
-              color: 'var(--fg)',
-              letterSpacing: '-.02em',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-            }}
-          >
-            Agenda
-            {source === 'outlook' && (
-              <span
-                style={{
-                  fontFamily: 'var(--f-mono)',
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                  color: '#059669',
-                  background: 'rgba(5,150,105,0.1)',
-                  padding: '3px 8px',
-                  borderRadius: 20,
-                }}
-              >
-                ● Outlook sincronizado
-              </span>
-            )}
-            {source === 'unconfigured' && (
-              <span
-                style={{
-                  fontFamily: 'var(--f-mono)',
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                  color: '#b45309',
-                  background: 'rgba(180,83,9,0.08)',
-                  padding: '3px 8px',
-                  borderRadius: 20,
-                }}
-              >
-                ⚠ Outlook não configurado
-              </span>
-            )}
-          </h1>
-        </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <div
-            style={{
-              display: 'flex',
-              gap: 1,
-              border: '1px solid var(--line)',
-              borderRadius: 6,
-              overflow: 'hidden',
-            }}
-          >
-            {['Semana', 'Mês'].map((v, i) => (
-              <button
-                key={v}
-                type="button"
-                style={{
-                  padding: '8px 16px',
-                  background: i === 0 ? 'var(--fg)' : 'var(--bg-elev)',
-                  border: 'none',
-                  fontSize: 12,
-                  fontWeight: 500,
-                  color: i === 0 ? 'var(--bg)' : 'var(--fg-mute)',
-                  cursor: 'pointer',
-                }}
-              >
-                {v}
-              </button>
-            ))}
-          </div>
-          <button
-            type="button"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 7,
-              padding: '9px 18px',
-              background: 'var(--c-gold)',
-              border: 'none',
-              borderRadius: 6,
-              fontSize: 12,
-              fontWeight: 600,
-              color: '#fff',
-              cursor: 'pointer',
-            }}
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              width="13"
-              height="13"
-              aria-hidden="true"
-            >
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Novo evento
-          </button>
-        </div>
-      </div>
+      <PageGreeting name={session.name} label={`Semana de ${weekLabel}`} />
 
       {source === 'unconfigured' && (
         <div
