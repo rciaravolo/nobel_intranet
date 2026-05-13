@@ -25,24 +25,10 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Build for Cloudflare Pages
+      - name: Build
         run: npm run pages:build
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
-
-      - name: Preparar worker para deploy
-        run: |
-          cp .open-next/worker.js .open-next/assets/_worker.js
-          cp -r .open-next/cloudflare .open-next/assets/
-          cp -r .open-next/middleware .open-next/assets/
-          cp -r .open-next/.build .open-next/assets/
-          cp -r .open-next/server-functions .open-next/assets/
-
-      - name: Verificar token Cloudflare
-        run: npx wrangler whoami
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Deploy Worker API
         run: cd server && npx wrangler deploy
@@ -51,14 +37,8 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Deploy Frontend Pages
-        run: |
-          echo "=== Verificando .open-next/assets ==="
-          ls -la .open-next/assets/ | head -10
-          echo ""
-          echo "=== Executando deploy ==="
-          npx wrangler pages deploy .open-next/assets --project-name=intra 2>&1
+      - name: Deploy Frontend
+        run: npx wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          WRANGLER_LOG: debug
