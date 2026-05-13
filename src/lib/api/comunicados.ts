@@ -3,7 +3,7 @@
  * Consome o Cloudflare Worker em NEXT_PUBLIC_API_URL.
  */
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? ''
+const BASE_URL = process.env.API_URL ?? ''
 
 export type ComunicadoCategoria = 'RH' | 'Produtos' | 'PJ2'
 

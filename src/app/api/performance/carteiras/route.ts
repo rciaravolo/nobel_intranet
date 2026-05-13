@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get('id')
   if (!id) return NextResponse.json({ error: 'id obrigatório' }, { status: 400 })
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+  const apiUrl = process.env.API_URL
   const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
 
   const res = await fetch(`${apiUrl}/performance/carteiras/cliente?id=${encodeURIComponent(id)}`, {

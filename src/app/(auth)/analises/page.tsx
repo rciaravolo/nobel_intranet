@@ -157,7 +157,7 @@ type FetchOpts = {
 }
 
 async function getOnepage(opts: FetchOpts): Promise<OnepagePayload | null> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+  const apiUrl = process.env.API_URL
   const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
   if (!apiUrl) return null
   try {
@@ -181,7 +181,7 @@ async function getOnepage(opts: FetchOpts): Promise<OnepagePayload | null> {
 }
 
 async function getMetas(opts: FetchOpts): Promise<MetasPayload | null> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+  const apiUrl = process.env.API_URL
   const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
   if (!apiUrl) return null
   try {
@@ -204,7 +204,7 @@ async function getMetas(opts: FetchOpts): Promise<MetasPayload | null> {
 }
 
 async function getHistorico(opts: FetchOpts): Promise<HistoricoPayload | null> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+  const apiUrl = process.env.API_URL
   const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
   if (!apiUrl) return null
   try {
@@ -234,7 +234,7 @@ type AssessoresPayload = {
 
 async function getAssessores(role: string, email: string): Promise<AssessoresPayload | null> {
   if (role !== 'admin' && role !== 'master') return null
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+  const apiUrl = process.env.API_URL
   const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
   if (!apiUrl) return null
   try {

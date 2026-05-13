@@ -27,8 +27,6 @@ jobs:
 
       - name: Build
         run: npm run pages:build
-        env:
-          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
 
       - name: Deploy Worker API
         run: cd server && npx wrangler deploy

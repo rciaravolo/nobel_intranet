@@ -64,7 +64,7 @@ async function getKpis(
   role: string,
   equipe: string | undefined,
 ): Promise<KpisPayload | null> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+  const apiUrl = process.env.API_URL
   const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
   if (!apiUrl) return null
   try {
@@ -86,7 +86,7 @@ async function getKpis(
 }
 
 async function getNoticias(): Promise<NoticiasPayload> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+  const apiUrl = process.env.API_URL
   if (!apiUrl) return { noticias: [], atualizadoEm: null as unknown as string }
   try {
     const res = await fetch(`${apiUrl}/noticias`, { next: { revalidate: 3600 } })

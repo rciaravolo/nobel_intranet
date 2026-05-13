@@ -5,7 +5,7 @@ import { TickerBar } from './_components/TickerBar'
 import { Topbar } from './_components/Topbar'
 
 async function getTicker() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+  const apiUrl = process.env.API_URL
   if (!apiUrl) return []
   try {
     const res = await fetch(`${apiUrl}/ticker`, { next: { revalidate: 3600 } })

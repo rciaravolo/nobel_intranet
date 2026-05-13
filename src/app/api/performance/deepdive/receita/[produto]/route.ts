@@ -22,7 +22,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prod
     return NextResponse.json({ error: 'produto inválido' }, { status: 400 })
   }
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+  const apiUrl = process.env.API_URL
   const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
 
   const sp = req.nextUrl.searchParams

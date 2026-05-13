@@ -73,7 +73,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   // Consulta a role do usuário na API do Worker
   // TODO: quando /v1/me/role estiver disponível no Worker, descomentar:
   // try {
-  //   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me/role`, {
+  //   const res = await fetch(`${process.env.API_URL}/me/role`, {
   //     headers: { 'Cf-Access-Jwt-Assertion': jwtAssertion },
   //     cache: 'no-store',
   //   })

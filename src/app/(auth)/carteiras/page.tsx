@@ -112,7 +112,7 @@ function fVar(v: number): string {
 /* ─── Fetch ──────────────────────────────────────────────────────────────── */
 
 async function getVisao(email: string, role: string): Promise<VisaoPayload | null> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL
+  const apiUrl = process.env.API_URL
   const secret = process.env.INTERNAL_API_SECRET ?? 'dev-perf-secret-2026'
   if (!apiUrl) return null
   try {
