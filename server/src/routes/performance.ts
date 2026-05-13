@@ -38,7 +38,7 @@ async function resolveFilter(
   // assessor (e legacy 'member')
   if (!email) return { type: 'denied' }
   const row = await db
-    .prepare('SELECT id_assessor FROM assessores WHERE mail_assessor = ?')
+    .prepare('SELECT id_assessor FROM assessores WHERE LOWER(mail_assessor) = LOWER(?)')
     .bind(email)
     .first<{ id_assessor: string }>()
   return row ? { type: 'assessor', id: row.id_assessor } : { type: 'denied' }
