@@ -3,7 +3,7 @@
 import type { SessionPayload } from '@/lib/auth/session'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 /* ─── Colors ──────────────────────────────────────────────────────────────── */
 const C = {
@@ -42,7 +42,7 @@ const NAV = [
       },
       {
         href: '/analises',
-        label: 'Análises',
+        label: 'Onepage',
         icon: (
           <svg
             aria-hidden="true"
@@ -134,8 +134,15 @@ interface Props {
 }
 
 export function Sidebar({ session }: Props) {
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return localStorage.getItem('sidebar-collapsed') === 'true'
+  })
   const pathname = usePathname()
+
+  useEffect(() => {
+    localStorage.setItem('sidebar-collapsed', String(collapsed))
+  }, [collapsed])
   const router = useRouter()
 
   const initials = session.name
@@ -215,12 +222,38 @@ export function Sidebar({ session }: Props) {
           </button>
         ) : (
           <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/logo-lockup-ivory.png"
-              alt="Nobel Capital"
-              style={{ height: 48, width: 'auto', display: 'block' }}
-            />
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logo-lockup-ivory.png"
+                alt="Nobel Capital"
+                style={{ height: 48, width: 'auto', display: 'block' }}
+              />
+              <button
+                type="button"
+                onClick={() => setCollapsed(true)}
+                title="Recolher menu"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  color: C.textFaint,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 4,
+                  marginTop: 4,
+                  transition: 'color .15s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = C.white }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = C.textFaint }}
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+            </div>
             {/* Gold gradient divider */}
             <div
               style={{
