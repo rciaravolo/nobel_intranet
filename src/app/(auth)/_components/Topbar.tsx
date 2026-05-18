@@ -14,6 +14,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/comunicados': 'Comunicados',
   '/automacoes': 'Automações',
   '/configuracoes': 'Configurações',
+  '/pnl': 'PnL',
 }
 
 const MONTHS = [

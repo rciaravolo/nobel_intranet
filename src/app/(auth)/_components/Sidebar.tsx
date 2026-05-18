@@ -18,7 +18,8 @@ const C = {
 }
 
 /* ─── Navigation config ───────────────────────────────────────────────────── */
-const NAV = [
+type NavGroup = { section: string; adminOnly?: boolean; items: { href: string; label: string; icon: React.ReactNode; badge?: number }[] }
+const NAV: NavGroup[] = [
   {
     section: 'Principal',
     items: [
@@ -100,6 +101,28 @@ const NAV = [
             strokeWidth="1.5"
           >
             <path d="M3 3h18v18H3z M3 9h18 M9 3v18" />
+          </svg>
+        ),
+      },
+    ],
+  },
+  {
+    section: 'Gerencial',
+    adminOnly: true,
+    items: [
+      {
+        href: '/pnl',
+        label: 'PnL',
+        icon: (
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
+            <path d="M3 3v18h18" />
+            <path d="M7 16l4-4 4 4 4-6" />
           </svg>
         ),
       },
@@ -269,7 +292,7 @@ export function Sidebar({ session }: Props) {
 
       {/* ── Nav ─────────────────────────────────────────────── */}
       <nav style={{ flex: 1, padding: '8px 12px', overflowY: 'auto', overflowX: 'hidden' }}>
-        {NAV.map((group, gi) => (
+        {NAV.filter((group) => !group.adminOnly || session.role === 'admin' || session.role === 'master').map((group, gi) => (
           <div key={group.section}>
             {!collapsed && (
               <p
