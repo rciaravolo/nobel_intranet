@@ -624,10 +624,10 @@ app.get('/clientes', async (c) => {
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
   const where = filter.type === 'all'
-    ? `WHERE b.cliente_nobel = 'Sim'`
+    ? ``
     : filter.type === 'assessor'
-    ? `WHERE p.id_assessor = '${filter.id}' AND b.cliente_nobel = 'Sim'`
-    : `WHERE p.id_assessor IN (SELECT id_assessor FROM assessores WHERE equipe = '${filter.equipe}') AND b.cliente_nobel = 'Sim'`
+    ? `WHERE p.id_assessor = '${filter.id}'`
+    : `WHERE p.id_assessor IN (SELECT id_assessor FROM assessores WHERE equipe = '${filter.equipe}')`
 
   const [clientesRows, statsRow] = await Promise.all([
     db.prepare(`
