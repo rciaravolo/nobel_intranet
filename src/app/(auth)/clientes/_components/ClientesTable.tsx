@@ -22,6 +22,20 @@ const PAGE_SIZE = 100
 
 /* ─── Formatters ─────────────────────────────────────────────────────────── */
 
+function faixaNet(v: number): string {
+  if (v < 300_000) return '0 – 300K'
+  if (v < 1_000_000) return '300K – 1MM'
+  if (v < 10_000_000) return '1MM – 10MM'
+  return '> 10MM'
+}
+
+const FAIXA_STYLE: Record<string, React.CSSProperties> = {
+  '0 – 300K':   { background: 'color-mix(in oklch, var(--color-b-500) 12%, var(--bg-elev))', color: 'var(--color-b-500)' },
+  '300K – 1MM': { background: 'color-mix(in oklch, var(--c-gold) 15%, var(--bg-elev))',      color: 'var(--c-gold)' },
+  '1MM – 10MM': { background: 'color-mix(in oklch, #10B981 12%, var(--bg-elev))',             color: '#10B981' },
+  '> 10MM':     { background: 'color-mix(in oklch, #8B5CF6 12%, var(--bg-elev))',             color: '#8B5CF6' },
+}
+
 function fBRL(v: number): string {
   if (v >= 1_000_000_000) return `R$ ${(v / 1_000_000_000).toFixed(2).replace('.', ',')}B`
   if (v >= 1_000_000) return `R$ ${(v / 1_000_000).toFixed(1).replace('.', ',')}M`
@@ -75,6 +89,7 @@ function exportCSV(clientes: Cliente[], isAdmin: boolean) {
     'Tipo',
     'Status',
     'AUM (R$)',
+    'Faixa NET',
     'Suitability',
     ...(isAdmin ? ['Assessor', 'Equipe'] : []),
   ]
@@ -86,6 +101,7 @@ function exportCSV(clientes: Cliente[], isAdmin: boolean) {
     c.tipo_pessoa,
     c.status,
     c.net_em_m.toFixed(2).replace('.', ','),
+    faixaNet(c.net_em_m),
     c.suitability ?? '',
     ...(isAdmin ? [c.nome_assessor ?? '', c.equipe ?? ''] : []),
   ])
@@ -188,7 +204,7 @@ export function ClientesTable({ clientes, isAdmin }: Props) {
     { key: 'pj', label: 'PJ' },
   ]
 
-  const COLS = ['Cliente', 'Tipo', 'Status', 'AUM', 'Suitability', ...(isAdmin ? ['Assessor'] : [])]
+  const COLS = ['Cliente', 'Tipo', 'Status', 'AUM', 'Faixa NET', 'Suitability', ...(isAdmin ? ['Assessor'] : [])]
 
   return (
     <div
@@ -477,6 +493,21 @@ export function ClientesTable({ clientes, isAdmin }: Props) {
                       }}
                     >
                       {c.net_em_m > 0 ? fBRL(c.net_em_m) : '—'}
+                    </span>
+                  </td>
+
+                  {/* Faixa NET */}
+                  <td style={{ padding: '10px 16px' }}>
+                    <span
+                      style={{
+                        ...mono9,
+                        fontWeight: 600,
+                        padding: '2px 8px',
+                        borderRadius: 4,
+                        ...FAIXA_STYLE[faixaNet(c.net_em_m)],
+                      }}
+                    >
+                      {faixaNet(c.net_em_m)}
                     </span>
                   </td>
 

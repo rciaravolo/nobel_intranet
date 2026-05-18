@@ -10,6 +10,8 @@ import { BlocoReceita } from './_components/BlocoReceita'
 
 type ReceitaProduto = { produto: string; receita: number }
 
+type FaixaNet = { label: string; clientes: number; aum: number }
+
 type OnepagePayload = {
   dataRef: string | null
   mesLabel: string
@@ -17,6 +19,7 @@ type OnepagePayload = {
   clientes: { ativos: number; inativos: number }
   captacao: { bruta: number; resgates: number; liquida: number }
   receita: { total: number; porProduto: ReceitaProduto[] }
+  faixasNet: FaixaNet[]
 }
 
 type MetaProduto = {
@@ -295,6 +298,89 @@ const iconBox = (color: string): React.CSSProperties => ({
   justifyContent: 'center',
   flexShrink: 0,
 })
+
+/* ─── Componente: Custódia por Faixa NET ─────────────────────────────────── */
+
+function BlocoFaixasNet({ faixas }: { faixas: FaixaNet[] }) {
+  const total = faixas.reduce((acc, f) => ({ clientes: acc.clientes + f.clientes, aum: acc.aum + f.aum }), { clientes: 0, aum: 0 })
+
+  const thStyle: React.CSSProperties = {
+    fontFamily: 'var(--f-mono)',
+    fontSize: 10,
+    fontWeight: 600,
+    color: 'var(--fg-faint)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.12em',
+    padding: '8px 16px',
+    borderBottom: '1px solid var(--line)',
+    background: 'var(--bg-deep)',
+    whiteSpace: 'nowrap',
+  }
+
+  const tdStyle: React.CSSProperties = {
+    fontFamily: 'var(--f-mono)',
+    fontSize: 12,
+    padding: '9px 16px',
+    borderBottom: '1px solid var(--line)',
+    color: 'var(--fg)',
+    fontFeatureSettings: '"tnum"',
+  }
+
+  const FAIXA_COLORS = ['var(--color-b-500)', 'var(--c-gold)', '#10B981', '#8B5CF6']
+
+  return (
+    <div style={{ background: 'var(--bg-elev)', borderRadius: 12, border: '1px solid var(--line)', boxShadow: 'var(--e-float)', overflow: 'hidden', marginBottom: 20 }}>
+      <div style={{ padding: '13px 16px', borderBottom: '1px solid var(--line)', background: 'var(--bg-deep)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontFamily: 'var(--f-text)', fontSize: 13, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em' }}>
+          Custódia por Faixa NET
+        </span>
+        <span style={{ fontFamily: 'var(--f-mono)', fontSize: 10, color: 'var(--fg-faint)', letterSpacing: '.08em', textTransform: 'uppercase' }}>
+          {total.clientes} clientes · {fBRL(total.aum)}
+        </span>
+      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr>
+            <th style={{ ...thStyle, textAlign: 'left' }}>Faixa</th>
+            <th style={{ ...thStyle, textAlign: 'right' }}>Clientes</th>
+            <th style={{ ...thStyle, textAlign: 'right' }}>Custódia</th>
+            <th style={{ ...thStyle, textAlign: 'right' }}>% AUM</th>
+          </tr>
+        </thead>
+        <tbody>
+          {faixas.map((f, i) => {
+            const isLast = i === faixas.length - 1
+            const pct = total.aum > 0 ? (f.aum / total.aum) * 100 : 0
+            return (
+              <tr key={f.label}>
+                <td style={{ ...tdStyle, borderBottom: isLast ? 'none' : '1px solid var(--line)', textAlign: 'left' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: 2, background: FAIXA_COLORS[i], flexShrink: 0 }} />
+                    <span style={{ fontFamily: 'var(--f-text)', fontSize: 13, fontWeight: 500 }}>{f.label}</span>
+                  </div>
+                </td>
+                <td style={{ ...tdStyle, borderBottom: isLast ? 'none' : '1px solid var(--line)', textAlign: 'right', fontWeight: 600 }}>
+                  {f.clientes.toLocaleString('pt-BR')}
+                </td>
+                <td style={{ ...tdStyle, borderBottom: isLast ? 'none' : '1px solid var(--line)', textAlign: 'right', fontWeight: 600 }}>
+                  {fBRL(f.aum)}
+                </td>
+                <td style={{ ...tdStyle, borderBottom: isLast ? 'none' : '1px solid var(--line)', textAlign: 'right' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
+                    <div style={{ width: 60, height: 4, borderRadius: 2, background: 'var(--bg-deep)', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${pct}%`, background: FAIXA_COLORS[i], borderRadius: 2 }} />
+                    </div>
+                    <span style={{ color: 'var(--fg-mute)', minWidth: 36 }}>{pct.toFixed(1).replace('.', ',')}%</span>
+                  </div>
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    </div>
+  )
+}
 
 /* ─── Page ───────────────────────────────────────────────────────────────── */
 
@@ -670,6 +756,7 @@ export default async function AnalisesPage({
   const clientes = data?.clientes ?? { ativos: 0, inativos: 0 }
   const captacao = data?.captacao ?? { bruta: 0, resgates: 0, liquida: 0 }
   const receita = data?.receita ?? { total: 0, porProduto: [] }
+  const faixasNet = data?.faixasNet ?? []
 
   const histRows = hist?.historico ?? []
   const totais = hist?.totais
@@ -685,8 +772,10 @@ export default async function AnalisesPage({
       {/* ── Filtros (admin / master) ── */}
       {canFilter && (
         <AnalisesFilters
-          equipes={assessoresData?.equipes ?? []}
-          assessores={assessoresData?.assessores ?? []}
+          equipes={(assessoresData?.equipes ?? []).slice().sort((a, b) => a.localeCompare(b, 'pt-BR'))}
+          assessores={(assessoresData?.assessores ?? []).slice().sort((a, b) =>
+            (a.nome_assessor ?? a.id_assessor).localeCompare(b.nome_assessor ?? b.id_assessor, 'pt-BR'),
+          )}
         />
       )}
 
@@ -848,6 +937,9 @@ export default async function AnalisesPage({
       >
         {/* Coluna principal */}
         <div>
+          {/* Custódia por Faixa NET */}
+          {faixasNet.length > 0 && <BlocoFaixasNet faixas={faixasNet} />}
+
           {/* Captação — key força remount ao mudar filtro, limpando cache */}
           <BlocoCaptacao
             key={`captacao-${filterType ?? ''}-${filterValue ?? ''}`}

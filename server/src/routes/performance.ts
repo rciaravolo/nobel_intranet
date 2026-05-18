@@ -248,7 +248,7 @@ app.get('/onepage', async (c) => {
 
   const f = buildAndFilter(filter)
 
-  const [aumRow, clientesRow, capRow, receitaRows] = await Promise.all([
+  const [aumRow, clientesRow, capRow, receitaRows, faixasRow] = await Promise.all([
     db
       .prepare(`SELECT SUM(net_em_m) AS aum, MAX(data_posicao) AS data_ref FROM tb_positivador${buildWhereFilter(filter)}`)
       .first<{ aum: number; data_ref: string }>(),
@@ -284,6 +284,18 @@ app.get('/onepage', async (c) => {
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_fundos${buildWhereFilter(filter)}`).first<{ v: number }>(),
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_prev${buildWhereFilter(filter)}`).first<{ v: number }>(),
     ]),
+    db.prepare(`
+      SELECT
+        COUNT(CASE WHEN net_em_m < 300000 THEN 1 END) AS cnt_a,
+        COUNT(CASE WHEN net_em_m >= 300000 AND net_em_m < 1000000 THEN 1 END) AS cnt_b,
+        COUNT(CASE WHEN net_em_m >= 1000000 AND net_em_m < 10000000 THEN 1 END) AS cnt_c,
+        COUNT(CASE WHEN net_em_m >= 10000000 THEN 1 END) AS cnt_d,
+        COALESCE(SUM(CASE WHEN net_em_m < 300000 THEN net_em_m END), 0) AS aum_a,
+        COALESCE(SUM(CASE WHEN net_em_m >= 300000 AND net_em_m < 1000000 THEN net_em_m END), 0) AS aum_b,
+        COALESCE(SUM(CASE WHEN net_em_m >= 1000000 AND net_em_m < 10000000 THEN net_em_m END), 0) AS aum_c,
+        COALESCE(SUM(CASE WHEN net_em_m >= 10000000 THEN net_em_m END), 0) AS aum_d
+      FROM tb_positivador${buildWhereFilter(filter)}
+    `).first<{ cnt_a: number; cnt_b: number; cnt_c: number; cnt_d: number; aum_a: number; aum_b: number; aum_c: number; aum_d: number }>(),
   ])
 
   const mesLabel = new Date()
@@ -321,6 +333,12 @@ app.get('/onepage', async (c) => {
         total:      receitaTotal,
         porProduto,
       },
+      faixasNet: [
+        { label: '0 – 300K',   clientes: faixasRow?.cnt_a ?? 0, aum: faixasRow?.aum_a ?? 0 },
+        { label: '300K – 1MM', clientes: faixasRow?.cnt_b ?? 0, aum: faixasRow?.aum_b ?? 0 },
+        { label: '1MM – 10MM', clientes: faixasRow?.cnt_c ?? 0, aum: faixasRow?.aum_c ?? 0 },
+        { label: '> 10MM',     clientes: faixasRow?.cnt_d ?? 0, aum: faixasRow?.aum_d ?? 0 },
+      ],
     },
   })
 })
