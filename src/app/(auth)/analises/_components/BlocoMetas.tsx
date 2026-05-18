@@ -102,7 +102,7 @@ const SINAL_LABEL: Record<Sinal, string> = {
 /* ─── Estilos base ───────────────────────────────────────────────────────── */
 
 const th: React.CSSProperties = {
-  fontSize: 11,
+  fontSize: 12,
   fontWeight: 700,
   color: 'var(--fg-faint)',
   fontFamily: 'var(--f-mono)',
@@ -117,7 +117,7 @@ const th: React.CSSProperties = {
 const thLeft: React.CSSProperties = { ...th, textAlign: 'left' }
 
 const td: React.CSSProperties = {
-  fontSize: 12,
+  fontSize: 13,
   padding: '9px 10px',
   textAlign: 'right',
   fontFamily: 'var(--f-mono)',

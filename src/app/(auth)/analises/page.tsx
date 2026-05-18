@@ -306,7 +306,7 @@ function BlocoFaixasNet({ faixas }: { faixas: FaixaNet[] }) {
 
   const thStyle: React.CSSProperties = {
     fontFamily: 'var(--f-mono)',
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: 600,
     color: 'var(--fg-faint)',
     textTransform: 'uppercase',
@@ -319,7 +319,7 @@ function BlocoFaixasNet({ faixas }: { faixas: FaixaNet[] }) {
 
   const tdStyle: React.CSSProperties = {
     fontFamily: 'var(--f-mono)',
-    fontSize: 12,
+    fontSize: 13,
     padding: '9px 16px',
     borderBottom: '1px solid var(--line)',
     color: 'var(--fg)',
@@ -415,7 +415,7 @@ function HistTable({
 
   const thBase: React.CSSProperties = {
     fontFamily: 'var(--f-mono)',
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: 600,
     color: 'var(--fg-faint)',
     textTransform: 'uppercase',
@@ -429,7 +429,7 @@ function HistTable({
 
   const tdBase: React.CSSProperties = {
     fontFamily: 'var(--f-mono)',
-    fontSize: 12,
+    fontSize: 13,
     padding: '8px 12px',
     textAlign: 'right',
     color: 'var(--fg)',

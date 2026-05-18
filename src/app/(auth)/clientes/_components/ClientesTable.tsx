@@ -169,7 +169,7 @@ export function ClientesTable({ clientes, isAdmin }: Props) {
 
   const mono9: React.CSSProperties = {
     fontFamily: 'var(--f-mono)',
-    fontSize: 9,
+    fontSize: 10,
     letterSpacing: '.12em',
     textTransform: 'uppercase',
   }
