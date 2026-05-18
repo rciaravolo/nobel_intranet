@@ -356,16 +356,16 @@ export function BlocoMetas({ dados, compact = false }: Props) {
                       marginBottom: 5,
                     }}
                   >
-                    <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--fg)' }}>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--fg)' }}>
                       {p.label}
                     </span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: cor }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: cor }}>
                         {fPct(p.pctAtingido)}
                       </span>
                       <span
                         style={{
-                          fontSize: 9,
+                          fontSize: 10,
                           fontWeight: 700,
                           padding: '1px 6px',
                           borderRadius: 'var(--r-pill)',
@@ -398,16 +398,16 @@ export function BlocoMetas({ dados, compact = false }: Props) {
                       }}
                     />
                   </div>
-                  {/* Sub-linha: realizado / meta | pace */}
+                  {/* Sub-linha: realizado / meta | projeção */}
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 10, color: 'var(--fg-mute)' }}>
+                    <span style={{ fontSize: 11, color: 'var(--fg-mute)' }}>
                       {fBRL(p.realizado)}{' '}
                       <span style={{ color: 'var(--fg-faint)' }}>
                         / {p.meta > 0 ? fBRL(p.meta) : '—'}
                       </span>
                     </span>
-                    {p.realizado > 0 && (
-                      <span style={{ fontSize: 10, color: 'var(--fg-faint)' }}>
+                    {p.realizado > 0 && p.slug !== 'fundos' && p.slug !== 'previdencia' && (
+                      <span style={{ fontSize: 11, color: 'var(--fg-faint)' }}>
                         proj.{' '}
                         <span style={{ color: cor, fontWeight: 600 }}>{fBRL(p.projecao)}</span>
                       </span>
