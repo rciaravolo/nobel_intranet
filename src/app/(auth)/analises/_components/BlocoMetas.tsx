@@ -164,7 +164,7 @@ export function BlocoMetas({ dados, compact = false }: Props) {
         </div>
         <div>
           <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg)', marginBottom: 3 }}>
-            Metas — {mesLabel(dados.mesISO)}
+            Metas Produtos
           </p>
           <p style={{ fontSize: 12, color: 'var(--fg-mute)' }}>
             Configure os valores em{' '}
@@ -226,7 +226,7 @@ export function BlocoMetas({ dados, compact = false }: Props) {
                 letterSpacing: '-.01em',
               }}
             >
-              Metas — {mesLabel(dados.mesISO)}
+              Meta Produtos
             </span>
             <span style={{ fontSize: 11, color: 'var(--fg-faint)' }}>
               {dias.passados}/{dias.total} dias úteis
@@ -464,7 +464,7 @@ export function BlocoMetas({ dados, compact = false }: Props) {
               letterSpacing: '-.01em',
             }}
           >
-            Metas — {mesLabel(dados.mesISO)}
+            Meta Produtos
           </span>
           <span style={{ fontSize: 11, color: 'var(--fg-faint)' }}>
             {dias.passados} dias úteis passados · {dias.restantes} restantes · {dias.total} total
