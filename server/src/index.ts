@@ -6,6 +6,7 @@ import comunicadosRouter from './routes/comunicados'
 import noticiasRouter, { KV_KEY as NOTICIAS_KV_KEY } from './routes/noticias'
 import tickerRouter, { TICKER_KV_KEY } from './routes/ticker'
 import performanceRouter from './routes/performance'
+import pnlRouter from './routes/pnl'
 import { fetchAllNews } from './lib/rss'
 import { fetchAllTickers } from './lib/ticker'
 
@@ -38,6 +39,7 @@ app.route('/comunicados', comunicadosRouter)
 app.route('/noticias', noticiasRouter)
 app.route('/ticker', tickerRouter)
 app.route('/performance', performanceRouter)
+app.route('/pnl', pnlRouter)
 
 // ---------------------------------------------------------------------------
 // 404 catch-all
