@@ -134,39 +134,39 @@ app.get('/receita-equipes', async (c) => {
   const brt = new Date(Date.now() - 3 * 60 * 60 * 1000)
   const mesCol = MES_COLS[brt.getUTCMonth()]!
 
-  const [metaRows, receitaRows] = await Promise.all([
+  const TABELAS = [
+    'receita_rv', 'receita_rf', 'receita_coe', 'receita_cambio',
+    'receita_feefixo', 'receita_seguros', 'receita_consorcio', 'receita_dominion',
+    'receita_oferta_fundos', 'receita_fundos', 'receita_prev',
+  ]
+
+  const [metaRows, ...receitaResults] = await Promise.all([
     db.prepare(`
       SELECT equipe, ${mesCol} AS meta
       FROM   tb_metas_times
       WHERE  equipe IN ${EQUIPES_SQL}
     `).all<{ equipe: string; meta: number | null }>(),
-
-    db.prepare(`
-      SELECT a.equipe, SUM(r.receita) AS total
-      FROM (
-        SELECT id_assessor, receita FROM receita_rv
-        UNION ALL SELECT id_assessor, receita FROM receita_rf
-        UNION ALL SELECT id_assessor, receita FROM receita_coe
-        UNION ALL SELECT id_assessor, receita FROM receita_cambio
-        UNION ALL SELECT id_assessor, receita FROM receita_feefixo
-        UNION ALL SELECT id_assessor, receita FROM receita_seguros
-        UNION ALL SELECT id_assessor, receita FROM receita_consorcio
-        UNION ALL SELECT id_assessor, receita FROM receita_dominion
-        UNION ALL SELECT id_assessor, receita FROM receita_oferta_fundos
-        UNION ALL SELECT id_assessor, receita FROM receita_fundos
-        UNION ALL SELECT id_assessor, receita FROM receita_prev
-      ) r
-      JOIN assessores a ON r.id_assessor = a.id_assessor
-      WHERE a.equipe IN ${EQUIPES_SQL}
-      GROUP BY a.equipe
-    `).all<{ equipe: string; total: number }>(),
+    ...TABELAS.map((tabela) =>
+      db.prepare(`
+        SELECT a.equipe, SUM(r.receita) AS receita
+        FROM   ${tabela} r
+        JOIN   assessores a ON r.id_assessor = a.id_assessor
+        WHERE  a.equipe IN ${EQUIPES_SQL}
+        GROUP  BY a.equipe
+      `).all<{ equipe: string; receita: number }>()
+    ),
   ])
 
   const metaMap:      Record<string, number> = {}
   const totalReceita: Record<string, number> = {}
 
-  for (const r of metaRows.results)   metaMap[r.equipe]      = r.meta  ?? 0
-  for (const r of receitaRows.results) totalReceita[r.equipe] = r.total ?? 0
+  for (const r of metaRows.results) metaMap[r.equipe] = r.meta ?? 0
+
+  for (const res of receitaResults) {
+    for (const r of res.results) {
+      totalReceita[r.equipe] = (totalReceita[r.equipe] ?? 0) + r.receita
+    }
+  }
 
   const grandTotalReceita = Object.values(totalReceita).reduce((s, v) => s + v, 0)
   const grandTotalMeta    = Object.values(metaMap).reduce((s, v) => s + v, 0)
