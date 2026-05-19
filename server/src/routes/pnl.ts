@@ -11,19 +11,6 @@ type Equipe = (typeof EQUIPES)[number]
 
 const EQUIPES_SQL = `('SMART','PRIVATE','RIO PRETO','BRAVO')`
 
-const PRODUTOS = [
-  { slug: 'rv',            tabela: 'receita_rv',            label: 'Renda Variável'   },
-  { slug: 'rf',            tabela: 'receita_rf',            label: 'Renda Fixa'       },
-  { slug: 'coe',           tabela: 'receita_coe',           label: 'COE'              },
-  { slug: 'cambio',        tabela: 'receita_cambio',        label: 'Câmbio'           },
-  { slug: 'feefixo',       tabela: 'receita_feefixo',       label: 'Fee Fixo'         },
-  { slug: 'seguros',       tabela: 'receita_seguros',       label: 'Seguros'          },
-  { slug: 'consorcio',     tabela: 'receita_consorcio',     label: 'Consórcio'        },
-  { slug: 'dominion',      tabela: 'receita_dominion',      label: 'Dominion'         },
-  { slug: 'oferta_fundos', tabela: 'receita_oferta_fundos', label: 'Oferta de Fundos' },
-  { slug: 'fundos',        tabela: 'receita_fundos',        label: 'Fundos'           },
-  { slug: 'previdencia',   tabela: 'receita_prev',          label: 'Previdência'      },
-] as const
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>()
 
@@ -147,49 +134,46 @@ app.get('/receita-equipes', async (c) => {
   const brt = new Date(Date.now() - 3 * 60 * 60 * 1000)
   const mesCol = MES_COLS[brt.getUTCMonth()]!
 
-  const [metaRows, ...receitaResults] = await Promise.all([
+  const [metaRows, receitaRows] = await Promise.all([
     db.prepare(`
       SELECT equipe, ${mesCol} AS meta
       FROM   tb_metas_times
       WHERE  equipe IN ${EQUIPES_SQL}
     `).all<{ equipe: string; meta: number | null }>(),
-    ...PRODUTOS.map((p) =>
-      db.prepare(`
-        SELECT a.equipe, SUM(r.receita) AS receita
-        FROM   ${p.tabela} r
-        JOIN   assessores a ON r.id_assessor = a.id_assessor
-        WHERE  a.equipe IN ${EQUIPES_SQL}
-        GROUP  BY a.equipe
-      `).all<{ equipe: string; receita: number }>()
-    ),
+
+    db.prepare(`
+      SELECT a.equipe, SUM(r.receita) AS total
+      FROM (
+        SELECT id_assessor, receita FROM receita_rv
+        UNION ALL SELECT id_assessor, receita FROM receita_rf
+        UNION ALL SELECT id_assessor, receita FROM receita_coe
+        UNION ALL SELECT id_assessor, receita FROM receita_cambio
+        UNION ALL SELECT id_assessor, receita FROM receita_feefixo
+        UNION ALL SELECT id_assessor, receita FROM receita_seguros
+        UNION ALL SELECT id_assessor, receita FROM receita_consorcio
+        UNION ALL SELECT id_assessor, receita FROM receita_dominion
+        UNION ALL SELECT id_assessor, receita FROM receita_oferta_fundos
+        UNION ALL SELECT id_assessor, receita FROM receita_fundos
+        UNION ALL SELECT id_assessor, receita FROM receita_prev
+      ) r
+      JOIN assessores a ON r.id_assessor = a.id_assessor
+      WHERE a.equipe IN ${EQUIPES_SQL}
+      GROUP BY a.equipe
+    `).all<{ equipe: string; total: number }>(),
   ])
 
-  const metaMap: Record<string, number> = {}
-  for (const r of metaRows.results) metaMap[r.equipe] = r.meta ?? 0
-
-  const produtos = PRODUTOS.map((p, i) => {
-    const rows    = receitaResults[i]!.results
-    const receita: Record<string, number> = {}
-    let   total   = 0
-    for (const r of rows) {
-      receita[r.equipe] = r.receita
-      total += r.receita
-    }
-    return { slug: p.slug, label: p.label, receita, total }
-  })
-
-  // Receita total por equipe
+  const metaMap:      Record<string, number> = {}
   const totalReceita: Record<string, number> = {}
-  for (const equipe of EQUIPES) {
-    totalReceita[equipe] = produtos.reduce((s, p) => s + (p.receita[equipe] ?? 0), 0)
-  }
+
+  for (const r of metaRows.results)   metaMap[r.equipe]      = r.meta  ?? 0
+  for (const r of receitaRows.results) totalReceita[r.equipe] = r.total ?? 0
+
   const grandTotalReceita = Object.values(totalReceita).reduce((s, v) => s + v, 0)
   const grandTotalMeta    = Object.values(metaMap).reduce((s, v) => s + v, 0)
 
   return c.json({
     data: {
       equipes: EQUIPES as readonly string[],
-      produtos,
       metas: metaMap,
       totalReceita,
       grandTotalReceita,

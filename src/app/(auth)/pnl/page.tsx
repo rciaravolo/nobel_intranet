@@ -27,16 +27,8 @@ type CapPayload =
       total: EquipeCapItem & { equipe: 'Total' }
     }
 
-type ReceitaProduto = {
-  slug: string
-  label: string
-  receita: Record<string, number>
-  total: number
-}
-
 type ReceitaPayload = {
   equipes: string[]
-  produtos: ReceitaProduto[]
   metas: Record<string, number>
   totalReceita: Record<string, number>
   grandTotalReceita: number
@@ -403,21 +395,33 @@ function TabelaCaptacao({ dados }: { dados: CapPayload }) {
   )
 }
 
-/* ─── Tabela 2: Receita por Produto × Equipe ─────────────────────────────── */
+/* ─── Tabela 2: Receita por Equipe vs Meta ───────────────────────────────── */
 
 function TabelaReceita({ dados }: { dados: ReceitaPayload }) {
-  const { equipes, produtos, metas, totalReceita, grandTotalReceita, grandTotalMeta } = dados
+  const { equipes, metas, totalReceita, grandTotalReceita, grandTotalMeta } = dados
 
-  // Filtra produtos com pelo menos uma equipe com receita > 0
-  const produtosAtivos = produtos.filter(
-    (p) => equipes.some((e) => (p.receita[e] ?? 0) > 0)
-  )
+  const ROWS = [
+    {
+      label:    'Receita MTD',
+      getValue: (e: string) => fBRL(totalReceita[e] ?? 0),
+      getTotal: () => fBRL(grandTotalReceita),
+      bold:     true,
+      color:    (e: string) => (totalReceita[e] ?? 0) < 0 ? 'var(--color-negative)' : 'var(--fg)',
+    },
+    {
+      label:    'Meta Mensal',
+      getValue: (e: string) => fBRL(metas[e] ?? 0),
+      getTotal: () => fBRL(grandTotalMeta),
+      bold:     false,
+      color:    () => 'var(--fg-mute)',
+    },
+  ]
 
   return (
     <div style={cardWrap}>
       <div style={cardHeader}>
         <span style={{ fontFamily: 'var(--f-text)', fontSize: 13, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em' }}>
-          Receita por Produto × Equipe
+          Receita por Equipe
         </span>
         <span style={{ fontFamily: 'var(--f-mono)', fontSize: 10, color: 'var(--fg-faint)', letterSpacing: '.04em', textTransform: 'uppercase' }}>
           MTD — todos os produtos
@@ -428,19 +432,11 @@ function TabelaReceita({ dados }: { dados: ReceitaPayload }) {
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
-              <th style={{ ...thBase, textAlign: 'left' }}>Produto</th>
+              <th style={{ ...thBase, textAlign: 'left' }}> </th>
               {equipes.map((e) => (
                 <th key={e} style={{ ...thBase, textAlign: 'right' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 6 }}>
-                    <div
-                      style={{
-                        width:        6,
-                        height:       6,
-                        borderRadius: 2,
-                        background:   EQUIPE_COLORS[e] ?? 'var(--fg-faint)',
-                        flexShrink:   0,
-                      }}
-                    />
+                    <div style={{ width: 6, height: 6, borderRadius: 2, background: EQUIPE_COLORS[e] ?? 'var(--fg-faint)', flexShrink: 0 }} />
                     {e}
                   </div>
                 </th>
@@ -449,85 +445,24 @@ function TabelaReceita({ dados }: { dados: ReceitaPayload }) {
             </tr>
           </thead>
           <tbody>
-            {produtosAtivos.map((p, i) => {
-              const isLast = i === produtosAtivos.length - 1
-              return (
-                <tr key={p.slug}>
-                  <td
-                    style={{
-                      ...tdBase,
-                      textAlign:    'left',
-                      fontFamily:   'var(--f-text)',
-                      fontWeight:   500,
-                      fontSize:     13,
-                      borderBottom: isLast ? 'none' : '1px solid var(--line)',
-                    }}
-                  >
-                    {p.label}
-                  </td>
-                  {equipes.map((e) => {
-                    const v = p.receita[e] ?? 0
-                    return (
-                      <td
-                        key={e}
-                        style={{
-                          ...tdBase,
-                          textAlign:    'right',
-                          borderBottom: isLast ? 'none' : '1px solid var(--line)',
-                          color:        v === 0 ? 'var(--fg-faint)' : 'var(--fg)',
-                          fontWeight:   v > 0 ? 600 : 400,
-                        }}
-                      >
-                        {v === 0 ? '—' : fBRL(v)}
-                      </td>
-                    )
-                  })}
-                  <td
-                    style={{
-                      ...tdBase,
-                      textAlign:    'right',
-                      fontWeight:   700,
-                      borderBottom: isLast ? 'none' : '1px solid var(--line)',
-                    }}
-                  >
-                    {p.total > 0 ? fBRL(p.total) : '—'}
-                  </td>
-                </tr>
-              )
-            })}
-
-            {/* Total Receita */}
-            <tr style={{ background: 'var(--bg-deep)', borderTop: '2px solid var(--line-strong)' }}>
-              <td style={{ ...tdBase, textAlign: 'left', fontFamily: 'var(--f-text)', fontWeight: 700, borderBottom: '1px solid var(--line)' }}>
-                Total Receita
-              </td>
-              {equipes.map((e) => (
-                <td key={e} style={{ ...tdBase, textAlign: 'right', fontWeight: 700, borderBottom: '1px solid var(--line)' }}>
-                  {fBRL(totalReceita[e] ?? 0)}
+            {ROWS.map((row, i) => (
+              <tr key={row.label}>
+                <td style={{ ...tdBase, textAlign: 'left', fontFamily: 'var(--f-text)', fontWeight: row.bold ? 700 : 500, fontSize: 13 }}>
+                  {row.label}
                 </td>
-              ))}
-              <td style={{ ...tdBase, textAlign: 'right', fontWeight: 700, borderBottom: '1px solid var(--line)' }}>
-                {fBRL(grandTotalReceita)}
-              </td>
-            </tr>
-
-            {/* Meta */}
-            <tr style={{ background: 'var(--bg-deep)' }}>
-              <td style={{ ...tdBase, textAlign: 'left', fontFamily: 'var(--f-text)', fontWeight: 600, color: 'var(--fg-mute)', borderBottom: '1px solid var(--line)' }}>
-                Meta Mensal
-              </td>
-              {equipes.map((e) => (
-                <td key={e} style={{ ...tdBase, textAlign: 'right', color: 'var(--fg-mute)', borderBottom: '1px solid var(--line)' }}>
-                  {fBRL(metas[e] ?? 0)}
+                {equipes.map((e) => (
+                  <td key={e} style={{ ...tdBase, textAlign: 'right', fontWeight: row.bold ? 700 : 400, color: row.color(e) }}>
+                    {row.getValue(e)}
+                  </td>
+                ))}
+                <td style={{ ...tdBase, textAlign: 'right', fontWeight: row.bold ? 700 : 400, color: row.color('') }}>
+                  {row.getTotal()}
                 </td>
-              ))}
-              <td style={{ ...tdBase, textAlign: 'right', color: 'var(--fg-mute)', borderBottom: '1px solid var(--line)' }}>
-                {fBRL(grandTotalMeta)}
-              </td>
-            </tr>
+              </tr>
+            ))}
 
             {/* % Atingido */}
-            <tr style={{ background: 'var(--bg-deep)' }}>
+            <tr style={{ background: 'var(--bg-deep)', borderTop: '1px solid var(--line-strong)' }}>
               <td style={{ ...tdBase, textAlign: 'left', fontFamily: 'var(--f-text)', fontWeight: 600, borderBottom: 'none' }}>
                 % Atingido
               </td>
@@ -540,10 +475,7 @@ function TabelaReceita({ dados }: { dados: ReceitaPayload }) {
                 )
               })}
               <td style={{ ...tdBase, textAlign: 'right', borderBottom: 'none' }}>
-                <ProgressBar
-                  pct={grandTotalMeta > 0 ? grandTotalReceita / grandTotalMeta : null}
-                  color="var(--c-gold)"
-                />
+                <ProgressBar pct={grandTotalMeta > 0 ? grandTotalReceita / grandTotalMeta : null} color="var(--c-gold)" />
               </td>
             </tr>
           </tbody>
