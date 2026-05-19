@@ -40,7 +40,7 @@ type ReceitaPayload = {
 function fBRL(v: number | null): string {
   if (v == null) return '—'
   const abs = Math.abs(v)
-  const pre = v < 0 ? '-R$ ' : 'R$ '
+  const pre = v < 0 ? '-R$ ' : 'R$ '
   if (abs >= 1_000_000_000) return `${pre}${(abs / 1_000_000_000).toFixed(2).replace('.', ',')}B`
   if (abs >= 1_000_000)     return `${pre}${(abs / 1_000_000).toFixed(1).replace('.', ',')}M`
   if (abs >= 1_000)         return `${pre}${(abs / 1_000).toFixed(0)}K`
@@ -96,6 +96,15 @@ async function getReceita(role: string, email: string): Promise<ReceitaPayload |
   } catch { return null }
 }
 
+/* ─── Cores por equipe ───────────────────────────────────────────────────── */
+
+const EQUIPE_COLORS: Record<string, string> = {
+  'SMART':     'var(--color-b-500)',
+  'PRIVATE':   'var(--c-gold)',
+  'RIO PRETO': '#10B981',
+  'BRAVO':     '#8B5CF6',
+}
+
 /* ─── Estilos compartilhados ─────────────────────────────────────────────── */
 
 const cardWrap: React.CSSProperties = {
@@ -147,14 +156,14 @@ function DeltaBadge({ v }: { v: { label: string; pos: boolean | null } }) {
   return (
     <span
       style={{
-        display:       'inline-flex',
-        alignItems:    'center',
-        padding:       '2px 7px',
-        borderRadius:  4,
-        fontSize:      11,
-        fontWeight:    600,
-        background:    v.pos ? 'var(--color-positive-bg)' : 'var(--color-negative-bg)',
-        color:         v.pos ? 'var(--color-positive)'    : 'var(--color-negative)',
+        display:      'inline-flex',
+        alignItems:   'center',
+        padding:      '2px 7px',
+        borderRadius: 4,
+        fontSize:     11,
+        fontWeight:   600,
+        background:   v.pos ? 'var(--color-positive-bg)' : 'var(--color-negative-bg)',
+        color:        v.pos ? 'var(--color-positive)'    : 'var(--color-negative)',
       }}
     >
       {v.label}
@@ -162,23 +171,14 @@ function DeltaBadge({ v }: { v: { label: string; pos: boolean | null } }) {
   )
 }
 
-/* ─── Componente: Barra de progresso ─────────────────────────────────────── */
+/* ─── Componente: Barra de progresso (receita) ───────────────────────────── */
 
 function ProgressBar({ pct, color = 'var(--color-b-500)' }: { pct: number | null; color?: string }) {
   const w = Math.min(100, Math.max(0, (pct ?? 0) * 100))
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end' }}>
-      <div
-        style={{
-          width:        52,
-          height:       4,
-          borderRadius: 2,
-          background:   'var(--bg-deep)',
-          overflow:     'hidden',
-          flexShrink:   0,
-        }}
-      >
-        <div style={{ height: '100%', width: `${w}%`, background: color, borderRadius: 2, transition: 'width .3s ease' }} />
+      <div style={{ width: 52, height: 4, borderRadius: 2, background: 'var(--bg-deep)', overflow: 'hidden', flexShrink: 0 }}>
+        <div style={{ height: '100%', width: `${w}%`, background: color, borderRadius: 2 }} />
       </div>
       <span style={{ minWidth: 42, textAlign: 'right', color: pct == null ? 'var(--fg-faint)' : pct >= 1 ? 'var(--color-positive)' : 'var(--fg)' }}>
         {fPct(pct)}
@@ -187,7 +187,7 @@ function ProgressBar({ pct, color = 'var(--color-b-500)' }: { pct: number | null
   )
 }
 
-/* ─── Tabela 1: Captação por Equipe ──────────────────────────────────────── */
+/* ─── Tabela 1: Captação por Equipe — % meta em destaque ─────────────────── */
 
 function TabelaCaptacao({ dados }: { dados: CapPayload }) {
   if (dados.semDados) {
@@ -211,7 +211,7 @@ function TabelaCaptacao({ dados }: { dados: CapPayload }) {
     <div style={cardWrap}>
       <div style={cardHeader}>
         <span style={{ fontFamily: 'var(--f-text)', fontSize: 13, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em' }}>
-          Captação por Equipe
+          Captação por Equipe — % meta
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           {dados.dataOntem && (
@@ -245,145 +245,97 @@ function TabelaCaptacao({ dados }: { dados: CapPayload }) {
           <thead>
             <tr>
               <th style={{ ...thBase, textAlign: 'left' }}>Equipe</th>
-              <th style={{ ...thBase, textAlign: 'right', color: 'var(--color-b-500)' }}>Cap Hoje (MTD)</th>
-              <th style={{ ...thBase, textAlign: 'right' }}>Cap Ontem (MTD)</th>
-              <th style={{ ...thBase, textAlign: 'right' }}>Δ Dia</th>
-              <th style={{ ...thBase, textAlign: 'right' }}>Meta Mês</th>
-              <th style={{ ...thBase, textAlign: 'right', color: 'var(--color-b-500)' }}>% Hoje</th>
+              {/* Primários — % em destaque */}
+              <th style={{ ...thBase, textAlign: 'right', color: 'var(--color-b-500)', minWidth: 200 }}>% Hoje</th>
               <th style={{ ...thBase, textAlign: 'right' }}>% Ontem</th>
               <th style={{ ...thBase, textAlign: 'right' }}>Δ pp</th>
+              {/* Separador visual implícito — secundários */}
+              <th style={{ ...thBase, textAlign: 'right', color: 'var(--fg-faint)', borderLeft: '1px solid var(--line-strong)' }}>Cap Líq MTD</th>
+              <th style={{ ...thBase, textAlign: 'right', color: 'var(--fg-faint)' }}>Meta Mês</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((row, i) => {
-              const isTotal  = row.equipe === 'Total'
-              const isLast   = i === rows.length - 1
-              const isDeltaPos = row.deltaDia >= 0
+              const isTotal = row.equipe === 'Total'
+              const isLast  = i === rows.length - 1
+              const bd      = isLast ? 'none' : '1px solid var(--line)'
+              const pctOk   = (row.pctHoje ?? 0) >= 1
 
               return (
                 <tr
                   key={row.equipe}
                   style={{
-                    background: isTotal
-                      ? 'var(--bg-deep)'
-                      : 'transparent',
-                    borderTop: isTotal ? '2px solid var(--line-strong)' : undefined,
+                    background: isTotal ? 'var(--bg-deep)' : 'transparent',
+                    borderTop:  isTotal ? '2px solid var(--line-strong)' : undefined,
                   }}
                 >
                   {/* Equipe */}
-                  <td
-                    style={{
-                      ...tdBase,
-                      textAlign:    'left',
-                      fontFamily:   'var(--f-text)',
-                      fontWeight:   isTotal ? 700 : 600,
-                      fontSize:     13,
-                      borderBottom: isLast ? 'none' : '1px solid var(--line)',
-                    }}
-                  >
+                  <td style={{ ...tdBase, textAlign: 'left', fontFamily: 'var(--f-text)', fontWeight: isTotal ? 700 : 600, fontSize: 13, borderBottom: bd }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       {!isTotal && (
-                        <div
-                          style={{
-                            width:        8,
-                            height:        8,
-                            borderRadius: 2,
-                            background:   EQUIPE_COLORS[row.equipe] ?? 'var(--fg-faint)',
-                            flexShrink:   0,
-                          }}
-                        />
+                        <div style={{ width: 8, height: 8, borderRadius: 2, background: EQUIPE_COLORS[row.equipe] ?? 'var(--fg-faint)', flexShrink: 0 }} />
                       )}
                       {row.equipe}
                     </div>
                   </td>
 
-                  {/* Cap Hoje */}
+                  {/* % Hoje — PRIMÁRIO: barra larga + valor grande */}
+                  <td style={{ ...tdBase, borderBottom: bd, minWidth: 200 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12 }}>
+                      <div style={{ width: 100, height: 5, borderRadius: 3, background: 'var(--bg-deep)', overflow: 'hidden', flexShrink: 0 }}>
+                        <div
+                          style={{
+                            height:       '100%',
+                            width:        `${Math.min(100, (row.pctHoje ?? 0) * 100)}%`,
+                            background:   pctOk ? 'var(--color-positive)' : 'var(--color-b-500)',
+                            borderRadius: 3,
+                          }}
+                        />
+                      </div>
+                      <span
+                        style={{
+                          fontFamily:  'var(--f-mono)',
+                          fontSize:    16,
+                          fontWeight:  700,
+                          minWidth:    58,
+                          textAlign:   'right',
+                          color:       row.pctHoje == null ? 'var(--fg-faint)' : pctOk ? 'var(--color-positive)' : 'var(--fg)',
+                          letterSpacing: '-.01em',
+                        }}
+                      >
+                        {fPct(row.pctHoje)}
+                      </span>
+                    </div>
+                  </td>
+
+                  {/* % Ontem — PRIMÁRIO: valor normal */}
+                  <td style={{ ...tdBase, textAlign: 'right', borderBottom: bd, color: 'var(--fg-mute)' }}>
+                    {fPct(row.pctOntem)}
+                  </td>
+
+                  {/* Δ pp */}
+                  <td style={{ ...tdBase, textAlign: 'right', borderBottom: bd }}>
+                    <DeltaBadge v={fDeltaPp(row.deltaPp)} />
+                  </td>
+
+                  {/* Cap Líq MTD — SECUNDÁRIO */}
                   <td
                     style={{
                       ...tdBase,
-                      textAlign:    'right',
-                      fontWeight:   700,
-                      borderBottom: isLast ? 'none' : '1px solid var(--line)',
-                      color:        row.capHoje < 0 ? 'var(--color-negative)' : 'var(--fg)',
+                      textAlign:   'right',
+                      borderBottom: bd,
+                      borderLeft:  '1px solid var(--line-strong)',
+                      color:       row.capHoje < 0 ? 'var(--color-negative)' : 'var(--fg-mute)',
+                      fontWeight:  400,
+                      fontSize:    12,
                     }}
                   >
                     {fBRL(row.capHoje)}
                   </td>
 
-                  {/* Cap Ontem */}
-                  <td
-                    style={{
-                      ...tdBase,
-                      textAlign:    'right',
-                      borderBottom: isLast ? 'none' : '1px solid var(--line)',
-                      color:        'var(--fg-mute)',
-                    }}
-                  >
-                    {fBRL(row.capOntem)}
-                  </td>
-
-                  {/* Δ Dia */}
-                  <td
-                    style={{
-                      ...tdBase,
-                      textAlign:    'right',
-                      fontWeight:   600,
-                      borderBottom: isLast ? 'none' : '1px solid var(--line)',
-                      color:        row.deltaDia === 0
-                        ? 'var(--fg-faint)'
-                        : isDeltaPos
-                        ? 'var(--color-positive)'
-                        : 'var(--color-negative)',
-                    }}
-                  >
-                    {row.deltaDia === 0 ? '—' : (isDeltaPos ? '+' : '') + fBRL(row.deltaDia).replace('R$ ', 'R$ ')}
-                  </td>
-
-                  {/* Meta */}
-                  <td
-                    style={{
-                      ...tdBase,
-                      textAlign:    'right',
-                      borderBottom: isLast ? 'none' : '1px solid var(--line)',
-                      color:        'var(--fg-mute)',
-                    }}
-                  >
+                  {/* Meta Mês — SECUNDÁRIO */}
+                  <td style={{ ...tdBase, textAlign: 'right', borderBottom: bd, color: 'var(--fg-faint)', fontWeight: 400, fontSize: 12 }}>
                     {fBRL(row.meta)}
-                  </td>
-
-                  {/* % Hoje */}
-                  <td
-                    style={{
-                      ...tdBase,
-                      textAlign:    'right',
-                      borderBottom: isLast ? 'none' : '1px solid var(--line)',
-                      minWidth:     120,
-                    }}
-                  >
-                    <ProgressBar pct={row.pctHoje} />
-                  </td>
-
-                  {/* % Ontem */}
-                  <td
-                    style={{
-                      ...tdBase,
-                      textAlign:    'right',
-                      borderBottom: isLast ? 'none' : '1px solid var(--line)',
-                      color:        'var(--fg-mute)',
-                    }}
-                  >
-                    {fPct(row.pctOntem)}
-                  </td>
-
-                  {/* Δ pp */}
-                  <td
-                    style={{
-                      ...tdBase,
-                      textAlign:    'right',
-                      borderBottom: isLast ? 'none' : '1px solid var(--line)',
-                    }}
-                  >
-                    <DeltaBadge v={fDeltaPp(row.deltaPp)} />
                   </td>
                 </tr>
               )
@@ -399,23 +351,6 @@ function TabelaCaptacao({ dados }: { dados: CapPayload }) {
 
 function TabelaReceita({ dados }: { dados: ReceitaPayload }) {
   const { equipes, metas, totalReceita, grandTotalReceita, grandTotalMeta } = dados
-
-  const ROWS = [
-    {
-      label:    'Receita MTD',
-      getValue: (e: string) => fBRL(totalReceita[e] ?? 0),
-      getTotal: () => fBRL(grandTotalReceita),
-      bold:     true,
-      color:    (e: string) => (totalReceita[e] ?? 0) < 0 ? 'var(--color-negative)' : 'var(--fg)',
-    },
-    {
-      label:    'Meta Mensal',
-      getValue: (e: string) => fBRL(metas[e] ?? 0),
-      getTotal: () => fBRL(grandTotalMeta),
-      bold:     false,
-      color:    () => 'var(--fg-mute)',
-    },
-  ]
 
   return (
     <div style={cardWrap}>
@@ -445,21 +380,35 @@ function TabelaReceita({ dados }: { dados: ReceitaPayload }) {
             </tr>
           </thead>
           <tbody>
-            {ROWS.map((row, i) => (
-              <tr key={row.label}>
-                <td style={{ ...tdBase, textAlign: 'left', fontFamily: 'var(--f-text)', fontWeight: row.bold ? 700 : 500, fontSize: 13 }}>
-                  {row.label}
+            {/* Receita MTD */}
+            <tr>
+              <td style={{ ...tdBase, textAlign: 'left', fontFamily: 'var(--f-text)', fontWeight: 700, fontSize: 13 }}>
+                Receita MTD
+              </td>
+              {equipes.map((e) => (
+                <td key={e} style={{ ...tdBase, textAlign: 'right', fontWeight: 700, color: (totalReceita[e] ?? 0) < 0 ? 'var(--color-negative)' : 'var(--fg)' }}>
+                  {fBRL(totalReceita[e] ?? 0)}
                 </td>
-                {equipes.map((e) => (
-                  <td key={e} style={{ ...tdBase, textAlign: 'right', fontWeight: row.bold ? 700 : 400, color: row.color(e) }}>
-                    {row.getValue(e)}
-                  </td>
-                ))}
-                <td style={{ ...tdBase, textAlign: 'right', fontWeight: row.bold ? 700 : 400, color: row.color('') }}>
-                  {row.getTotal()}
+              ))}
+              <td style={{ ...tdBase, textAlign: 'right', fontWeight: 700 }}>
+                {fBRL(grandTotalReceita)}
+              </td>
+            </tr>
+
+            {/* Meta Mensal */}
+            <tr>
+              <td style={{ ...tdBase, textAlign: 'left', fontFamily: 'var(--f-text)', fontWeight: 500, fontSize: 13, color: 'var(--fg-mute)' }}>
+                Meta Mensal
+              </td>
+              {equipes.map((e) => (
+                <td key={e} style={{ ...tdBase, textAlign: 'right', color: 'var(--fg-mute)' }}>
+                  {fBRL(metas[e] ?? 0)}
                 </td>
-              </tr>
-            ))}
+              ))}
+              <td style={{ ...tdBase, textAlign: 'right', color: 'var(--fg-mute)' }}>
+                {fBRL(grandTotalMeta)}
+              </td>
+            </tr>
 
             {/* % Atingido */}
             <tr style={{ background: 'var(--bg-deep)', borderTop: '1px solid var(--line-strong)' }}>
@@ -467,7 +416,7 @@ function TabelaReceita({ dados }: { dados: ReceitaPayload }) {
                 % Atingido
               </td>
               {equipes.map((e) => {
-                const pct = (metas[e] ?? 0) > 0 ? (totalReceita[e] ?? 0) / metas[e]! : null
+                const pct = (metas[e] ?? 0) > 0 ? (totalReceita[e] ?? 0) / (metas[e] ?? 1) : null
                 return (
                   <td key={e} style={{ ...tdBase, textAlign: 'right', borderBottom: 'none' }}>
                     <ProgressBar pct={pct} color="var(--c-gold)" />
@@ -483,15 +432,6 @@ function TabelaReceita({ dados }: { dados: ReceitaPayload }) {
       </div>
     </div>
   )
-}
-
-/* ─── Cores por equipe ───────────────────────────────────────────────────── */
-
-const EQUIPE_COLORS: Record<string, string> = {
-  'SMART':     'var(--color-b-500)',
-  'PRIVATE':   'var(--c-gold)',
-  'RIO PRETO': '#10B981',
-  'BRAVO':     '#8B5CF6',
 }
 
 /* ─── Page ───────────────────────────────────────────────────────────────── */
@@ -512,28 +452,12 @@ export default async function PnLPage() {
     <div style={{ maxWidth: 1340 }}>
       <PageGreeting name={session.name} label="Resultado gerencial" />
 
-      {/* ── Seção: Captação ── */}
+      {/* ── Captação ── */}
       <div style={{ marginBottom: 8, marginTop: 16 }}>
-        <p
-          style={{
-            fontFamily:    'var(--f-text)',
-            fontSize:      14,
-            fontWeight:    600,
-            color:         'var(--fg)',
-            letterSpacing: '-.01em',
-            marginBottom:  4,
-          }}
-        >
+        <p style={{ fontFamily: 'var(--f-text)', fontSize: 14, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em', marginBottom: 4 }}>
           Captação
         </p>
-        <p
-          style={{
-            fontFamily:    'var(--f-mono)',
-            fontSize:      11,
-            color:         'var(--fg-faint)',
-            letterSpacing: '.03em',
-          }}
-        >
+        <p style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--fg-faint)', letterSpacing: '.03em' }}>
           Evolução diária do atingimento de meta por equipe
         </p>
       </div>
@@ -548,29 +472,13 @@ export default async function PnLPage() {
         </div>
       )}
 
-      {/* ── Seção: Receita ── */}
+      {/* ── Receita ── */}
       <div style={{ marginBottom: 8, marginTop: 8 }}>
-        <p
-          style={{
-            fontFamily:    'var(--f-text)',
-            fontSize:      14,
-            fontWeight:    600,
-            color:         'var(--fg)',
-            letterSpacing: '-.01em',
-            marginBottom:  4,
-          }}
-        >
+        <p style={{ fontFamily: 'var(--f-text)', fontSize: 14, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em', marginBottom: 4 }}>
           Receita
         </p>
-        <p
-          style={{
-            fontFamily:    'var(--f-mono)',
-            fontSize:      11,
-            color:         'var(--fg-faint)',
-            letterSpacing: '.03em',
-          }}
-        >
-          Breakdown por produto e equipe vs meta mensal
+        <p style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--fg-faint)', letterSpacing: '.03em' }}>
+          Receita consolidada por equipe vs meta mensal (tb_metas_times)
         </p>
       </div>
 
