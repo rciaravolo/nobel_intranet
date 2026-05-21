@@ -1,4 +1,9 @@
+import { Suspense } from 'react'
 import { PageGreeting } from '../_components/PageGreeting'
+import { CarteirasNav } from './_components/CarteirasNav'
+import { RFAtivos, type RFAtivo } from './_components/RFAtivos'
+import { BuscaAtivo } from './_components/BuscaAtivo'
+import { AnalisesFilters } from '../analises/_components/AnalisesFilters'
 import { apiFetch } from '@/lib/api/fetch'
 import { requireSession } from '@/lib/auth/session'
 
@@ -113,18 +118,68 @@ function fVar(v: number): string {
 
 /* ─── Fetch ──────────────────────────────────────────────────────────────── */
 
-async function getVisao(email: string, role: string, equipe?: string): Promise<VisaoPayload | null> {
+type FilterOpts = {
+  email: string
+  role: string
+  equipe?: string
+  filterType?: string
+  filterValue?: string
+}
+
+type AssessoresPayload = {
+  equipes: string[]
+  assessores: { id_assessor: string; nome_assessor: string | null; equipe: string }[]
+}
+
+async function getVisao(opts: FilterOpts): Promise<VisaoPayload | null> {
   try {
     const res = await apiFetch(`/performance/carteiras/visao`, {
       cache: 'no-store',
       headers: {
-        'X-User-Email': email,
-        'X-User-Role': role,
-        'X-User-Equipe': equipe ?? '',
+        'X-User-Email': opts.email,
+        'X-User-Role': opts.role,
+        'X-User-Equipe': opts.equipe ?? '',
+        ...(opts.filterType  ? { 'X-Filter-Type':  opts.filterType  } : {}),
+        ...(opts.filterValue ? { 'X-Filter-Value': opts.filterValue } : {}),
       },
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const json = (await res.json()) as { data: VisaoPayload }
+    return json.data
+  } catch {
+    return null
+  }
+}
+
+async function getRfAtivos(opts: FilterOpts): Promise<RFAtivo[]> {
+  try {
+    const res = await apiFetch('/performance/carteiras/rf/ativos', {
+      cache: 'no-store',
+      headers: {
+        'X-User-Email': opts.email,
+        'X-User-Role': opts.role,
+        'X-User-Equipe': opts.equipe ?? '',
+        ...(opts.filterType  ? { 'X-Filter-Type':  opts.filterType  } : {}),
+        ...(opts.filterValue ? { 'X-Filter-Value': opts.filterValue } : {}),
+      },
+    })
+    if (!res.ok) return []
+    const json = (await res.json()) as { data: { ativos: RFAtivo[] } }
+    return json.data.ativos
+  } catch {
+    return []
+  }
+}
+
+async function getAssessores(role: string, email: string): Promise<AssessoresPayload | null> {
+  if (role !== 'admin' && role !== 'master') return null
+  try {
+    const res = await apiFetch('/performance/assessores', {
+      cache: 'no-store',
+      headers: { 'X-User-Role': role, 'X-User-Email': email },
+    })
+    if (!res.ok) return null
+    const json = (await res.json()) as { data: AssessoresPayload }
     return json.data
   } catch {
     return null
@@ -285,9 +340,32 @@ function HBar({
 
 /* ─── Page ───────────────────────────────────────────────────────────────── */
 
-export default async function CarteirasPage() {
+export default async function CarteirasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string; filter_type?: string; filter_value?: string }>
+}) {
+  const sp = await searchParams
+  const tab = sp.tab ?? 'geral'
   const session = await requireSession()
-  const d = await getVisao(session.email, session.role, session.equipe)
+
+  const canFilter = session.role === 'admin' || session.role === 'master'
+  const filterType  = canFilter ? sp.filter_type  : undefined
+  const filterValue = canFilter ? sp.filter_value : undefined
+
+  const opts: FilterOpts = {
+    email: session.email,
+    role: session.role,
+    equipe: session.equipe,
+    ...(filterType  ? { filterType  } : {}),
+    ...(filterValue ? { filterValue } : {}),
+  }
+
+  const [d, rfAtivos, assessoresData] = await Promise.all([
+    getVisao(opts),
+    getRfAtivos(opts),
+    getAssessores(session.role, session.email),
+  ])
 
   const totais = d?.totais ?? { rf: 0, rv: 0, coe: 0, liquidez: 0, total: 0 }
   const rfIdx = d?.rf.porIndexador ?? []
@@ -344,6 +422,25 @@ export default async function CarteirasPage() {
     <div style={{ maxWidth: 1400 }}>
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <PageGreeting name={session.name} label="Posição analítica" />
+
+      {/* ── Filtros (admin / master) ────────────────────────────────────── */}
+      {canFilter && (
+        <AnalisesFilters
+          basePath="/carteiras"
+          equipes={(assessoresData?.equipes ?? []).slice().sort((a, b) => a.localeCompare(b, 'pt-BR'))}
+          assessores={(assessoresData?.assessores ?? []).slice().sort((a, b) =>
+            (a.nome_assessor ?? a.id_assessor).localeCompare(b.nome_assessor ?? b.id_assessor, 'pt-BR'),
+          )}
+        />
+      )}
+
+      {/* ── Navegação ──────────────────────────────────────────────────── */}
+      <Suspense fallback={<div style={{ height: 40, marginBottom: 'var(--s-4)' }} />}>
+        <CarteirasNav />
+      </Suspense>
+
+      {/* ── Busca por Ativo ─────────────────────────────────────────────── */}
+      <BuscaAtivo />
 
 
       {/* ── 4 KPI Cards ────────────────────────────────────────────────── */}
@@ -424,16 +521,16 @@ export default async function CarteirasPage() {
       </div>
 
       {/* ── Row: Macro Donut + RF Marcação ─────────────────────────────── */}
-      <div
+      {tab !== 'rv' && <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
+          gridTemplateColumns: tab === 'rf' ? '1fr' : '1fr 1fr',
           gap: 'var(--s-4)',
           marginBottom: 'var(--s-4)',
         }}
       >
-        {/* Macro Allocation */}
-        <div style={{ ...cardStyle, boxShadow: 'var(--e-float)' }}>
+        {/* Macro Allocation — oculto no tab RF (foco só em RF Marcação) */}
+        {tab !== 'rf' && <div style={{ ...cardStyle, boxShadow: 'var(--e-float)' }}>
           <SectionHeader title="Alocação por Classe" sub={fBRL(totais.total)} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '20px 24px' }}>
             <Donut
@@ -503,7 +600,7 @@ export default async function CarteirasPage() {
               ))}
             </div>
           </div>
-        </div>
+        </div>}
 
         {/* RF Marcação */}
         <div style={{ ...cardStyle, boxShadow: 'var(--e-float)' }}>
@@ -616,10 +713,10 @@ export default async function CarteirasPage() {
             <div style={{ padding: 24, color: 'var(--fg-faint)', fontSize: 13 }}>Sem dados</div>
           )}
         </div>
-      </div>
+      </div>}
 
       {/* ── RF: Indexadores ────────────────────────────────────────────── */}
-      <div style={{ ...cardStyle, marginBottom: 'var(--s-4)' }}>
+      {tab !== 'rv' && <div style={{ ...cardStyle, marginBottom: 'var(--s-4)' }}>
         <SectionHeader
           title="Renda Fixa — Exposição por Indexador"
           sub={`${rfIdx.length} indexadores`}
@@ -642,10 +739,10 @@ export default async function CarteirasPage() {
               </div>
             ))}
         </div>
-      </div>
+      </div>}
 
       {/* ── RF: Wall of Maturities ─────────────────────────────────────── */}
-      <div style={{ ...cardStyle, marginBottom: 'var(--s-4)' }}>
+      {tab !== 'rv' && <div style={{ ...cardStyle, marginBottom: 'var(--s-4)' }}>
         <SectionHeader title="Renda Fixa — Vencimentos por Janela" sub="wall of maturities" />
         <div style={{ padding: '16px 20px 8px' }}>
           {rfMat.map((m) => {
@@ -745,10 +842,13 @@ export default async function CarteirasPage() {
             </div>
           ))}
         </div>
-      </div>
+      </div>}
+
+      {/* ── RF: Top Ativos (drill-down por cliente) ─────────────────────── */}
+      {tab !== 'rv' && <RFAtivos ativos={rfAtivos} />}
 
       {/* ── RV: Setorial + Top Ativos ──────────────────────────────────── */}
-      <div
+      {tab !== 'rf' && <div
         style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1.5fr',
@@ -900,10 +1000,10 @@ export default async function CarteirasPage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </div>}
 
       {/* ── COE ────────────────────────────────────────────────────────── */}
-      <div style={{ ...cardStyle, marginBottom: 'var(--s-4)' }}>
+      {tab === 'geral' && <div style={{ ...cardStyle, marginBottom: 'var(--s-4)' }}>
         <SectionHeader
           title="COE — Posição & Performance"
           sub={`${coeTypes.reduce((s, t) => s + t.posicoes, 0).toLocaleString('pt-BR')} posições`}
@@ -1035,10 +1135,10 @@ export default async function CarteirasPage() {
             )
           })}
         </div>
-      </div>
+      </div>}
 
       {/* ── Liquidez Diária ────────────────────────────────────────────── */}
-      <div style={cardStyle}>
+      {tab === 'geral' && <div style={cardStyle}>
         <SectionHeader title="Liquidez Diária — por Indexador" sub={fBRL(totais.liquidez)} />
         <div style={{ padding: '8px 0' }}>
           {ldIdx.map((r, i) => (
@@ -1056,7 +1156,7 @@ export default async function CarteirasPage() {
             </div>
           ))}
         </div>
-      </div>
+      </div>}
     </div>
   )
 }

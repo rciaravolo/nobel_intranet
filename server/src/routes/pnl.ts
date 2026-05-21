@@ -137,7 +137,8 @@ app.get('/receita-equipes', async (c) => {
   const TABELAS = [
     'receita_rv', 'receita_rf', 'receita_coe', 'receita_cambio',
     'receita_feefixo', 'receita_seguros', 'receita_consorcio', 'receita_dominion',
-    'receita_oferta_fundos', 'receita_fundos', 'receita_prev',
+    'receita_oferta_fundos', 'receita_parceiros', 'receita_precas',
+    'receita_fundos', 'receita_prev',
   ]
 
   const [metaRows, ...receitaResults] = await Promise.all([
@@ -178,6 +179,70 @@ app.get('/receita-equipes', async (c) => {
       totalReceita,
       grandTotalReceita,
       grandTotalMeta,
+    },
+  })
+})
+
+/* ─── GET /pnl/receita-historico ─────────────────────────────────────────── */
+
+app.get('/receita-historico', async (c) => {
+  const db = c.env.PERF_DB
+
+  // Data de referência = última data em tb_cap (ETL sempre ~2 dias úteis atrás do dia atual)
+  const refRow = await db
+    .prepare(`SELECT MAX(date(data)) AS ref FROM tb_cap`)
+    .first<{ ref: string | null }>()
+
+  const refDate = refRow?.ref
+  if (!refDate) return c.json({ data: { semDados: true as const, mesISO: '' } })
+
+  const mesISO = refDate.substring(0, 7)
+  const mesNum = parseInt(refDate.substring(5, 7), 10) - 1
+  const mesCol = MES_COLS[mesNum]!
+
+  const [datesRes, metaRows, snapshotRows] = await Promise.all([
+    db.prepare(`
+      SELECT DISTINCT data FROM receita_snapshot
+      WHERE  strftime('%Y-%m', data) = ?
+      ORDER  BY data DESC LIMIT 10
+    `).bind(mesISO).all<{ data: string }>(),
+    db.prepare(`
+      SELECT equipe, ${mesCol} AS meta
+      FROM   tb_metas_times
+      WHERE  equipe IN ${EQUIPES_SQL}
+    `).all<{ equipe: string; meta: number | null }>(),
+    db.prepare(`
+      SELECT equipe, data, receita_total
+      FROM   receita_snapshot
+      WHERE  strftime('%Y-%m', data) = ?
+        AND  equipe IN ${EQUIPES_SQL}
+      ORDER  BY data DESC
+    `).bind(mesISO).all<{ equipe: string; data: string; receita_total: number }>(),
+  ])
+
+  const dates = datesRes.results.map((r) => r.data)
+  if (dates.length === 0) return c.json({ data: { semDados: true as const, mesISO } })
+
+  const metaMap: Record<string, number> = {}
+  for (const r of metaRows.results) metaMap[r.equipe] = r.meta ?? 0
+
+  const matrix: Record<string, Record<string, number | null>> = {}
+  for (const equipe of EQUIPES) {
+    matrix[equipe] = {}
+    const meta = metaMap[equipe] ?? 0
+    for (const row of snapshotRows.results.filter((r) => r.equipe === equipe)) {
+      matrix[equipe][row.data] = meta > 0 ? row.receita_total / meta : null
+    }
+  }
+
+  return c.json({
+    data: {
+      semDados:  false as const,
+      mesISO,
+      equipes:   EQUIPES as readonly string[],
+      dates,
+      metas:     metaMap,
+      matrix,
     },
   })
 })

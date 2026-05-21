@@ -5,6 +5,7 @@ import { AnalisesFilters } from './_components/AnalisesFilters'
 import { BlocoCaptacao } from './_components/BlocoCaptacao'
 import { BlocoMetas } from './_components/BlocoMetas'
 import { BlocoReceita } from './_components/BlocoReceita'
+import { GraficosHistorico } from './_components/GraficosHistorico'
 
 /* ─── Tipos ──────────────────────────────────────────────────────────────── */
 
@@ -160,6 +161,13 @@ type FetchOpts = {
 }
 
 async function getOnepage(opts: FetchOpts): Promise<OnepagePayload | null> {
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      const res = await fetch('http://localhost:3000/api/mock/performance/onepage')
+      const json = (await res.json()) as { data: OnepagePayload }
+      return json.data
+    } catch { return null }
+  }
   try {
     const res = await apiFetch(`/performance/onepage`, {
       cache: 'no-store',
@@ -180,6 +188,13 @@ async function getOnepage(opts: FetchOpts): Promise<OnepagePayload | null> {
 }
 
 async function getMetas(opts: FetchOpts): Promise<MetasPayload | null> {
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      const res = await fetch('http://localhost:3000/api/mock/performance/metas')
+      const json = (await res.json()) as { data: MetasPayload }
+      return json.data
+    } catch { return null }
+  }
   try {
     const res = await apiFetch(`/performance/metas`, {
       headers: perfHeaders(
@@ -199,6 +214,13 @@ async function getMetas(opts: FetchOpts): Promise<MetasPayload | null> {
 }
 
 async function getHistorico(opts: FetchOpts): Promise<HistoricoPayload | null> {
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      const res = await fetch('http://localhost:3000/api/mock/performance/historico')
+      const json = (await res.json()) as { data: HistoricoPayload }
+      return json.data
+    } catch { return null }
+  }
   try {
     const res = await apiFetch(`/performance/historico`, {
       cache: 'no-store',
@@ -961,6 +983,9 @@ export default async function AnalisesPage({
           {/* Histórico */}
           {histRows.length > 0 && (
             <>
+              {/* Gráficos histórico */}
+              <GraficosHistorico histRows={histRows} />
+
               <div
                 style={{
                   marginBottom: 14,

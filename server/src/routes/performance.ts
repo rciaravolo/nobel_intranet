@@ -116,6 +116,7 @@ app.get('/kpis', async (c) => {
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_oferta_fundos${w}`).first<{ v: number }>(),
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_fundos${w}`).first<{ v: number }>(),
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_prev${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_precas${w}`).first<{ v: number }>(),
     ]),
   ])
 
@@ -283,6 +284,7 @@ app.get('/onepage', async (c) => {
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_oferta_fundos${buildWhereFilter(filter)}`).first<{ v: number }>(),
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_fundos${buildWhereFilter(filter)}`).first<{ v: number }>(),
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_prev${buildWhereFilter(filter)}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_precas${buildWhereFilter(filter)}`).first<{ v: number }>(),
     ]),
     db.prepare(`
       SELECT
@@ -355,6 +357,7 @@ const PRODUTOS_METAS = [
   { slug: 'oferta_fundos', tabela: 'receita_oferta_fundos', label: 'Oferta de Fundos' },
   { slug: 'fundos',        tabela: 'receita_fundos',        label: 'Fundos'           },
   { slug: 'previdencia',   tabela: 'receita_prev',          label: 'Previdência'      },
+  { slug: 'precas',        tabela: 'receita_precas',        label: 'Precatórios'      },
 ] as const
 
 app.get('/metas', async (c) => {
@@ -506,6 +509,7 @@ app.get('/deepdive/receita/:produto', async (c) => {
     oferta_fundos: { tabela: 'receita_oferta_fundos', label: 'Oferta de Fundos' },
     fundos:        { tabela: 'receita_fundos',        label: 'Fundos'           },
     previdencia:   { tabela: 'receita_prev',          label: 'Previdência'      },
+    precas:        { tabela: 'receita_precas',        label: 'Precatórios'      },
   }
 
   const info = PRODUTO_MAP[produto]
@@ -628,6 +632,228 @@ app.get('/carteiras', async (c) => {
   })
 })
 
+/* ─── /carteiras/ativos/busca ────────────────────────────────────────────── */
+
+app.get('/carteiras/ativos/busca', async (c) => {
+  const q = (c.req.query('q') ?? '').trim()
+  if (q.length < 2) return c.json({ data: { resultados: [] } })
+
+  const db = c.env.PERF_DB
+
+  const filter = await resolveFilter(
+    db,
+    c.req.header('X-User-Role'),
+    c.req.header('X-User-Email'),
+    c.req.header('X-User-Equipe'),
+  )
+  if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
+
+  const waRV  = buildAndFilter(filter)                   // analitico_rv tem id_assessor direto
+  const waRFJ = buildAndFilter(filter, 'p.id_assessor')  // tb_diversificador via JOIN positivador
+
+  const like = `%${q}%`
+
+  const [rvRows, rfRows] = await Promise.all([
+    db
+      .prepare(`
+        SELECT 'rv' AS classe, ativo, setor AS categoria,
+               SUM(auc) AS total, COUNT(DISTINCT id_cliente) AS clientes
+        FROM   analitico_rv
+        WHERE  ativo LIKE ?
+          AND  ativo IS NOT NULL
+          ${waRV}
+        GROUP  BY ativo, setor
+        ORDER  BY total DESC
+        LIMIT  8
+      `)
+      .bind(like)
+      .all<{ classe: 'rv'; ativo: string; categoria: string | null; total: number; clientes: number }>(),
+
+    db
+      .prepare(`
+        SELECT 'rf' AS classe, d.ativo, d.sub_produto AS categoria,
+               SUM(d.net) AS total, COUNT(DISTINCT d.id_cliente) AS clientes
+        FROM   tb_diversificador d
+        INNER  JOIN tb_positivador p ON d.id_cliente = p.id_cliente
+        WHERE  d.ativo LIKE ?
+          AND  d.ativo IS NOT NULL
+          AND  d.produto = 'Renda Fixa'
+          ${waRFJ}
+        GROUP  BY d.ativo, d.sub_produto
+        ORDER  BY total DESC
+        LIMIT  8
+      `)
+      .bind(like)
+      .all<{ classe: 'rf'; ativo: string; categoria: string | null; total: number; clientes: number }>(),
+  ])
+
+  const resultados = [...rvRows.results, ...rfRows.results]
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 10)
+
+  return c.json({ data: { resultados } })
+})
+
+/* ─── /carteiras/drill/rv ────────────────────────────────────────────────── */
+
+app.get('/carteiras/drill/rv', async (c) => {
+  const ativo = c.req.query('ativo')
+  if (!ativo) return c.json({ error: 'ativo obrigatório' }, 400)
+
+  const db = c.env.PERF_DB
+
+  const filter = await resolveFilter(
+    db,
+    c.req.header('X-User-Role'),
+    c.req.header('X-User-Email'),
+    c.req.header('X-User-Equipe'),
+  )
+  if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
+
+  const wa = buildAndFilter(filter)
+
+  const [clientesRows, summaryRow] = await Promise.all([
+    db
+      .prepare(`
+        SELECT rv.id_cliente, bc.nome_cliente,
+               SUM(rv.auc) AS total,
+               rv.setor, rv.produto,
+               AVG(rv.variacao) AS variacao
+        FROM   analitico_rv rv
+        LEFT   JOIN base_clientes bc ON rv.id_cliente = bc.id_cliente
+        WHERE  rv.ativo = ?
+          ${wa}
+        GROUP  BY rv.id_cliente, bc.nome_cliente, rv.setor, rv.produto
+        ORDER  BY total DESC
+        LIMIT  20
+      `)
+      .bind(ativo)
+      .all<{ id_cliente: number; nome_cliente: string | null; total: number; setor: string | null; produto: string | null; variacao: number | null }>(),
+
+    db
+      .prepare(`
+        SELECT SUM(auc) AS total, COUNT(*) AS posicoes, COUNT(DISTINCT id_cliente) AS clientes
+        FROM   analitico_rv
+        WHERE  ativo = ?
+          ${wa}
+      `)
+      .bind(ativo)
+      .first<{ total: number; posicoes: number; clientes: number }>(),
+  ])
+
+  return c.json({
+    data: {
+      ativo,
+      total: summaryRow?.total ?? 0,
+      posicoes: summaryRow?.posicoes ?? 0,
+      clientes_count: summaryRow?.clientes ?? 0,
+      clientes: clientesRows.results,
+    },
+  })
+})
+
+/* ─── /carteiras/rf/ativos ───────────────────────────────────────────────── */
+
+app.get('/carteiras/rf/ativos', async (c) => {
+  const db = c.env.PERF_DB
+
+  const filter = await resolveFilter(
+    db,
+    c.req.header('X-User-Role'),
+    c.req.header('X-User-Email'),
+    c.req.header('X-User-Equipe'),
+    c.req.header('X-Filter-Type'),
+    c.req.header('X-Filter-Value'),
+  )
+  if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
+
+  const wa = buildAndFilter(filter, 'p.id_assessor')
+
+  const rows = await db
+    .prepare(`
+      SELECT d.ativo, d.sub_produto, d.emissor,
+             SUM(d.net)              AS total,
+             COUNT(DISTINCT d.id_cliente) AS clientes,
+             COUNT(*)                AS posicoes
+      FROM   tb_diversificador d
+      INNER  JOIN tb_positivador p ON d.id_cliente = p.id_cliente
+      WHERE  d.produto = 'Renda Fixa'
+        AND  d.ativo IS NOT NULL
+        ${wa}
+      GROUP  BY d.ativo, d.sub_produto, d.emissor
+      ORDER  BY total DESC
+      LIMIT  40
+    `)
+    .all<{ ativo: string; sub_produto: string; emissor: string | null; total: number; clientes: number; posicoes: number }>()
+
+  return c.json({ data: { ativos: rows.results } })
+})
+
+/* ─── /carteiras/drill ───────────────────────────────────────────────────── */
+
+app.get('/carteiras/drill', async (c) => {
+  const ativo = c.req.query('ativo')
+  if (!ativo) return c.json({ error: 'ativo obrigatório' }, 400)
+
+  const db = c.env.PERF_DB
+
+  const filter = await resolveFilter(
+    db,
+    c.req.header('X-User-Role'),
+    c.req.header('X-User-Email'),
+    c.req.header('X-User-Equipe'),
+  )
+  if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
+
+  const wa = buildAndFilter(filter, 'p.id_assessor')
+
+  const [clientesRows, summaryRow] = await Promise.all([
+    db
+      .prepare(`
+        SELECT d.id_cliente, bc.nome_cliente,
+               SUM(d.net)       AS total,
+               d.data_vencimento,
+               d.sub_produto
+        FROM   tb_diversificador d
+        INNER  JOIN tb_positivador p ON d.id_cliente = p.id_cliente
+        LEFT   JOIN base_clientes bc ON d.id_cliente = bc.id_cliente
+        WHERE  d.ativo = ?
+          AND  d.produto = 'Renda Fixa'
+          ${wa}
+        GROUP  BY d.id_cliente, bc.nome_cliente, d.data_vencimento, d.sub_produto
+        ORDER  BY total DESC
+        LIMIT  20
+      `)
+      .bind(ativo)
+      .all<{ id_cliente: number; nome_cliente: string | null; total: number; data_vencimento: string | null; sub_produto: string }>(),
+
+    db
+      .prepare(`
+        SELECT SUM(d.net) AS total, COUNT(*) AS posicoes,
+               COUNT(DISTINCT d.id_cliente) AS clientes,
+               MAX(d.emissor) AS emissor
+        FROM   tb_diversificador d
+        INNER  JOIN tb_positivador p ON d.id_cliente = p.id_cliente
+        WHERE  d.ativo = ?
+          AND  d.produto = 'Renda Fixa'
+          ${wa}
+      `)
+      .bind(ativo)
+      .first<{ total: number; posicoes: number; clientes: number; emissor: string | null }>(),
+  ])
+
+  return c.json({
+    data: {
+      ativo,
+      emissor: summaryRow?.emissor ?? null,
+      total: summaryRow?.total ?? 0,
+      posicoes: summaryRow?.posicoes ?? 0,
+      clientes_count: summaryRow?.clientes ?? 0,
+      clientes: clientesRows.results,
+    },
+  })
+})
+
 /* ─── /clientes ──────────────────────────────────────────────────────────── */
 
 app.get('/clientes', async (c) => {
@@ -714,6 +940,8 @@ app.get('/carteiras/visao', async (c) => {
     c.req.header('X-User-Role'),
     c.req.header('X-User-Email'),
     c.req.header('X-User-Equipe'),
+    c.req.header('X-Filter-Type'),
+    c.req.header('X-Filter-Value'),
   )
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 

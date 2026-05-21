@@ -93,6 +93,19 @@ const SEED_USERS: User[] = [
     department: 'Assessoria — SMART-Alfa',
     avatarInitials: 'IL',
   },
+  {
+    id: 'usr_a44655_001',
+    username: 'filipe.rezende',
+    // scrypt hash de "nobel2026"
+    passwordHash:
+      '32b4a2a5a840a138633a2a1bb37d9a5c39c1f696d8f45dfa2c5dbc147a10c448a86ee87cc3626a9eac4fb43b41657f6b7c9a25d83df22965532c7fc407e7046b.c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8',
+    name: 'Filipe Rezende',
+    email: 'filipe.rezende@nobelcapital.com.br',
+    role: 'assessor',
+    equipe: 'SMART',
+    department: 'Assessoria — SMART',
+    avatarInitials: 'FZ',
+  },
 ]
 
 export function findUserByUsername(username: string): User | undefined {
