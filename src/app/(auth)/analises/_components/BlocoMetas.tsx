@@ -47,6 +47,11 @@ function fBRL(val: number): string {
   return `${pre}${abs.toFixed(0)}`
 }
 
+function fBRLFull(val: number): string {
+  const pre = val < 0 ? '-R$ ' : 'R$ '
+  return `${pre}${Math.abs(val).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+}
+
 function fPct(val: number | null): string {
   if (val == null) return '—'
   return `${(val * 100).toFixed(1).replace('.', ',')}%`
@@ -275,7 +280,7 @@ export function BlocoMetas({ dados, compact = false }: Props) {
                   fontFeatureSettings: '"tnum"',
                 }}
               >
-                {fBRL(total.realizado)}
+                {fBRLFull(total.realizado)}
               </p>
             </div>
             <div style={{ textAlign: 'right' }}>
@@ -521,7 +526,7 @@ export function BlocoMetas({ dados, compact = false }: Props) {
                 fontFeatureSettings: '"tnum"',
               }}
             >
-              {fBRL(total.realizado)}
+              {fBRLFull(total.realizado)}
             </p>
           </div>
           <div style={{ fontSize: 18, color: 'var(--line-strong)' }}>/</div>
@@ -737,7 +742,7 @@ export function BlocoMetas({ dados, compact = false }: Props) {
                 Total
               </td>
               <td style={{ ...td, fontWeight: 700, fontSize: 12, borderBottom: 'none' }}>
-                {fBRL(total.realizado)}
+                {fBRLFull(total.realizado)}
               </td>
               <td style={{ ...td, color: 'var(--fg-mute)', fontSize: 12, borderBottom: 'none' }}>
                 {fBRL(total.meta)}

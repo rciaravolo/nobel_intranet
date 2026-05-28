@@ -97,6 +97,12 @@ function fBRL(val: number | null): string {
   return `${pre}${abs.toFixed(0)}`
 }
 
+function fBRLFull(val: number | null): string {
+  if (val == null) return '—'
+  const pre = val < 0 ? '-R$ ' : 'R$ '
+  return `${pre}${Math.abs(val).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+}
+
 function fNum(val: number): string {
   return val.toLocaleString('pt-BR')
 }
@@ -958,7 +964,7 @@ export default async function AnalisesPage({
                 </svg>
               </div>
             </div>
-            <p style={valor}>{fBRL(receita.total)}</p>
+            <p style={valor}>{fBRLFull(receita.total)}</p>
             <span style={pill()}>todos os produtos</span>
           </div>
         </div>

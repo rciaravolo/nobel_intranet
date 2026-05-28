@@ -37,6 +37,7 @@ const SLOT  = iW / SLOTS             // ~86.3
 const B25_X  = 4   // v25 bar offset inside slot
 const B26_X  = 46  // v26 bar offset inside slot
 const B_W    = 34  // bar width
+const B25_CX = B25_X + B_W / 2  // center of v25 bar = 21
 const B26_CX = B26_X + B_W / 2  // center of v26 bar = 63
 
 /* ─── Estilos ────────────────────────────────────────────────────────────── */
@@ -150,7 +151,12 @@ function ChartCustodia({ rows }: { rows: MesHistorico[] }) {
             return (
               <g key={r.mes}>
                 {vis.y25 && r.custodia.v25 != null && (
-                  <rect x={x0 + B25_X} y={bTop(r.custodia.v25)} width={B_W} height={bH(r.custodia.v25)} rx={3} style={{ fill: 'var(--line-strong)' }} />
+                  <>
+                    <rect x={x0 + B25_X} y={bTop(r.custodia.v25)} width={B_W} height={bH(r.custodia.v25)} rx={3} style={{ fill: 'var(--line-strong)' }} />
+                    <text x={x0 + B25_CX} y={bTop(r.custodia.v25) - 5} textAnchor="middle" fontSize={11} fontWeight={500} style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
+                      {fC(r.custodia.v25)}
+                    </text>
+                  </>
                 )}
                 {vis.y26 && r.custodia.v26 != null && (
                   <>
@@ -207,7 +213,12 @@ function ChartCaptacao({ rows }: { rows: MesHistorico[] }) {
             return (
               <g key={r.mes}>
                 {vis.y25 && r.captacao.v25 != null && (
-                  <rect x={x0 + B25_X} y={bTop(r.captacao.v25)} width={B_W} height={bH(r.captacao.v25)} rx={3} style={{ fill: 'var(--line-strong)' }} />
+                  <>
+                    <rect x={x0 + B25_X} y={bTop(r.captacao.v25)} width={B_W} height={bH(r.captacao.v25)} rx={3} style={{ fill: 'var(--line-strong)' }} />
+                    <text x={x0 + B25_CX} y={lblY(r.captacao.v25)} textAnchor="middle" fontSize={11} fontWeight={500} style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
+                      {fC(r.captacao.v25)}
+                    </text>
+                  </>
                 )}
                 {vis.y26 && r.captacao.v26 != null && (
                   <>
@@ -289,7 +300,12 @@ function ChartReceitaRoa({ rows }: { rows: MesHistorico[] }) {
             return (
               <g key={r.mes}>
                 {vis.y25 && r.receita.v25 != null && (
-                  <rect x={x0 + B25_X} y={bTop(r.receita.v25)} width={B_W} height={bH(r.receita.v25)} rx={3} style={{ fill: 'var(--line-strong)' }} />
+                  <>
+                    <rect x={x0 + B25_X} y={bTop(r.receita.v25)} width={B_W} height={bH(r.receita.v25)} rx={3} style={{ fill: 'var(--line-strong)' }} />
+                    <text x={x0 + B25_CX} y={bTop(r.receita.v25) - 5} textAnchor="middle" fontSize={11} fontWeight={500} style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
+                      {fC(r.receita.v25)}
+                    </text>
+                  </>
                 )}
                 {vis.y26 && r.receita.v26 != null && (
                   <>
