@@ -356,7 +356,7 @@ export default async function CarteirasPage({
   const opts: FilterOpts = {
     email: session.email,
     role: session.role,
-    equipe: session.equipe,
+    ...(session.equipe ? { equipe: session.equipe } : {}),
     ...(filterType  ? { filterType  } : {}),
     ...(filterValue ? { filterValue } : {}),
   }

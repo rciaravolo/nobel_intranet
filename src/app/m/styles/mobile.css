@@ -1,0 +1,155 @@
+/* ================================================================
+ * src/app/m/styles/mobile.css
+ *
+ * Mobile-specific styles. Cores são hardcoded nos inline styles dos
+ * componentes — este arquivo contém apenas utilitários estruturais,
+ * animações e scroll containers.
+ * ================================================================ */
+
+/* ─── Font faces ──────────────────────────────────────────────── */
+@font-face {
+  font-family: "Garet";
+  src: url("/fonts/garet/Garet-Book.woff2") format("woff2"),
+       url("/fonts/garet/Garet-Book.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Garet";
+  src: url("/fonts/garet/Garet-Heavy.woff2") format("woff2"),
+       url("/fonts/garet/Garet-Heavy.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Relicta";
+  src: url("/fonts/relicta/Relicta-Light.otf") format("opentype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Relicta";
+  src: url("/fonts/relicta/Relicta-UltraboldItalic.otf") format("opentype");
+  font-weight: 800;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ─── Base ────────────────────────────────────────────────────── */
+.nobel-mobile {
+  --font-sans:    "Garet", "Helvetica Neue", sans-serif;
+  --font-display: "Relicta", "Georgia", serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  background: #000;
+  color: #eceef4;
+}
+
+/* ─── Display (Relicta) ───────────────────────────────────────── */
+.display {
+  font-family: var(--font-display, "Relicta", "Georgia", serif);
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  line-height: 0.98;
+}
+
+.display-it {
+  font-family: var(--font-display, "Relicta", "Georgia", serif);
+  font-style: italic;
+  font-weight: 500;
+}
+
+/* ─── Eyebrow micro-label ─────────────────────────────────────── */
+.eyebrow {
+  font-family: var(--font-sans, "Garet", "Helvetica Neue", sans-serif);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #6b7588;
+}
+
+/* ─── Tabular nums ───────────────────────────────────────────── */
+.tab-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ─── Touch feedback ─────────────────────────────────────────── */
+.nobel-mobile [role="button"],
+.nobel-mobile button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tap {
+  transition: opacity 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tap:active {
+  opacity: 0.6;
+}
+
+/* ─── Bar grow-in animation ──────────────────────────────────── */
+@keyframes nobel-grow-x {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.grow-x {
+  transform-origin: left;
+  animation: nobel-grow-x 0.7s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* ─── Sparkline path animation ───────────────────────────────── */
+@keyframes nobel-spark {
+  0%   { stroke-dashoffset: 1000; }
+  100% { stroke-dashoffset: 0; }
+}
+
+.spark-line {
+  stroke-dasharray: 1000;
+  animation: nobel-spark 1.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ─── Screen scroll container ────────────────────────────────── */
+.mobile-screen {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  background: #000;
+  color: #eceef4;
+}
+
+.mobile-screen::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* ─── Safe-area helpers ──────────────────────────────────────── */
+.safe-top {
+  padding-top: max(env(safe-area-inset-top), 44px);
+}
+
+.safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 24px);
+}
+
+/* ─── Hide scrollbars ────────────────────────────────────────── */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
