@@ -47,10 +47,13 @@ function extractAttr(xml: string, tag: string, attr: string): string {
 function cleanHtml(html: string): string {
   return html
     .replace(/<[^>]+>/g, '')
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(Number(dec)))
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
     .replace(/&#039;/g, "'")
     .replace(/\s+/g, ' ')
     .trim()
@@ -105,7 +108,7 @@ async function fetchInfoMoney(): Promise<NoticiaRSS[]> {
       source: 'InfoMoney',
       sourceColor: '#e11d48',
       category: 'Mercado',
-      headline: title,
+      headline: cleanHtml(title),
       summary: '',
       url: loc,
       publishedAt,
@@ -152,7 +155,7 @@ function parseRssItems(xml: string, source: RSSSource): NoticiaRSS[] {
       source: source.name,
       sourceColor: source.color,
       category: source.category,
-      headline: title,
+      headline: cleanHtml(title),
       summary: cleanHtml(description).slice(0, 200),
       url: link,
       publishedAt: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
