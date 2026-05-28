@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-type ClienteReceita = { id_cliente: number; nome_cliente: string | null; valor: number }
+type ClienteReceita = { id_cliente: number | string; nome_cliente: string | null; valor: number }
 
 type DeepDiveReceita = {
   produto: string
@@ -31,6 +31,7 @@ const PRODUTO_SLUG: Record<string, string> = {
   'Oferta de Fundos': 'oferta_fundos',
   Fundos: 'fundos',
   Previdência: 'previdencia',
+  Precatórios: 'precas',
 }
 
 const RECEITA_COLOR: Record<string, string> = {
@@ -45,6 +46,7 @@ const RECEITA_COLOR: Record<string, string> = {
   'Oferta de Fundos': '#EC4899',
   Fundos: '#0EA5E9',
   Previdência: '#84CC16',
+  Precatórios: '#A78BFA',
 }
 
 function fBRL(val: number): string {
@@ -478,17 +480,19 @@ export function BlocoReceita({ porProduto, receitaTotal, filterType, filterValue
                                       lineHeight: 1.3,
                                     }}
                                   >
-                                    {cli.nome_cliente ?? `Cliente ${cli.id_cliente}`}
+                                    {cli.nome_cliente ?? String(cli.id_cliente)}
                                   </span>
-                                  <span
-                                    style={{
-                                      fontFamily: 'var(--f-mono)',
-                                      fontSize: 10,
-                                      color: 'var(--fg-faint)',
-                                    }}
-                                  >
-                                    #{cli.id_cliente}
-                                  </span>
+                                  {cli.nome_cliente && (
+                                    <span
+                                      style={{
+                                        fontFamily: 'var(--f-mono)',
+                                        fontSize: 10,
+                                        color: 'var(--fg-faint)',
+                                      }}
+                                    >
+                                      #{cli.id_cliente}
+                                    </span>
+                                  )}
                                 </td>
 
                                 {/* Receita */}

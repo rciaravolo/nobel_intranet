@@ -11,15 +11,18 @@ crons = ["30 9 * * 1-5"]
 binding = "DB"
 database_name = "intra-db"
 database_id = "83cc3359-4703-42a1-95f7-84e68b48347b"
+preview_database_id = "83cc3359-4703-42a1-95f7-84e68b48347b"
 
 [[d1_databases]]
 binding = "PERF_DB"
 database_name = "nobel-performance-db"
 database_id = "f4642f1c-653b-4e39-8ff2-dbfa3dc24532"
+preview_database_id = "f4642f1c-653b-4e39-8ff2-dbfa3dc24532"
 
 [[kv_namespaces]]
 binding = "NOTICIAS_KV"
 id = "097ee0db93f94617a16f90892e4e7ec8"
+preview_id = "7a44f6595bc1467088183bc0906e5042"
 
 [vars]
 CF_ACCESS_AUD = ""

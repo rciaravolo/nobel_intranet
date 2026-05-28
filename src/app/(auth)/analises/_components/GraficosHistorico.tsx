@@ -329,21 +329,55 @@ function ChartReceitaRoa({ rows }: { rows: MesHistorico[] }) {
 
 /* ─── Componente principal ───────────────────────────────────────────────── */
 
-export function GraficosHistorico({ histRows }: { histRows: MesHistorico[] }) {
+type GraficosHistoricoProps = {
+  histRows: MesHistorico[]
+  filterLabel?: string
+  filterType?: string
+}
+
+export function GraficosHistorico({ histRows, filterLabel, filterType: _filterType }: GraficosHistoricoProps) {
   return (
     <div style={{ marginBottom: 24 }}>
-      <p
+      <div
         style={{
-          fontFamily: 'var(--f-mono)',
-          fontSize: 10,
-          color: 'var(--fg-faint)',
-          letterSpacing: '.10em',
-          textTransform: 'uppercase',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
           marginBottom: 10,
         }}
       >
-        Visão Gráfica
-      </p>
+        <p
+          style={{
+            fontFamily: 'var(--f-mono)',
+            fontSize: 10,
+            color: 'var(--fg-faint)',
+            letterSpacing: '.10em',
+            textTransform: 'uppercase',
+            margin: 0,
+          }}
+        >
+          Visão Gráfica
+        </p>
+        {filterLabel && (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+              fontFamily: 'var(--f-mono)',
+              fontSize: 10,
+              background: 'color-mix(in oklch, var(--color-b-500) 10%, transparent)',
+              color: 'var(--color-b-500)',
+              border: '1px solid color-mix(in oklch, var(--color-b-500) 25%, transparent)',
+              borderRadius: 4,
+              padding: '2px 8px',
+            }}
+          >
+            <span style={{ color: 'var(--color-b-500)', lineHeight: 1 }}>•</span>
+            {filterLabel}
+          </span>
+        )}
+      </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <ChartCustodia rows={histRows} />

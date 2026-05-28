@@ -308,7 +308,7 @@ app.get('/onepage', async (c) => {
   const LABELS = [
     'Renda Variável', 'Renda Fixa', 'COE', 'Câmbio', 'Fee Fixo',
     'Seguros', 'Consórcio', 'Dominion', 'Oferta de Fundos',
-    'Fundos', 'Previdência',
+    'Fundos', 'Previdência', 'Precatórios',
   ]
   const porProduto = receitaRows
     .map((r, i) => ({ produto: LABELS[i]!, receita: r?.v ?? 0 }))
@@ -525,23 +525,42 @@ app.get('/deepdive/receita/:produto', async (c) => {
   )
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
-  const rows = await db.prepare(`
-    SELECT r.id_cliente,
-           bc.nome_cliente,
-           SUM(r.receita) AS valor
-    FROM   ${info.tabela} r
-    LEFT JOIN base_clientes bc ON r.id_cliente = bc.id_cliente
-    ${buildWhereFilter(filter, 'r.id_assessor')}
-    GROUP  BY r.id_cliente
-    ORDER  BY valor DESC
-    LIMIT  20
-  `).all<{ id_cliente: number; nome_cliente: string | null; valor: number }>()
+  type ClienteRow = { id_cliente: string | number; nome_cliente: string | null; valor: number }
+
+  let clientes: ClienteRow[]
+
+  if (produto === 'dominion') {
+    const r = await db.prepare(`
+      SELECT r.conta        AS id_cliente,
+             r.consultor    AS nome_cliente,
+             SUM(r.receita) AS valor
+      FROM   receita_dominion r
+      ${buildWhereFilter(filter, 'r.id_assessor')}
+      GROUP  BY r.conta
+      ORDER  BY valor DESC
+      LIMIT  20
+    `).all<ClienteRow>()
+    clientes = r.results
+  } else {
+    const r = await db.prepare(`
+      SELECT r.id_cliente,
+             bc.nome_cliente,
+             SUM(r.receita) AS valor
+      FROM   ${info.tabela} r
+      LEFT JOIN base_clientes bc ON r.id_cliente = bc.id_cliente
+      ${buildWhereFilter(filter, 'r.id_assessor')}
+      GROUP  BY r.id_cliente
+      ORDER  BY valor DESC
+      LIMIT  20
+    `).all<ClienteRow>()
+    clientes = r.results
+  }
 
   return c.json({
     data: {
       produto,
       label:    info.label,
-      clientes: rows.results,
+      clientes,
     },
   })
 })

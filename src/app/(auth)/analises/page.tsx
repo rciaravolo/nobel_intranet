@@ -783,6 +783,22 @@ export default async function AnalisesPage({
   const histRows = hist?.historico ?? []
   const totais = hist?.totais
 
+  // Label legível do filtro ativo para exibir nos gráficos históricos
+  const filterLabel: string | undefined = (() => {
+    // Admin/master com filtro selecionado
+    if (canFilter && filterType && filterValue) {
+      if (filterType === 'equipe') return filterValue
+      if (filterType === 'assessor') {
+        return assessoresData?.assessores.find((a) => a.id_assessor === filterValue)?.nome_assessor ?? filterValue
+      }
+    }
+    // Lider vê sempre a própria equipe
+    if (session.role === 'lider' && session.equipe) return session.equipe
+    // Assessor vê sempre o próprio nome
+    if (session.role === 'assessor') return session.name.split(' ').slice(0, 2).join(' ')
+    return undefined
+  })()
+
   return (
     <div style={{ maxWidth: 1340 }}>
       {/* ── Header ── */}
@@ -984,7 +1000,11 @@ export default async function AnalisesPage({
           {histRows.length > 0 && (
             <>
               {/* Gráficos histórico */}
-              <GraficosHistorico histRows={histRows} />
+              <GraficosHistorico
+                histRows={histRows}
+                {...(filterLabel ? { filterLabel } : {})}
+                {...(canFilter && filterType ? { filterType } : {})}
+              />
 
               <div
                 style={{
