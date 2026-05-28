@@ -1,30 +1,26 @@
 import { Providers } from '@/components/providers'
 import type { Metadata } from 'next'
-import { Cormorant_Garamond, Inter_Tight, JetBrains_Mono, Lora } from 'next/font/google'
+import localFont from 'next/font/local'
+import { JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 
-/* Display / headings — Cormorant Garamond */
-const cormorant = Cormorant_Garamond({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  style: ['normal', 'italic'],
-  variable: '--font-display',
-  display: 'swap',
-})
-
-/* Login editorial headline — Lora */
-const lora = Lora({
-  subsets: ['latin'],
-  weight: ['700'],
-  variable: '--font-lora',
-  display: 'swap',
-})
-
-/* Body / UI — Inter Tight */
-const interTight = Inter_Tight({
-  subsets: ['latin'],
+/* Body / UI — Garet (Nobel branding) */
+const garet = localFont({
+  src: [
+    { path: '../../public/fonts/garet/Garet-Book.woff2', weight: '400', style: 'normal' },
+    { path: '../../public/fonts/garet/Garet-Heavy.woff2', weight: '700', style: 'normal' },
+  ],
   variable: '--font-sans',
-  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+})
+
+/* Display / editorial — Relicta (Nobel branding) */
+const relicta = localFont({
+  src: [
+    { path: '../../public/fonts/relicta/Relicta-Light.otf', weight: '300', style: 'normal' },
+    { path: '../../public/fonts/relicta/Relicta-UltraboldItalic.otf', weight: '800', style: 'italic' },
+  ],
+  variable: '--font-display',
   display: 'swap',
 })
 
@@ -46,7 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body
-        className={`${cormorant.variable} ${interTight.variable} ${jetbrainsMono.variable} ${lora.variable}`}
+        className={`${garet.variable} ${relicta.variable} ${jetbrainsMono.variable}`}
       >
         <Providers>{children}</Providers>
       </body>
