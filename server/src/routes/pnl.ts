@@ -171,6 +171,7 @@ app.get('/receita-equipes', async (c) => {
 
   const grandTotalReceita = Object.values(totalReceita).reduce((s, v) => s + v, 0)
   const grandTotalMeta    = Object.values(metaMap).reduce((s, v) => s + v, 0)
+  const dataRef = `${brt.getUTCFullYear()}-${String(brt.getUTCMonth() + 1).padStart(2, '0')}-${String(brt.getUTCDate()).padStart(2, '0')}`
 
   return c.json({
     data: {
@@ -179,6 +180,7 @@ app.get('/receita-equipes', async (c) => {
       totalReceita,
       grandTotalReceita,
       grandTotalMeta,
+      dataRef,
     },
   })
 })
