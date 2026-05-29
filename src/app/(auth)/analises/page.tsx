@@ -1146,8 +1146,8 @@ export default async function AnalisesPage({
           )}
         </div>
 
-        {/* Sidebar — Metas (sticky) — oculto para assessor */}
-        {session.role !== 'assessor' && (
+        {/* Sidebar — Metas (sticky) — apenas admin e master */}
+        {(session.role === 'admin' || session.role === 'master') && (
           <div style={{ position: 'sticky', top: 24 }}>
             <BlocoMetas dados={metas} compact />
           </div>
