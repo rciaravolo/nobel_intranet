@@ -33,6 +33,7 @@ async function resolveFilter(
   }
   if (role === 'lider') {
     if (!equipe) return { type: 'denied' }
+    if (filterType === 'assessor' && filterValue) return { type: 'assessor', id: filterValue }
     return { type: 'equipe', equipe }
   }
   // assessor (e legacy 'member')
@@ -567,17 +568,18 @@ app.get('/deepdive/receita/:produto', async (c) => {
 
 app.get('/assessores', async (c) => {
   const role = c.req.header('X-User-Role')
-  if (role !== 'admin' && role !== 'master') return c.json({ error: 'Forbidden' }, 403)
+  const equipeHeader = c.req.header('X-User-Equipe')
+  if (role !== 'admin' && role !== 'master' && role !== 'lider') return c.json({ error: 'Forbidden' }, 403)
 
   const db = c.env.PERF_DB
-  const rows = await db
-    .prepare(`
-      SELECT id_assessor, nome_assessor, equipe
-      FROM   assessores
-      WHERE  equipe IS NOT NULL
-      ORDER  BY equipe, nome_assessor
-    `)
-    .all<{ id_assessor: string; nome_assessor: string | null; equipe: string }>()
+  const rows = role === 'lider' && equipeHeader
+    ? await db
+        .prepare(`SELECT id_assessor, nome_assessor, equipe FROM assessores WHERE equipe = ? AND equipe IS NOT NULL ORDER BY nome_assessor`)
+        .bind(equipeHeader)
+        .all<{ id_assessor: string; nome_assessor: string | null; equipe: string }>()
+    : await db
+        .prepare(`SELECT id_assessor, nome_assessor, equipe FROM assessores WHERE equipe IS NOT NULL ORDER BY equipe, nome_assessor`)
+        .all<{ id_assessor: string; nome_assessor: string | null; equipe: string }>()
 
   const assessores = rows.results
   const equipes = [...new Set(assessores.map(a => a.equipe))].sort()

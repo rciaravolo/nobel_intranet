@@ -171,12 +171,16 @@ async function getRfAtivos(opts: FilterOpts): Promise<RFAtivo[]> {
   }
 }
 
-async function getAssessores(role: string, email: string): Promise<AssessoresPayload | null> {
-  if (role !== 'admin' && role !== 'master') return null
+async function getAssessores(role: string, email: string, equipe?: string): Promise<AssessoresPayload | null> {
+  if (role !== 'admin' && role !== 'master' && role !== 'lider') return null
   try {
     const res = await apiFetch('/performance/assessores', {
       cache: 'no-store',
-      headers: { 'X-User-Role': role, 'X-User-Email': email },
+      headers: {
+        'X-User-Role': role,
+        'X-User-Email': email,
+        ...(equipe ? { 'X-User-Equipe': equipe } : {}),
+      },
     })
     if (!res.ok) return null
     const json = (await res.json()) as { data: AssessoresPayload }
@@ -349,7 +353,7 @@ export default async function CarteirasPage({
   const tab = sp.tab ?? 'geral'
   const session = await requireSession()
 
-  const canFilter = session.role === 'admin' || session.role === 'master'
+  const canFilter = session.role === 'admin' || session.role === 'master' || session.role === 'lider'
   const filterType  = canFilter ? sp.filter_type  : undefined
   const filterValue = canFilter ? sp.filter_value : undefined
 
@@ -364,7 +368,7 @@ export default async function CarteirasPage({
   const [d, rfAtivos, assessoresData] = await Promise.all([
     getVisao(opts),
     getRfAtivos(opts),
-    getAssessores(session.role, session.email),
+    getAssessores(session.role, session.email, session.equipe),
   ])
 
   const totais = d?.totais ?? { rf: 0, rv: 0, coe: 0, liquidez: 0, total: 0 }
@@ -423,11 +427,11 @@ export default async function CarteirasPage({
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <PageGreeting name={session.name} label="Posição analítica" />
 
-      {/* ── Filtros (admin / master) ────────────────────────────────────── */}
+      {/* ── Filtros (admin / master / lider) ────────────────────────────── */}
       {canFilter && (
         <AnalisesFilters
           basePath="/carteiras"
-          equipes={(assessoresData?.equipes ?? []).slice().sort((a, b) => a.localeCompare(b, 'pt-BR'))}
+          equipes={session.role === 'lider' ? [] : (assessoresData?.equipes ?? []).slice().sort((a, b) => a.localeCompare(b, 'pt-BR'))}
           assessores={(assessoresData?.assessores ?? []).slice().sort((a, b) =>
             (a.nome_assessor ?? a.id_assessor).localeCompare(b.nome_assessor ?? b.id_assessor, 'pt-BR'),
           )}

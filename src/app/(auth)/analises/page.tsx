@@ -251,14 +251,15 @@ type AssessoresPayload = {
   assessores: { id_assessor: string; nome_assessor: string | null; equipe: string }[]
 }
 
-async function getAssessores(role: string, email: string): Promise<AssessoresPayload | null> {
-  if (role !== 'admin' && role !== 'master') return null
+async function getAssessores(role: string, email: string, equipe?: string): Promise<AssessoresPayload | null> {
+  if (role !== 'admin' && role !== 'master' && role !== 'lider') return null
   try {
     const res = await apiFetch(`/performance/assessores`, {
       cache: 'no-store',
       headers: {
         'X-User-Role': role,
         'X-User-Email': email,
+        ...(equipe ? { 'X-User-Equipe': equipe } : {}),
       },
     })
     if (!res.ok) return null
@@ -763,7 +764,7 @@ export default async function AnalisesPage({
   const filterType = typeof sp.filter_type === 'string' ? sp.filter_type : undefined
   const filterValue = typeof sp.filter_value === 'string' ? sp.filter_value : undefined
 
-  const canFilter = session.role === 'admin' || session.role === 'master'
+  const canFilter = session.role === 'admin' || session.role === 'master' || session.role === 'lider'
   const opts: FetchOpts = {
     email: session.email,
     role: session.role,
@@ -776,7 +777,7 @@ export default async function AnalisesPage({
     getOnepage(opts),
     getMetas(opts),
     getHistorico(opts),
-    getAssessores(session.role, session.email),
+    getAssessores(session.role, session.email, session.equipe),
   ])
   const firstName = session.name.split(' ')[0]
 
@@ -813,10 +814,10 @@ export default async function AnalisesPage({
         label={`Posição em ${fDataRef(data?.dataRef ?? null)}`}
       />
 
-      {/* ── Filtros (admin / master) ── */}
+      {/* ── Filtros (admin / master / lider) ── */}
       {canFilter && (
         <AnalisesFilters
-          equipes={(assessoresData?.equipes ?? []).slice().sort((a, b) => a.localeCompare(b, 'pt-BR'))}
+          equipes={session.role === 'lider' ? [] : (assessoresData?.equipes ?? []).slice().sort((a, b) => a.localeCompare(b, 'pt-BR'))}
           assessores={(assessoresData?.assessores ?? []).slice().sort((a, b) =>
             (a.nome_assessor ?? a.id_assessor).localeCompare(b.nome_assessor ?? b.id_assessor, 'pt-BR'),
           )}
