@@ -247,50 +247,27 @@ function ChartCaptacao({ rows }: { rows: MesHistorico[] }) {
   )
 }
 
-/* ─── Gráfico 3: Receita & ROA ───────────────────────────────────────────── */
+/* ─── Gráfico 3: Receita ─────────────────────────────────────────────────── */
 
-function ChartReceitaRoa({ rows }: { rows: MesHistorico[] }) {
+function ChartReceita({ rows }: { rows: MesHistorico[] }) {
   const [vis, setVis] = useState({ y25: true, y26: true })
 
-  const maxReceita = Math.max(
+  const maxVal = Math.max(
     ...(vis.y25 ? rows.map((r) => r.receita.v25 ?? 0) : [0]),
     ...(vis.y26 ? rows.map((r) => r.receita.v26 ?? 0) : [0]),
     1,
   )
 
-  const roaVals = rows.map((r) => r.roa.v26).filter((v): v is number => v != null)
-  const minRoa  = roaVals.length > 0 ? Math.min(...roaVals) : 0
-  const maxRoa  = roaVals.length > 0 ? Math.max(...roaVals) : 1
-  const roaRange = maxRoa - minRoa || 1
-
-  const bTop  = (v: number) => P.top + iH - (v / maxReceita) * iH
-  const bH    = (v: number) => (v / maxReceita) * iH
-  const roaY  = (v: number) => P.top + iH - ((v - minRoa) / roaRange) * iH
-
-  const roaPoints = rows
-    .map((r, i) => {
-      if (r.roa.v26 == null) return null
-      return `${P.left + i * SLOT + B26_CX},${roaY(r.roa.v26)}`
-    })
-    .filter(Boolean)
-    .join(' ')
+  const bTop = (v: number) => P.top + iH - (v / maxVal) * iH
+  const bH   = (v: number) => (v / maxVal) * iH
 
   return (
     <div style={cardStyle}>
       <div style={cardHeaderStyle}>
-        <span style={{ ...titleStyle, color: 'var(--c-gold)' }}>Receita & ROA</span>
+        <span style={titleStyle}>Receita</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <YearPill label="2025" color="var(--line-strong)" active={vis.y25} onClick={() => setVis((v) => ({ ...v, y25: !v.y25 }))} />
           <YearPill label="2026" color="var(--color-b-500)" active={vis.y26} onClick={() => setVis((v) => ({ ...v, y26: !v.y26 }))} />
-          <span style={{ width: 1, height: 12, background: 'var(--line-strong)', display: 'inline-block' }} />
-          <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <span style={{ display: 'inline-block', width: 11, height: 11, borderRadius: 2, background: 'var(--color-b-500)' }} />
-            <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, fontWeight: 500, color: 'var(--fg-mute)', letterSpacing: '.04em' }}>Receita</span>
-          </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <span style={{ display: 'inline-block', width: 18, height: 2, borderRadius: 2, background: 'var(--c-gold)' }} />
-            <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, fontWeight: 500, color: 'var(--fg-mute)', letterSpacing: '.04em' }}>ROA</span>
-          </span>
         </div>
       </div>
       <div style={{ padding: '16px 20px' }}>
@@ -319,22 +296,6 @@ function ChartReceitaRoa({ rows }: { rows: MesHistorico[] }) {
                   {r.label}
                 </text>
               </g>
-            )
-          })}
-
-          {vis.y26 && roaPoints && (
-            <polyline points={roaPoints} fill="none" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" style={{ stroke: 'var(--c-gold)' }} />
-          )}
-          {vis.y26 && rows.map((r, i) => {
-            if (r.roa.v26 == null) return null
-            return (
-              <circle
-                key={`roa-${r.mes}`}
-                cx={P.left + i * SLOT + B26_CX}
-                cy={roaY(r.roa.v26)}
-                r={3}
-                style={{ fill: 'var(--c-gold)' }}
-              />
             )
           })}
         </svg>
@@ -398,7 +359,7 @@ export function GraficosHistorico({ histRows, filterLabel, filterType: _filterTy
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <ChartCustodia rows={histRows} />
         <ChartCaptacao rows={histRows} />
-        <ChartReceitaRoa rows={histRows} />
+        <ChartReceita rows={histRows} />
       </div>
     </div>
   )
