@@ -333,8 +333,11 @@ function CaptacaoRow({ equipe, capHoje, pctHoje, isTotal, isLast }: CaptacaoRowP
 /* ─── Componente: Card Receita ───────────────────────────────────────────── */
 
 function ReceitaCard({ dados }: { dados: ReceitaPayload }) {
-  const { equipes, metas, totalReceita, grandTotalReceita, grandTotalMeta } = dados
+  const { equipes, metas, totalReceita, grandTotalReceita, grandTotalMeta, dataRef } = dados
   const pctGeral = grandTotalMeta > 0 ? grandTotalReceita / grandTotalMeta : null
+  const dataLabel = dataRef
+    ? `Ref. ${new Date(`${dataRef}T12:00:00Z`).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}`
+    : undefined
 
   return (
     <div
@@ -345,7 +348,7 @@ function ReceitaCard({ dados }: { dados: ReceitaPayload }) {
         overflow: 'hidden',
       }}
     >
-      <CardHeader label="Receita por Equipe" badge="MTD" />
+      <CardHeader label="Receita por Equipe" badge="MTD" extra={dataLabel} />
 
       {equipes.map((equipe, i) => {
         const valor = totalReceita[equipe] ?? 0
@@ -510,55 +513,6 @@ export function PnlClient({ receita, captacao }: PnlClientProps) {
         eyebrow="RESULTADO GERENCIAL"
         onBack={() => router.back()}
       />
-
-      {/* ── Data de referência ── */}
-      {receita?.dataRef && (
-        <div
-          style={{
-            padding: '0 16px 12px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-          }}
-        >
-          <span
-            style={{
-              fontFamily: MONO,
-              fontSize: 10,
-              fontWeight: 600,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              color: T.muted,
-            }}
-          >
-            Ref.
-          </span>
-          <span
-            style={{
-              fontFamily: MONO,
-              fontSize: 12,
-              fontWeight: 600,
-              color: T.text,
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
-            {new Date(`${receita.dataRef}T12:00:00Z`).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-          </span>
-          <span style={{ width: 3, height: 3, borderRadius: '50%', background: T.muted, display: 'inline-block', flexShrink: 0 }} />
-          <span
-            style={{
-              fontFamily: MONO,
-              fontSize: 10,
-              fontWeight: 600,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              color: T.muted,
-            }}
-          >
-            MTD
-          </span>
-        </div>
-      )}
 
       <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 24 }}>
         {/* ── Receita ── */}

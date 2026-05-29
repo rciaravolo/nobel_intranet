@@ -171,7 +171,16 @@ app.get('/receita-equipes', async (c) => {
 
   const grandTotalReceita = Object.values(totalReceita).reduce((s, v) => s + v, 0)
   const grandTotalMeta    = Object.values(metaMap).reduce((s, v) => s + v, 0)
-  const dataRef = `${brt.getUTCFullYear()}-${String(brt.getUTCMonth() + 1).padStart(2, '0')}-${String(brt.getUTCDate()).padStart(2, '0')}`
+
+  // 2 dias úteis atrás (pula sáb/dom)
+  const ref = new Date(brt)
+  let bizDays = 0
+  while (bizDays < 2) {
+    ref.setUTCDate(ref.getUTCDate() - 1)
+    const dow = ref.getUTCDay()
+    if (dow !== 0 && dow !== 6) bizDays++
+  }
+  const dataRef = `${ref.getUTCFullYear()}-${String(ref.getUTCMonth() + 1).padStart(2, '0')}-${String(ref.getUTCDate()).padStart(2, '0')}`
 
   return c.json({
     data: {
