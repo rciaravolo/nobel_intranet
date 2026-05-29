@@ -1,16 +1,14 @@
 'use client'
-import { ArrowRight, ChevronRight, FileText, TrendingUp } from 'lucide-react'
+import { ChevronRight, FileText, TrendingUp } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
 
 import { AppHeader } from '../../_components/AppHeader'
-import { CaptacaoBarChart } from '../../_components/CaptacaoBarChart'
+
 import { FaixasNetCard } from '../../_components/FaixasNetCard'
 import { KpiTile } from '../../_components/KpiTile'
 import { ReceitaDonutCard } from '../../_components/ReceitaDonutCard'
 import { SectionHeadline } from '../../_components/SectionHeadline'
 import { Sparkline } from '../../_components/Sparkline'
-import { TabPills } from '../../_components/TabPills'
 import { fmtCur, fmtPct } from '../../_lib/format'
 import type { OnePageData, Theme } from '../../_lib/types'
 
@@ -23,9 +21,9 @@ const T = {
   borderMed: 'rgba(255,255,255,0.12)',
   text: '#eceef4',
   muted: '#6b7588',
-  gold: '#C9973F',
-  success: '#3dba6e',
-  danger: '#e05252',
+  gold: '#C9A961',
+  success: '#248A47',
+  danger: '#D94141',
 }
 
 const SANS = 'var(--font-sans, "Garet", "Helvetica Neue", sans-serif)'
@@ -38,13 +36,9 @@ interface OnePageScreenProps {
   onToggleTheme: () => void
 }
 
-const PERIODS = ['Hoje', 'Semana', 'Mês', 'Trimestre', 'Ano'] as const
-type Period = (typeof PERIODS)[number]
-
 // ─── Main component ────────────────────────────────────────────────────────────
 export function OnePageScreen({ data, theme, onToggleTheme }: OnePageScreenProps) {
   const router = useRouter()
-  const [period, setPeriod] = useState<Period>('Mês')
   const firstName = data.user.name.split(' ')[0] || '—'
   const featuredMaterial = data.materiais[0]?.arquivos[0]
 
@@ -68,8 +62,6 @@ export function OnePageScreen({ data, theme, onToggleTheme }: OnePageScreenProps
         onToggleTheme={onToggleTheme}
         onOpenProfile={() => router.push('/m/settings')}
       />
-      <TabPills options={PERIODS} active={period} onChange={setPeriod} />
-
       {/* ── HERO ── */}
       <section
         style={{
@@ -192,31 +184,7 @@ export function OnePageScreen({ data, theme, onToggleTheme }: OnePageScreenProps
           </span>
         </div>
 
-        {/* CTA button */}
-        <button
-          type="button"
-          onClick={() => router.push('/m/captacao')}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            width: '100%',
-            height: 48,
-            marginTop: 20,
-            borderRadius: 12,
-            background: 'transparent',
-            border: `1px solid rgba(236,238,244,0.35)`,
-            color: T.text,
-            fontFamily: SANS,
-            fontSize: 15,
-            fontWeight: 600,
-            cursor: 'pointer',
-            WebkitTapHighlightColor: 'transparent',
-          }}
-        >
-          Ver detalhamento <ArrowRight size={16} />
-        </button>
+
       </section>
 
       {/* ── KPI STRIP ── */}
@@ -261,35 +229,24 @@ export function OnePageScreen({ data, theme, onToggleTheme }: OnePageScreenProps
           type="button"
           onClick={() => router.push('/m/captacao')}
           style={{
-            display: 'block',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 8,
             width: '100%',
-            textAlign: 'left',
-            borderRadius: 12,
-            background: T.card,
-            border: `1px solid ${T.border}`,
-            padding: 16,
+            background: 'none',
+            border: 'none',
+            padding: 0,
             cursor: 'pointer',
             WebkitTapHighlightColor: 'transparent',
           }}
         >
-          {/* Stacked KPIs */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: 12,
-              marginBottom: 16,
-            }}
-          >
-            <StackedKpi label="Bruta" value={fmtCur(data.captacao.bruta)} tone="ink" />
-            <StackedKpi label="Resgates" value={fmtCur(data.captacao.resgates)} tone="red" />
-            <StackedKpi
-              label="Líquida"
-              value={fmtCur(data.captacao.liquida)}
-              tone={data.captacao.liquida < 0 ? 'red' : 'green'}
-            />
-          </div>
-          <CaptacaoBarChart series={data.captacao.series} height={56} showValueLabels={false} />
+          <CaptacaoCard label="Bruta" value={fmtCur(data.captacao.bruta)} tone="ink" />
+          <CaptacaoCard label="Resgates" value={fmtCur(data.captacao.resgates)} tone="red" />
+          <CaptacaoCard
+            label="Líquida"
+            value={fmtCur(data.captacao.liquida)}
+            tone={data.captacao.liquida < 0 ? 'red' : 'green'}
+          />
         </button>
       </div>
 
@@ -312,22 +269,7 @@ export function OnePageScreen({ data, theme, onToggleTheme }: OnePageScreenProps
         }
       />
       <div style={{ padding: '0 16px' }}>
-        <button
-          type="button"
-          onClick={() => router.push('/m/receita')}
-          style={{
-            display: 'block',
-            width: '100%',
-            textAlign: 'left',
-            background: 'none',
-            border: 'none',
-            padding: 0,
-            cursor: 'pointer',
-            WebkitTapHighlightColor: 'transparent',
-          }}
-        >
-          <ReceitaDonutCard produtos={data.produtos} total={data.receita.mes} maxRows={5} />
-        </button>
+        <ReceitaDonutCard produtos={data.produtos} total={data.receita.mes} maxRows={5} />
       </div>
 
       {/* ── FAIXAS NET ── */}
@@ -499,27 +441,27 @@ function DeltaChip({ pct }: { pct: number }) {
   )
 }
 
-// ─── StackedKpi (inline, used only in OnePageScreen) ──────────────────────────
-type Tone = 'ink' | 'gold' | 'red' | 'green'
-const toneColor: Record<Tone, string> = {
-  ink: T.text,
-  gold: T.gold,
-  red: T.danger,
-  green: T.success,
-}
-
-function StackedKpi({ label, value, tone = 'ink' }: { label: string; value: string; tone?: Tone }) {
+// ─── CaptacaoCard ─────────────────────────────────────────────────────────────
+function CaptacaoCard({ label, value, tone = 'ink' }: { label: string; value: string; tone?: Tone }) {
   return (
-    <div>
+    <div
+      style={{
+        borderRadius: 10,
+        background: T.card,
+        border: `1px solid ${T.border}`,
+        padding: '12px 10px',
+        textAlign: 'left',
+      }}
+    >
       <div
         style={{
           fontFamily: SANS,
           fontSize: 9,
           fontWeight: 700,
-          letterSpacing: '0.2em',
+          letterSpacing: '0.18em',
           textTransform: 'uppercase',
           color: T.muted,
-          marginBottom: 4,
+          marginBottom: 8,
         }}
       >
         {label}
@@ -527,15 +469,25 @@ function StackedKpi({ label, value, tone = 'ink' }: { label: string; value: stri
       <div
         style={{
           fontFamily: MONO,
-          fontSize: 16,
+          fontSize: 14,
           fontWeight: 500,
           color: toneColor[tone],
           fontVariantNumeric: 'tabular-nums',
           fontFeatureSettings: '"tnum"',
+          lineHeight: 1.2,
         }}
       >
         {value}
       </div>
     </div>
   )
+}
+
+// ─── Tone helpers (shared by CaptacaoCard) ────────────────────────────────────
+type Tone = 'ink' | 'gold' | 'red' | 'green'
+const toneColor: Record<Tone, string> = {
+  ink: T.text,
+  gold: T.gold,
+  red: T.danger,
+  green: T.success,
 }

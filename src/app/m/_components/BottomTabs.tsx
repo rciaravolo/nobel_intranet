@@ -1,9 +1,9 @@
 'use client'
-import { Coins, Folder, Home, type LucideIcon } from 'lucide-react'
+import { BarChart2, Coins, Home, TrendingUp, type LucideIcon } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 
 const SANS = 'var(--font-sans, "Garet", "Helvetica Neue", sans-serif)'
-const COLOR_ACTIVE = '#C9973F'
+const COLOR_ACTIVE = '#C9A961'
 const COLOR_INACTIVE = '#6b7588'
 
 interface TabDef {
@@ -13,15 +13,18 @@ interface TabDef {
   href: string
 }
 
-const TABS: TabDef[] = [
-  { id: 'onepage', label: 'Onepage', icon: Home, href: '/m/onepage' },
-  { id: 'captacao', label: 'Captação', icon: Coins, href: '/m/captacao' },
-  { id: 'materiais', label: 'Materiais', icon: Folder, href: '/m/materiais' },
+const BASE_TABS: TabDef[] = [
+  { id: 'onepage',  label: 'Onepage',  icon: Home,       href: '/m/onepage' },
+  { id: 'captacao', label: 'Captação', icon: Coins,      href: '/m/captacao' },
+  { id: 'receita',  label: 'Receita',  icon: TrendingUp, href: '/m/receita' },
 ]
 
-export function BottomTabs() {
+const PNL_TAB: TabDef = { id: 'pnl', label: 'PnL', icon: BarChart2, href: '/m/pnl' }
+
+export function BottomTabs({ role }: { role: string }) {
   const pathname = usePathname()
   const router = useRouter()
+  const tabs = role === 'admin' || role === 'master' ? [...BASE_TABS, PNL_TAB] : BASE_TABS
 
   return (
     <nav
@@ -41,7 +44,7 @@ export function BottomTabs() {
         borderTop: '1px solid rgba(255,255,255,0.07)',
       }}
     >
-      {TABS.map(({ id, label, icon: Icon, href }) => {
+      {tabs.map(({ id, label, icon: Icon, href }) => {
         const isActive = pathname === href || pathname.startsWith(`${href}/`)
         const color = isActive ? COLOR_ACTIVE : COLOR_INACTIVE
         return (

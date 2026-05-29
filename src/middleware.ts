@@ -42,7 +42,7 @@ export function middleware(req: NextRequest) {
   const isMobile = MOBILE_UA.test(ua)
   const isMobileRoute = pathname.startsWith('/m/')
 
-  if (isMobile && !isMobileRoute) {
+  if (isMobile && !isMobileRoute && !pathname.startsWith('/api/')) {
     const mobilePath = MOBILE_MAP[pathname] ?? '/m/onepage'
     const url = req.nextUrl.clone()
     url.pathname = mobilePath

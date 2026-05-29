@@ -2,6 +2,7 @@
 import { useRouter } from 'next/navigation'
 import { ScreenHeader } from '../../_components/ScreenHeader'
 import { fmtBR, fmtCur } from '../../_lib/format'
+import { rankColor } from '../../_lib/chartColor'
 import type { CapPayload, ReceitaPayload } from '../page'
 
 /* ─── Design tokens ─────────────────────────────────────────────────────── */
@@ -17,17 +18,11 @@ const T = {
   borderMed: 'rgba(255,255,255,0.12)',
   text: '#eceef4',
   muted: '#6b7588',
-  gold: '#C9973F',
-  success: '#3dba6e',
-  danger: '#e05252',
+  gold: '#C9A961',
+  success: '#248A47',
+  danger: '#D94141',
 }
 
-const EQUIPE_COLORS: Record<string, string> = {
-  'SMART':     '#2D5FA0',
-  'PRIVATE':   '#C9973F',
-  'RIO PRETO': '#10B981',
-  'BRAVO':     '#8B5CF6',
-}
 
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
 
@@ -140,10 +135,10 @@ interface ReceitaRowProps {
   grandTotal: number
   pctMeta: number | null
   isLast: boolean
+  color: string
 }
 
-function ReceitaRow({ equipe, valor, grandTotal, pctMeta, isLast }: ReceitaRowProps) {
-  const color = EQUIPE_COLORS[equipe] ?? T.muted
+function ReceitaRow({ equipe, valor, grandTotal, pctMeta, isLast, color }: ReceitaRowProps) {
   const barPct = grandTotal > 0 ? Math.min(100, (valor / grandTotal) * 100) : 0
 
   return (
@@ -237,10 +232,10 @@ interface CaptacaoRowProps {
   pctHoje: number | null
   isTotal?: boolean
   isLast: boolean
+  color?: string
 }
 
-function CaptacaoRow({ equipe, capHoje, pctHoje, isTotal, isLast }: CaptacaoRowProps) {
-  const color = EQUIPE_COLORS[equipe] ?? T.muted
+function CaptacaoRow({ equipe, capHoje, pctHoje, isTotal, isLast, color = T.muted }: CaptacaoRowProps) {
   const isPos = capHoje >= 0
   const capColor = isPos ? T.success : T.danger
 
@@ -341,6 +336,9 @@ function ReceitaCard({ dados }: { dados: ReceitaPayload }) {
     ? `Ref. ${new Date(`${dataRef}T12:00:00Z`).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}`
     : undefined
 
+  // Ordena equipes do maior para o menor valor e atribui rankColor
+  const sorted = [...equipes].sort((a, b) => (totalReceita[b] ?? 0) - (totalReceita[a] ?? 0))
+
   return (
     <div
       style={{
@@ -350,9 +348,9 @@ function ReceitaCard({ dados }: { dados: ReceitaPayload }) {
         overflow: 'hidden',
       }}
     >
-      <CardHeader label="Receita por Equipe" badge="MTD" extra={dataLabel} />
+      <CardHeader label="Receita por Equipe" badge="MTD" {...(dataLabel !== undefined && { extra: dataLabel })} />
 
-      {equipes.map((equipe, i) => {
+      {sorted.map((equipe, i) => {
         const valor = totalReceita[equipe] ?? 0
         const meta = metas[equipe] ?? 0
         const pctMeta = meta > 0 ? valor / meta : null
@@ -363,7 +361,8 @@ function ReceitaCard({ dados }: { dados: ReceitaPayload }) {
             valor={valor}
             grandTotal={grandTotalReceita}
             pctMeta={pctMeta}
-            isLast={i === equipes.length - 1}
+            isLast={i === sorted.length - 1}
+            color={rankColor(i, sorted.length)}
           />
         )
       })}
@@ -450,7 +449,9 @@ function CaptacaoCard({ dados }: { dados: CapPayload }) {
   }
 
   const hoje = fData(dados.dataHoje)
-  const rows = dados.equipes
+  // Ordena do maior para o menor; positivos recebem rankColor, negativos recebem vermelho
+  const rows = [...dados.equipes].sort((a, b) => b.capHoje - a.capHoje)
+  const posCount = rows.filter(r => r.capHoje >= 0).length
 
   return (
     <div
@@ -470,6 +471,7 @@ function CaptacaoCard({ dados }: { dados: CapPayload }) {
           capHoje={row.capHoje}
           pctHoje={row.pctHoje}
           isLast={i === rows.length - 1}
+          color={row.capHoje >= 0 ? rankColor(i, posCount) : T.danger}
         />
       ))}
 

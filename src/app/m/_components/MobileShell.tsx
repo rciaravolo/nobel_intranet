@@ -4,20 +4,20 @@ import { BottomTabs } from './BottomTabs'
 import { ThemeProvider, useMobileTheme } from './ThemeProvider'
 import '../styles/mobile.css'
 
-function Shell({ children }: { children: ReactNode }) {
+function Shell({ children, role }: { children: ReactNode; role: string }) {
   const { theme } = useMobileTheme()
   return (
     <div className={`nobel-mobile relative h-full w-full${theme === 'dark' ? ' dark' : ''}`}>
       {children}
-      <BottomTabs />
+      <BottomTabs role={role} />
     </div>
   )
 }
 
-export function MobileShell({ children }: { children: ReactNode }) {
+export function MobileShell({ children, role }: { children: ReactNode; role: string }) {
   return (
     <ThemeProvider>
-      <Shell>{children}</Shell>
+      <Shell role={role}>{children}</Shell>
     </ThemeProvider>
   )
 }

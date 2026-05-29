@@ -13,11 +13,11 @@ export const viewport: Viewport = {
 }
 
 export default async function MobileLayout({ children }: { children: React.ReactNode }) {
-  await requireSession()
+  const session = await requireSession()
 
   return (
     <div style={{ height: '100dvh', overflow: 'hidden' }}>
-      <MobileShell>{children}</MobileShell>
+      <MobileShell role={session.role}>{children}</MobileShell>
     </div>
   )
 }

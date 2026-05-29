@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { PLACEHOLDER_DATA } from '../../_lib/placeholders'
+import { rankColor } from '../../_lib/chartColor'
 import type { CaptacaoMes, FaixaNet, MobileUser, OnePageData, Produto } from '../../_lib/types'
 
 interface OnepageResponse {
@@ -26,20 +27,6 @@ interface HistoricoResponse {
   }
 }
 
-const PRODUCT_COLORS: Record<string, string> = {
-  'Fee Fixo': '262 70% 60%',
-  Fundos: '200 75% 55%',
-  Previdência: '140 55% 45%',
-  'Renda Variável': '30 90% 55%',
-  'Renda Fixa': '45 95% 50%',
-  COE: '0 70% 55%',
-  Câmbio: '210 12% 50%',
-  'Oferta de Fundos': '200 60% 50%',
-  Seguros: '280 50% 55%',
-  Consórcio: '320 45% 50%',
-  Dominion: '260 45% 50%',
-  Precatórios: '15 60% 50%',
-}
 
 const MES_LABELS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
@@ -77,11 +64,12 @@ export function useOnepageData(user: MobileUser): OnePageData {
         const posicaoEm = parts.length === 3 ? `${parts[2]}/${parts[1]}` : '—'
 
         const total = d.receita.total
-        const produtos: Produto[] = d.receita.porProduto.map((p) => ({
+        const sortedProdutos = [...d.receita.porProduto].sort((a, b) => b.receita - a.receita)
+        const produtos: Produto[] = sortedProdutos.map((p, i) => ({
           nome: p.produto,
           valor: p.receita,
           pct: total > 0 ? (p.receita / total) * 100 : 0,
-          color: PRODUCT_COLORS[p.produto] ?? '210 20% 55%',
+          color: rankColor(i, sortedProdutos.length),
         }))
 
         const totalAum = d.aum
@@ -102,11 +90,22 @@ export function useOnepageData(user: MobileUser): OnePageData {
             ? (custPoints[custPoints.length - 1]! / custPoints[custPoints.length - 2]!) - 1
             : 0
 
-        const capMonths = h.filter((m) => m.captacao.v26 != null || m.captacao.v25 != null).slice(-6)
-        const seriesMeses: CaptacaoMes[] = capMonths.map((m) => {
-          const v = (m.captacao.v26 ?? m.captacao.v25 ?? 0) / 1_000_000
+        // Monta entradas cronológicas (ano+mês) para capturar a fronteira de ano corretamente
+        const now = new Date()
+        const curYearMonth = now.getFullYear() * 100 + (now.getMonth() + 1)
+
+        const capEntries: Array<{ key: number; mes: number; value: number }> = []
+        for (const row of h) {
+          if (row.captacao.v26 != null) capEntries.push({ key: 202600 + row.mes, mes: row.mes, value: row.captacao.v26 })
+          if (row.captacao.v25 != null) capEntries.push({ key: 202500 + row.mes, mes: row.mes, value: row.captacao.v25 })
+        }
+        capEntries.sort((a, b) => a.key - b.key)
+
+        const last6 = capEntries.filter((e) => e.key <= curYearMonth).slice(-6)
+        const seriesMeses: CaptacaoMes[] = last6.map(({ mes, value }) => {
+          const v = value / 1_000_000
           return {
-            m: MES_LABELS[m.mes - 1] ?? String(m.mes),
+            m: MES_LABELS[mes - 1] ?? String(mes),
             liq: v,
             bruta: Math.max(v, 0),
             resgates: Math.abs(Math.min(v, 0)),
@@ -136,7 +135,9 @@ export function useOnepageData(user: MobileUser): OnePageData {
           topClientes: [],
         })
       })
-      .catch(() => {})
+      .catch((err) => {
+        console.error('[useOnepageData] fetch failed:', err)
+      })
   }, [user.name])
 
   return data
