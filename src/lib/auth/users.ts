@@ -106,6 +106,19 @@ const SEED_USERS: User[] = [
     department: 'Assessoria — SMART',
     avatarInitials: 'FZ',
   },
+  {
+    id: 'usr_lider_001',
+    username: 'rafael.bonfim',
+    // scrypt hash de "nobel2026"
+    passwordHash:
+      '506d8e15d26d81be3824ac7056c6dac8721f6366cd9cc708b6dfb4bcf39dc7f79af06104d17d88e36f4fdcd0bb013fc5a72f5144280c138a3e1b88d1efe7186f.d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9',
+    name: 'Rafael Bonfim',
+    email: 'rafael.bonfim@nobelcapital.com.br',
+    role: 'lider',
+    equipe: 'BRAVO',
+    department: 'Assessoria — Equipe BRAVO',
+    avatarInitials: 'RBo',
+  },
 ]
 
 export function findUserByUsername(username: string): User | undefined {
