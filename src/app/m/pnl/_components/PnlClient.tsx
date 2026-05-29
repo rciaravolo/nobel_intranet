@@ -273,13 +273,15 @@ function CaptacaoRow({ equipe, capHoje, pctHoje, isTotal, isLast }: CaptacaoRowP
         <div
           style={{
             fontFamily: SANS,
-            fontSize: isTotal ? 12 : 13,
+            fontSize: isTotal ? 11 : 13,
             fontWeight: isTotal ? 700 : 600,
-            color: isTotal ? T.muted : T.text,
+            letterSpacing: isTotal ? '0.08em' : undefined,
+            textTransform: isTotal ? 'uppercase' : undefined,
+            color: isTotal ? 'rgba(255,255,255,0.45)' : T.text,
             marginBottom: 5,
           }}
         >
-          {equipe}
+          {isTotal ? 'Total Geral' : equipe}
         </div>
         <div
           style={{
