@@ -985,7 +985,7 @@ app.get('/carteiras/visao', async (c) => {
   ] = await Promise.all([
     db.prepare(`SELECT SUM(posicao_atual) as total FROM analitico_rf WHERE tipo_ativo IS NOT NULL AND posicao_atual IS NOT NULL${wa}`).first<{ total: number }>(),
     db.prepare(`SELECT SUM(auc) as total FROM analitico_rv WHERE setor IS NOT NULL AND auc IS NOT NULL${wa}`).first<{ total: number }>(),
-    db.prepare(`SELECT SUM(posicao_atual) as total FROM posicao_coe WHERE tipo IS NOT NULL${wa}`).first<{ total: number }>(),
+    db.prepare(`SELECT SUM(volume) as total FROM posicao_coe WHERE ativo IS NOT NULL${wa}`).first<{ total: number }>(),
     db.prepare(`SELECT SUM(custodia) as total FROM custodia_ld WHERE indexador IS NOT NULL${wa}`).first<{ total: number }>(),
 
     db.prepare(`
@@ -1020,11 +1020,11 @@ app.get('/carteiras/visao', async (c) => {
     `).all<{ ativo: string; setor: string; produto: string; total: number; clientes: number; variacao: number }>(),
 
     db.prepare(`
-      SELECT tipo, COUNT(*) as posicoes, SUM(posicao_atual) as total_atual,
-             SUM(valor_compra) as total_compra, SUM(cupom_recebido) as total_cupom,
+      SELECT ativo AS tipo, COUNT(*) as posicoes, SUM(volume) as total_atual,
+             SUM(volume) as total_compra, SUM(receita) as total_cupom,
              COUNT(DISTINCT id_cliente) as clientes
-      FROM posicao_coe WHERE tipo IS NOT NULL${wa}
-      GROUP BY tipo ORDER BY total_atual DESC
+      FROM posicao_coe WHERE ativo IS NOT NULL${wa}
+      GROUP BY ativo ORDER BY total_atual DESC
     `).all<{ tipo: string; posicoes: number; total_atual: number; total_compra: number; total_cupom: number; clientes: number }>(),
 
     db.prepare(`
