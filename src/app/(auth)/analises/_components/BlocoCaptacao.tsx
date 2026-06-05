@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-type ClienteRow = { id_cliente: string; nome_cliente: string | null; valor: number }
+type ClienteRow = { id_cliente: string; nome_cliente: string | null; nome_assessor: string | null; valor: number }
 
 type DeepDiveCaptacao = {
   mesLabel: string
@@ -108,7 +108,15 @@ function DeepDiveTable({
                 >
                   {r.nome_cliente ?? `Cliente ${r.id_cliente}`}
                 </span>
-                <span style={{ fontSize: 10, color: 'var(--fg-faint)' }}>#{r.id_cliente}</span>
+                <span style={{ fontSize: 10, color: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
+                  #{r.id_cliente}
+                  {r.nome_assessor && (
+                    <>
+                      <span style={{ margin: '0 4px', opacity: 0.4 }}>|</span>
+                      <span style={{ color: 'var(--fg-mute)' }}>{r.nome_assessor}</span>
+                    </>
+                  )}
+                </span>
               </td>
               <td
                 style={{

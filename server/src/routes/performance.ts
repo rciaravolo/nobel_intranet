@@ -346,28 +346,30 @@ app.get('/onepage', async (c) => {
   })
 })
 
-const PRODUTOS_METAS = [
-  { slug: 'rv',            tabela: 'receita_rv',            label: 'Renda Variável'   },
-  { slug: 'rf',            tabela: 'receita_rf',            label: 'Renda Fixa'       },
-  { slug: 'coe',           tabela: 'receita_coe',           label: 'COE'              },
-  { slug: 'cambio',        tabela: 'receita_cambio',        label: 'Câmbio'           },
-  { slug: 'feefixo',       tabela: 'receita_feefixo',       label: 'Fee Fixo'         },
-  { slug: 'seguros',       tabela: 'receita_seguros',       label: 'Seguros'          },
-  { slug: 'consorcio',     tabela: 'receita_consorcio',     label: 'Consórcio'        },
-  { slug: 'dominion',      tabela: 'receita_dominion',      label: 'Dominion'         },
-  { slug: 'oferta_fundos', tabela: 'receita_oferta_fundos', label: 'Oferta de Fundos' },
-  { slug: 'fundos',        tabela: 'receita_fundos',        label: 'Fundos'           },
-  { slug: 'previdencia',   tabela: 'receita_prev',          label: 'Previdência'      },
-  { slug: 'precas',        tabela: 'receita_precas',        label: 'Precatórios'      },
-] as const
+type ProdutoMeta = { slug: string; tabela: string; tabelaExtra?: string; label: string }
+
+const PRODUTOS_METAS: ProdutoMeta[] = [
+  { slug: 'rv',             tabela: 'receita_rv',            label: 'Renda Variável'   },
+  { slug: 'rf',             tabela: 'receita_rf',            label: 'Renda Fixa'       },
+  { slug: 'coe',            tabela: 'receita_coe',           label: 'COE'              },
+  { slug: 'cambio',         tabela: 'receita_cambio',        label: 'Câmbio'           },
+  { slug: 'feefixo',        tabela: 'receita_feefixo',       label: 'Fee Fixo'         },
+  { slug: 'seguros',        tabela: 'receita_seguros',       label: 'Seguros'          },
+  { slug: 'consorcio',      tabela: 'receita_consorcio',     label: 'Consórcio'        },
+  { slug: 'internacional',  tabela: 'receita_dominion', tabelaExtra: 'receita_parceiros', label: 'Internacional' },
+  { slug: 'oferta_fundos',  tabela: 'receita_oferta_fundos', label: 'Oferta de Fundos' },
+  { slug: 'fundos',         tabela: 'receita_fundos',        label: 'Fundos'           },
+  { slug: 'previdencia',    tabela: 'receita_prev',          label: 'Previdência'      },
+  { slug: 'precas',         tabela: 'receita_precas',        label: 'Precatórios'      },
+]
 
 app.get('/metas', async (c) => {
   const db    = c.env.PERF_DB
-  const agora = new Date()
+  const role  = c.req.header('X-User-Role')
 
   const filter = await resolveFilter(
     db,
-    c.req.header('X-User-Role'),
+    role,
     c.req.header('X-User-Email'),
     c.req.header('X-User-Equipe'),
     c.req.header('X-Filter-Type'),
@@ -375,9 +377,24 @@ app.get('/metas', async (c) => {
   )
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
-  // Mês corrente em BRT (UTC-3)
-  const brt    = new Date(agora.getTime() - 3 * 60 * 60 * 1000)
-  const mesISO = `${brt.getUTCFullYear()}-${String(brt.getUTCMonth() + 1).padStart(2, '0')}`
+  const agora = new Date()
+
+  // Mês de referência em BRT (UTC-3): primeiros 2 dias úteis → mês anterior (ainda fechando)
+  const brt   = new Date(agora.getTime() - 3 * 60 * 60 * 1000)
+  const year  = brt.getUTCFullYear()
+  const month = brt.getUTCMonth()
+  const day   = brt.getUTCDate()
+
+  let bizDaysInMonth = 0
+  for (let d = 1; d <= day; d++) {
+    const dow = new Date(Date.UTC(year, month, d)).getUTCDay()
+    if (dow !== 0 && dow !== 6) bizDaysInMonth++
+  }
+
+  const usesPrevMonth = bizDaysInMonth <= 2
+  const effMonth = usesPrevMonth ? (month === 0 ? 11 : month - 1) : month
+  const effYear  = usesPrevMonth && month === 0 ? year - 1 : year
+  const mesISO   = `${effYear}-${String(effMonth + 1).padStart(2, '0')}`
 
   const metasData = metasJson as Record<string, Record<string, number>>
   let metasMes = metasData[mesISO]
@@ -391,13 +408,17 @@ app.get('/metas', async (c) => {
 
   if (!metasMes) return c.json({ data: { semMeta: true, mesISO } })
 
-  const dias = diasUteisDoMes(agora)
+  // Mês anterior já encerrado → passa último dia dele para dias úteis (restantes = 0)
+  const dataParaDias = usesPrevMonth ? new Date(Date.UTC(effYear, effMonth + 1, 0)) : agora
+  const dias = diasUteisDoMes(dataParaDias)
 
   const receitaRows = await Promise.all(
-    PRODUTOS_METAS.map(p =>
-      db.prepare(`SELECT COALESCE(SUM(receita), 0) AS v FROM ${p.tabela}${buildWhereFilter(filter)}`)
-        .first<{ v: number }>()
-    )
+    PRODUTOS_METAS.map(p => {
+      const sql = p.tabelaExtra
+        ? `SELECT COALESCE(SUM(v),0) AS v FROM (SELECT receita AS v FROM ${p.tabela}${buildWhereFilter(filter)} UNION ALL SELECT receita AS v FROM ${p.tabelaExtra}${buildWhereFilter(filter)})`
+        : `SELECT COALESCE(SUM(receita), 0) AS v FROM ${p.tabela}${buildWhereFilter(filter)}`
+      return db.prepare(sql).first<{ v: number }>()
+    })
   )
 
   const produtos = PRODUTOS_METAS.map((p, i) => {
@@ -457,28 +478,32 @@ app.get('/deepdive/captacao', async (c) => {
     db.prepare(`
       SELECT c.id_cliente,
              bc.nome_cliente,
+             a.nome_assessor,
              SUM(c.captacao) AS valor
       FROM   tb_cap c
       LEFT JOIN base_clientes bc ON CAST(c.id_cliente AS INTEGER) = bc.id_cliente
+      LEFT JOIN assessores a ON c.id_assessor = a.id_assessor
       WHERE  c.aux = 'C'
         AND  strftime('%Y-%m', c.data) = (SELECT strftime('%Y-%m', MAX(data)) FROM tb_cap)${f}
       GROUP  BY c.id_cliente
       ORDER  BY valor DESC
       LIMIT  20
-    `).all<{ id_cliente: string; nome_cliente: string | null; valor: number }>(),
+    `).all<{ id_cliente: string; nome_cliente: string | null; nome_assessor: string | null; valor: number }>(),
 
     db.prepare(`
       SELECT c.id_cliente,
              bc.nome_cliente,
+             a.nome_assessor,
              SUM(c.captacao) AS valor
       FROM   tb_cap c
       LEFT JOIN base_clientes bc ON CAST(c.id_cliente AS INTEGER) = bc.id_cliente
+      LEFT JOIN assessores a ON c.id_assessor = a.id_assessor
       WHERE  c.aux = 'D'
         AND  strftime('%Y-%m', c.data) = (SELECT strftime('%Y-%m', MAX(data)) FROM tb_cap)${f}
       GROUP  BY c.id_cliente
       ORDER  BY valor ASC
       LIMIT  20
-    `).all<{ id_cliente: string; nome_cliente: string | null; valor: number }>(),
+    `).all<{ id_cliente: string; nome_cliente: string | null; nome_assessor: string | null; valor: number }>(),
   ])
 
   const mesLabel = new Date().toLocaleDateString('pt-BR', {
@@ -933,7 +958,6 @@ app.get('/clientes', async (c) => {
         SUM(CASE WHEN p.status = 'INATIVO' THEN 1 ELSE 0 END) as inativos,
         SUM(p.net_em_m) as aum_total
       FROM tb_positivador p
-      INNER JOIN base_clientes b ON p.id_cliente = b.id_cliente
       ${where}
     `).first<{ total: number; ativos: number; inativos: number; aum_total: number }>(),
   ])
@@ -985,7 +1009,7 @@ app.get('/carteiras/visao', async (c) => {
   ] = await Promise.all([
     db.prepare(`SELECT SUM(posicao_atual) as total FROM analitico_rf WHERE tipo_ativo IS NOT NULL AND posicao_atual IS NOT NULL${wa}`).first<{ total: number }>(),
     db.prepare(`SELECT SUM(auc) as total FROM analitico_rv WHERE setor IS NOT NULL AND auc IS NOT NULL${wa}`).first<{ total: number }>(),
-    db.prepare(`SELECT SUM(volume) as total FROM posicao_coe WHERE ativo IS NOT NULL${wa}`).first<{ total: number }>(),
+    db.prepare(`SELECT SUM(posicao_atual) as total FROM analitico_coe WHERE tipo IS NOT NULL${wa}`).first<{ total: number }>(),
     db.prepare(`SELECT SUM(custodia) as total FROM custodia_ld WHERE indexador IS NOT NULL${wa}`).first<{ total: number }>(),
 
     db.prepare(`
@@ -1020,11 +1044,11 @@ app.get('/carteiras/visao', async (c) => {
     `).all<{ ativo: string; setor: string; produto: string; total: number; clientes: number; variacao: number }>(),
 
     db.prepare(`
-      SELECT ativo AS tipo, COUNT(*) as posicoes, SUM(volume) as total_atual,
-             SUM(volume) as total_compra, SUM(receita) as total_cupom,
+      SELECT tipo, COUNT(*) as posicoes, SUM(posicao_atual) as total_atual,
+             SUM(valor_compra) as total_compra, SUM(cupom_recebido) as total_cupom,
              COUNT(DISTINCT id_cliente) as clientes
-      FROM posicao_coe WHERE ativo IS NOT NULL${wa}
-      GROUP BY ativo ORDER BY total_atual DESC
+      FROM analitico_coe WHERE tipo IS NOT NULL${wa}
+      GROUP BY tipo ORDER BY total_atual DESC
     `).all<{ tipo: string; posicoes: number; total_atual: number; total_compra: number; total_cupom: number; clientes: number }>(),
 
     db.prepare(`
