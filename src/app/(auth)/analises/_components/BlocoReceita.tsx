@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 
-type ClienteReceita = { id_cliente: number | string; nome_cliente: string | null; valor: number }
+type ClienteReceita = { id_cliente: number | string; nome_cliente: string | null; nome_assessor: string | null; valor: number }
 
 type DeepDiveReceita = {
   produto: string
@@ -491,6 +491,12 @@ export function BlocoReceita({ porProduto, receitaTotal, filterType, filterValue
                                       }}
                                     >
                                       #{cli.id_cliente}
+                                      {cli.nome_assessor && (
+                                        <>
+                                          <span style={{ margin: '0 4px', opacity: 0.4 }}>|</span>
+                                          <span style={{ color: 'var(--fg-mute)' }}>{cli.nome_assessor}</span>
+                                        </>
+                                      )}
                                     </span>
                                   )}
                                 </td>

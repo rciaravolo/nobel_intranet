@@ -551,7 +551,7 @@ app.get('/deepdive/receita/:produto', async (c) => {
   )
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
-  type ClienteRow = { id_cliente: string | number; nome_cliente: string | null; valor: number }
+  type ClienteRow = { id_cliente: string | number; nome_cliente: string | null; nome_assessor: string | null; valor: number }
 
   let clientes: ClienteRow[]
 
@@ -559,6 +559,7 @@ app.get('/deepdive/receita/:produto', async (c) => {
     const r = await db.prepare(`
       SELECT r.conta        AS id_cliente,
              r.consultor    AS nome_cliente,
+             NULL           AS nome_assessor,
              SUM(r.receita) AS valor
       FROM   receita_dominion r
       ${buildWhereFilter(filter, 'r.id_assessor')}
@@ -571,9 +572,11 @@ app.get('/deepdive/receita/:produto', async (c) => {
     const r = await db.prepare(`
       SELECT r.id_cliente,
              bc.nome_cliente,
+             a.nome_assessor,
              SUM(r.receita) AS valor
       FROM   ${info.tabela} r
       LEFT JOIN base_clientes bc ON r.id_cliente = bc.id_cliente
+      LEFT JOIN assessores a ON r.id_assessor = a.id_assessor
       ${buildWhereFilter(filter, 'r.id_assessor')}
       GROUP  BY r.id_cliente
       ORDER  BY valor DESC
