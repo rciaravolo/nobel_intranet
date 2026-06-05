@@ -11,6 +11,12 @@ import { requireSession } from '@/lib/auth/session'
 
 type Maturity = { janela: string; total: number; itens: { tipo: string; total: number }[] }
 
+type DistribuicaoPayload = {
+  aum: number
+  dataRef: string | null
+  alocacao: { produto: string; total: number; clientes: number }[]
+}
+
 type VisaoPayload = {
   totais: { rf: number; rv: number; coe: number; liquidez: number; total: number }
   rf: {
@@ -46,6 +52,18 @@ type VisaoPayload = {
 }
 
 /* ─── Paleta ─────────────────────────────────────────────────────────────── */
+
+const DIV_COLOR: Record<string, string> = {
+  'Renda Fixa':      '#2D5FA0',
+  'Renda Variável':  '#C29404',
+  'COE':             '#D94141',
+  'Liquidez':        '#248A47',
+  'Liquidez Diária': '#248A47',
+  'Previdência':     '#8B5CF6',
+  'Fundos':          '#0EA5E9',
+  'Internacional':   '#6366F1',
+}
+const divColor = (p: string) => DIV_COLOR[p] ?? '#8C8B87'
 
 const MACRO_COLOR: Record<string, string> = {
   rf: '#2D5FA0',
@@ -168,6 +186,26 @@ async function getRfAtivos(opts: FilterOpts): Promise<RFAtivo[]> {
     return json.data.ativos
   } catch {
     return []
+  }
+}
+
+async function getDistribuicao(opts: FilterOpts): Promise<DistribuicaoPayload | null> {
+  try {
+    const res = await apiFetch('/performance/carteiras', {
+      cache: 'no-store',
+      headers: {
+        'X-User-Email': opts.email,
+        'X-User-Role': opts.role,
+        'X-User-Equipe': opts.equipe ?? '',
+        ...(opts.filterType  ? { 'X-Filter-Type':  opts.filterType  } : {}),
+        ...(opts.filterValue ? { 'X-Filter-Value': opts.filterValue } : {}),
+      },
+    })
+    if (!res.ok) return null
+    const json = (await res.json()) as { data: DistribuicaoPayload }
+    return json.data
+  } catch {
+    return null
   }
 }
 
@@ -365,10 +403,11 @@ export default async function CarteirasPage({
     ...(filterValue ? { filterValue } : {}),
   }
 
-  const [d, rfAtivos, assessoresData] = await Promise.all([
+  const [d, rfAtivos, assessoresData, distribuicao] = await Promise.all([
     getVisao(opts),
     getRfAtivos(opts),
     getAssessores(session.role, session.email, session.equipe),
+    getDistribuicao(opts),
   ])
 
   const totais = d?.totais ?? { rf: 0, rv: 0, coe: 0, liquidez: 0, total: 0 }
@@ -523,6 +562,46 @@ export default async function CarteirasPage({
           </div>
         ))}
       </div>
+
+      {/* ── Distribuição por Produto (tb_diversificador) ────────────────── */}
+      {tab === 'geral' && distribuicao && distribuicao.alocacao.length > 0 && (
+        <div style={{ ...cardStyle, boxShadow: 'var(--e-float)', marginBottom: 'var(--s-4)' }}>
+          <SectionHeader title="Distribuição por Produto" sub={`${fBRL(distribuicao.aum)} · tb_diversificador`} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 32, padding: '20px 24px' }}>
+            <Donut
+              size={148}
+              segments={distribuicao.alocacao.map(a => ({
+                label: a.produto,
+                value: a.total,
+                color: divColor(a.produto),
+              }))}
+            />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {distribuicao.alocacao.map(a => {
+                const pct = distribuicao.aum > 0 ? (a.total / distribuicao.aum) * 100 : 0
+                const color = divColor(a.produto)
+                return (
+                  <div key={a.produto} style={{ display: 'grid', gridTemplateColumns: '160px 1fr 80px 60px', alignItems: 'center', gap: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: 2, background: color, flexShrink: 0 }} />
+                      <span style={{ fontFamily: 'var(--f-text)', fontSize: 12, fontWeight: 500, color: 'var(--fg)' }}>{a.produto}</span>
+                    </div>
+                    <div style={{ height: 5, background: 'var(--bg-deep)', borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 2, opacity: 0.8 }} />
+                    </div>
+                    <span style={{ fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 600, color, textAlign: 'right', fontFeatureSettings: '"tnum"' }}>
+                      {pct.toFixed(1).replace('.', ',')}%
+                    </span>
+                    <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--fg-faint)', textAlign: 'right', fontFeatureSettings: '"tnum"' }}>
+                      {fBRL(a.total)}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Row: Macro Donut + RF Marcação ─────────────────────────────── */}
       {tab !== 'rv' && <div

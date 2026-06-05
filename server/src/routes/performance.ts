@@ -59,6 +59,13 @@ function buildAndFilter(f: FilterResult, col = 'id_assessor'): string {
   return ''
 }
 
+function buildDivFilter(f: FilterResult): string {
+  if (f.type === 'all')      return ''
+  if (f.type === 'assessor') return ` WHERE id_cliente IN (SELECT id_cliente FROM tb_positivador WHERE id_assessor = '${f.id}')`
+  if (f.type === 'equipe')   return ` WHERE id_cliente IN (SELECT id_cliente FROM tb_positivador WHERE id_assessor IN (SELECT id_assessor FROM assessores WHERE equipe = '${f.equipe}'))`
+  return ''
+}
+
 // Auth: aceita internal secret (Next.js SSR) ou CF Access JWT (browser direto)
 app.use('*', async (c, next) => {
   const auth = c.req.header('Authorization') ?? ''
@@ -656,19 +663,31 @@ app.get('/carteiras/cliente', async (c) => {
 app.get('/carteiras', async (c) => {
   const db = c.env.PERF_DB
 
+  const filter = await resolveFilter(
+    db,
+    c.req.header('X-User-Role'),
+    c.req.header('X-User-Email'),
+    c.req.header('X-User-Equipe'),
+    c.req.header('X-Filter-Type'),
+    c.req.header('X-Filter-Value'),
+  )
+  if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
+
+  const fw = buildDivFilter(filter)
+
   const [alocacaoRows, totalRow] = await Promise.all([
     db
       .prepare(`
         SELECT produto,
                SUM(net)              AS total,
                COUNT(DISTINCT id_cliente) AS clientes
-        FROM   tb_diversificador
+        FROM   tb_diversificador${fw}
         GROUP  BY produto
         ORDER  BY total DESC
       `)
       .all<{ produto: string; total: number; clientes: number }>(),
     db
-      .prepare('SELECT SUM(net) AS aum, MAX(data_posicao) AS data_ref FROM tb_diversificador')
+      .prepare(`SELECT SUM(net) AS aum, MAX(data_posicao) AS data_ref FROM tb_diversificador${fw}`)
       .first<{ aum: number; data_ref: string }>(),
   ])
 
