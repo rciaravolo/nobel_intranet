@@ -127,99 +127,81 @@ function CardHeader({ label, badge, extra }: CardHeaderProps) {
   )
 }
 
-/* ─── Componente: Linha de equipe — Receita ─────────────────────────────── */
+/* ─── Helpers de formatação ─────────────────────────────────────────────── */
 
-interface ReceitaRowProps {
-  equipe: string
-  valor: number
-  grandTotal: number
-  pctMeta: number | null
-  isLast: boolean
-  color: string
+function fDeltaPct(v: number | null): string {
+  if (v == null) return '—'
+  const sign = v >= 0 ? '+' : ''
+  return `${sign}${fmtBR(v * 100, 2)}%`
 }
 
-function ReceitaRow({ equipe, valor, grandTotal, pctMeta, isLast, color }: ReceitaRowProps) {
-  const barPct = grandTotal > 0 ? Math.min(100, (valor / grandTotal) * 100) : 0
+/* ─── Layout tokens ─────────────────────────────────────────────────────── */
+
+const COL = { pct: 40, delta: 56 } as const
+const GAP = 4
+
+/* ─── Componente: Tabela de comparação de receita ───────────────────────── */
+
+function ReceitaTable({ dados }: { dados: ReceitaPayload }) {
+  const { equipes, snapDates, snapMatrix } = dados
+
+  if (!snapDates || snapDates.length === 0) return null
+
+  const dateHoje  = snapDates[0]!
+  const dateOntem = snapDates[1] ?? null
+
+  const sorted = [...equipes].sort(
+    (a, b) => (snapMatrix[b]?.[dateHoje] ?? -Infinity) - (snapMatrix[a]?.[dateHoje] ?? -Infinity),
+  )
+
+  const H = {
+    fontFamily: MONO,
+    fontSize: 9,
+    fontWeight: 700,
+    letterSpacing: '0.1em',
+    textTransform: 'uppercase' as const,
+    color: T.muted,
+  }
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '12px 14px',
-        borderBottom: isLast ? 'none' : `1px solid rgba(255,255,255,0.05)`,
-      }}
-    >
-      {/* Dot */}
-      <div
-        style={{
-          width: 10,
-          height: 10,
-          borderRadius: 2,
-          background: color,
-          flexShrink: 0,
-        }}
-      />
-
-      {/* Nome + barra */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            fontFamily: SANS,
-            fontSize: 13,
-            fontWeight: 600,
-            color: T.text,
-            marginBottom: 5,
-          }}
-        >
-          {equipe}
-        </div>
-        <div
-          style={{
-            height: 3,
-            background: 'rgba(255,255,255,0.07)',
-            borderRadius: 2,
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              width: `${barPct}%`,
-              height: '100%',
-              background: color,
-              borderRadius: 2,
-            }}
-          />
-        </div>
+    <div>
+      {/* Cabeçalho */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: GAP, padding: '7px 14px', borderBottom: `1px solid ${T.border}`, background: T.cardDeep }}>
+        <div style={{ width: 10, flexShrink: 0 }} />
+        <div style={{ flex: 1, ...H }}>equipe</div>
+        <div style={{ width: COL.pct, textAlign: 'center', ...H }}>{fData(dateHoje)}</div>
+        {dateOntem && <div style={{ width: COL.pct, textAlign: 'center', ...H }}>{fData(dateOntem)}</div>}
+        <div style={{ width: COL.delta, textAlign: 'right', ...H }}>D-1</div>
       </div>
 
-      {/* Valor + % meta */}
-      <div style={{ flexShrink: 0, textAlign: 'right', minWidth: 80 }}>
-        <div
-          style={{
-            fontFamily: MONO,
-            fontSize: 13,
-            fontWeight: 700,
-            color: T.text,
-            fontVariantNumeric: 'tabular-nums',
-            fontFeatureSettings: '"tnum"',
-          }}
-        >
-          {fmtCur(valor)}
-        </div>
-        <div
-          style={{
-            fontFamily: MONO,
-            fontSize: 12,
-            color: pctMeta != null && pctMeta >= 1 ? T.success : 'rgba(255,255,255,0.45)',
-            fontVariantNumeric: 'tabular-nums',
-            marginTop: 1,
-          }}
-        >
-          {fPct(pctMeta)}
-        </div>
-      </div>
+      {/* Linhas por equipe */}
+      {sorted.map((equipe, i) => {
+        const pctHoje  = snapMatrix[equipe]?.[dateHoje] ?? null
+        const pctOntem = dateOntem ? (snapMatrix[equipe]?.[dateOntem] ?? null) : null
+        const delta    = pctHoje != null && pctOntem != null ? pctHoje - pctOntem : null
+        const color    = rankColor(i, sorted.length)
+        const deltaColor = (delta ?? 0) >= 0 ? T.success : T.danger
+        return (
+          <div key={equipe} style={{ display: 'flex', alignItems: 'center', gap: GAP, padding: '10px 14px', borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
+            <div style={{ width: 10, height: 10, borderRadius: 2, background: color, flexShrink: 0 }} />
+            <div style={{ flex: 1, fontFamily: SANS, fontSize: 12, fontWeight: 600, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {equipe}
+            </div>
+            <div style={{ width: COL.pct, textAlign: 'center', fontFamily: MONO, fontSize: 12, fontWeight: 700, color: T.text, fontVariantNumeric: 'tabular-nums' }}>
+              {pctHoje != null ? `${fmtBR(pctHoje * 100, 1)}%` : '—'}
+            </div>
+            {dateOntem && (
+              <div style={{ width: COL.pct, textAlign: 'center', fontFamily: MONO, fontSize: 11, color: 'rgba(255,255,255,0.38)', fontVariantNumeric: 'tabular-nums' }}>
+                {pctOntem != null ? `${fmtBR(pctOntem * 100, 1)}%` : '—'}
+              </div>
+            )}
+            <div style={{ width: COL.delta, textAlign: 'right', fontFamily: MONO, fontSize: 11, fontWeight: 600, color: deltaColor, fontVariantNumeric: 'tabular-nums' }}>
+              {fDeltaPct(delta)}
+            </div>
+          </div>
+        )
+      })}
+
     </div>
   )
 }
@@ -236,8 +218,7 @@ interface CaptacaoRowProps {
 }
 
 function CaptacaoRow({ equipe, capHoje, pctHoje, isTotal, isLast, color = T.muted }: CaptacaoRowProps) {
-  const isPos = capHoje >= 0
-  const capColor = isPos ? T.success : T.danger
+  const capColor = capHoje >= 0 ? T.success : T.danger
 
   return (
     <div
@@ -251,75 +232,20 @@ function CaptacaoRow({ equipe, capHoje, pctHoje, isTotal, isLast, color = T.mute
         borderTop: isTotal ? `1px solid ${T.borderMed}` : undefined,
       }}
     >
-      {/* Dot (oculto para Total) */}
-      <div
-        style={{
-          width: 10,
-          height: 10,
-          borderRadius: 2,
-          background: isTotal ? 'transparent' : color,
-          flexShrink: 0,
-          border: isTotal ? `1px solid ${T.muted}` : 'none',
-        }}
-      />
-
-      {/* Nome + barra de % meta */}
+      <div style={{ width: 10, height: 10, borderRadius: 2, background: isTotal ? 'transparent' : color, flexShrink: 0, border: isTotal ? `1px solid ${T.muted}` : 'none' }} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            fontFamily: SANS,
-            fontSize: isTotal ? 11 : 13,
-            fontWeight: isTotal ? 700 : 600,
-            letterSpacing: isTotal ? '0.08em' : undefined,
-            textTransform: isTotal ? 'uppercase' : undefined,
-            color: isTotal ? 'rgba(255,255,255,0.45)' : T.text,
-            marginBottom: 5,
-          }}
-        >
+        <div style={{ fontFamily: SANS, fontSize: isTotal ? 11 : 13, fontWeight: isTotal ? 700 : 600, letterSpacing: isTotal ? '0.08em' : undefined, textTransform: isTotal ? 'uppercase' : undefined, color: isTotal ? 'rgba(255,255,255,0.45)' : T.text, marginBottom: 5 }}>
           {isTotal ? 'Total Geral' : equipe}
         </div>
-        <div
-          style={{
-            height: 3,
-            background: 'rgba(255,255,255,0.07)',
-            borderRadius: 2,
-            overflow: 'hidden',
-          }}
-        >
-          <div
-            style={{
-              width: `${Math.min(100, Math.max(0, (pctHoje ?? 0) * 100))}%`,
-              height: '100%',
-              background: isTotal ? T.muted : color,
-              borderRadius: 2,
-            }}
-          />
+        <div style={{ height: 3, background: 'rgba(255,255,255,0.07)', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ width: `${Math.min(100, Math.max(0, (pctHoje ?? 0) * 100))}%`, height: '100%', background: isTotal ? T.muted : color, borderRadius: 2 }} />
         </div>
       </div>
-
-      {/* Cap MTD + % meta */}
       <div style={{ flexShrink: 0, textAlign: 'right', minWidth: 80 }}>
-        <div
-          style={{
-            fontFamily: MONO,
-            fontSize: 13,
-            fontWeight: isTotal ? 700 : 600,
-            color: capColor,
-            fontVariantNumeric: 'tabular-nums',
-            fontFeatureSettings: '"tnum"',
-          }}
-        >
+        <div style={{ fontFamily: MONO, fontSize: 13, fontWeight: isTotal ? 700 : 600, color: capColor, fontVariantNumeric: 'tabular-nums', fontFeatureSettings: '"tnum"' }}>
           {fmtCur(capHoje)}
         </div>
-        <div
-          style={{
-            fontFamily: MONO,
-            fontSize: 12,
-            color: pctHoje != null && pctHoje >= 1 ? T.success : 'rgba(255,255,255,0.45)',
-            fontVariantNumeric: 'tabular-nums',
-            marginTop: 1,
-          }}
-        >
+        <div style={{ fontFamily: MONO, fontSize: 12, color: pctHoje != null && pctHoje >= 1 ? T.success : 'rgba(255,255,255,0.45)', fontVariantNumeric: 'tabular-nums', marginTop: 1 }}>
           {fPct(pctHoje)}
         </div>
       </div>
@@ -330,87 +256,34 @@ function CaptacaoRow({ equipe, capHoje, pctHoje, isTotal, isLast, color = T.mute
 /* ─── Componente: Card Receita ───────────────────────────────────────────── */
 
 function ReceitaCard({ dados }: { dados: ReceitaPayload }) {
-  const { equipes, metas, totalReceita, grandTotalReceita, grandTotalMeta, dataRef } = dados
+  const { grandTotalReceita, grandTotalMeta, dataRef, snapDates } = dados
   const pctGeral = grandTotalMeta > 0 ? grandTotalReceita / grandTotalMeta : null
   const dataLabel = dataRef
     ? `Ref. ${new Date(`${dataRef}T12:00:00Z`).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}`
     : undefined
 
-  // Ordena equipes do maior para o menor valor e atribui rankColor
-  const sorted = [...equipes].sort((a, b) => (totalReceita[b] ?? 0) - (totalReceita[a] ?? 0))
-
   return (
-    <div
-      style={{
-        borderRadius: 12,
-        background: T.card,
-        border: `1px solid ${T.border}`,
-        overflow: 'hidden',
-      }}
-    >
+    <div style={{ borderRadius: 12, background: T.card, border: `1px solid ${T.border}`, overflow: 'hidden' }}>
       <CardHeader label="Receita por Equipe" badge="MTD" {...(dataLabel !== undefined && { extra: dataLabel })} />
 
-      {sorted.map((equipe, i) => {
-        const valor = totalReceita[equipe] ?? 0
-        const meta = metas[equipe] ?? 0
-        const pctMeta = meta > 0 ? valor / meta : null
-        return (
-          <ReceitaRow
-            key={equipe}
-            equipe={equipe}
-            valor={valor}
-            grandTotal={grandTotalReceita}
-            pctMeta={pctMeta}
-            isLast={i === sorted.length - 1}
-            color={rankColor(i, sorted.length)}
-          />
-        )
-      })}
+      {snapDates && snapDates.length > 0 ? (
+        <ReceitaTable dados={dados} />
+      ) : (
+        <div style={{ padding: '24px 20px', textAlign: 'center', fontFamily: MONO, fontSize: 12, color: T.muted }}>
+          Histórico não disponível.
+        </div>
+      )}
 
-      {/* Footer total */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '11px 14px',
-          borderTop: `1px solid ${T.borderMed}`,
-          background: T.cardDeep,
-        }}
-      >
-        <span
-          style={{
-            fontFamily: SANS,
-            fontSize: 11,
-            fontWeight: 700,
-            color: T.muted,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-          }}
-        >
+      {/* Footer — total R$ */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 14px', borderTop: `1px solid ${T.borderMed}`, background: T.cardDeep }}>
+        <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: T.muted, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
           Total Geral
         </span>
         <div style={{ textAlign: 'right' }}>
-          <div
-            style={{
-              fontFamily: MONO,
-              fontSize: 14,
-              fontWeight: 700,
-              color: T.text,
-              fontVariantNumeric: 'tabular-nums',
-              fontFeatureSettings: '"tnum"',
-            }}
-          >
+          <div style={{ fontFamily: MONO, fontSize: 14, fontWeight: 700, color: T.text, fontVariantNumeric: 'tabular-nums', fontFeatureSettings: '"tnum"' }}>
             {fmtCur(grandTotalReceita)}
           </div>
-          <div
-            style={{
-              fontFamily: MONO,
-              fontSize: 12,
-              color: pctGeral != null && pctGeral >= 1 ? T.success : 'rgba(255,255,255,0.45)',
-              fontVariantNumeric: 'tabular-nums',
-            }}
-          >
+          <div style={{ fontFamily: MONO, fontSize: 12, color: pctGeral != null && pctGeral >= 1 ? T.success : 'rgba(255,255,255,0.45)', fontVariantNumeric: 'tabular-nums' }}>
             {fPct(pctGeral)} da meta
           </div>
         </div>
@@ -449,19 +322,11 @@ function CaptacaoCard({ dados }: { dados: CapPayload }) {
   }
 
   const hoje = fData(dados.dataHoje)
-  // Ordena do maior para o menor; positivos recebem rankColor, negativos recebem vermelho
   const rows = [...dados.equipes].sort((a, b) => b.capHoje - a.capHoje)
   const posCount = rows.filter(r => r.capHoje >= 0).length
 
   return (
-    <div
-      style={{
-        borderRadius: 12,
-        background: T.card,
-        border: `1px solid ${T.border}`,
-        overflow: 'hidden',
-      }}
-    >
+    <div style={{ borderRadius: 12, background: T.card, border: `1px solid ${T.border}`, overflow: 'hidden' }}>
       <CardHeader label="Captação por Equipe" extra={`Hoje ${hoje}`} />
 
       {rows.map((row, i) => (
@@ -475,9 +340,8 @@ function CaptacaoCard({ dados }: { dados: CapPayload }) {
         />
       ))}
 
-      {/* Linha total */}
       <CaptacaoRow
-        equipe={dados.total.equipe}
+        equipe="Total Geral"
         capHoje={dados.total.capHoje}
         pctHoje={dados.total.pctHoje}
         isTotal

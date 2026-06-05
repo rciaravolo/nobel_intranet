@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation'
 const TABS = [
   { key: 'geral', label: 'Visão Geral', accent: null },
   { key: 'rf', label: 'Renda Fixa', accent: '#2D5FA0' },
-  { key: 'rv', label: 'Renda Variável', accent: '#F59E0B' },
+  { key: 'rv', label: 'Renda Variável', accent: '#C29404' },
 ] as const
 
 export function CarteirasNav() {

@@ -34,8 +34,24 @@ app.use('*', async (c, next) => {
 app.get('/captacao-equipes', async (c) => {
   const db  = c.env.PERF_DB
   const brt = new Date(Date.now() - 3 * 60 * 60 * 1000)
-  const mesISO = `${brt.getUTCFullYear()}-${String(brt.getUTCMonth() + 1).padStart(2, '0')}`
-  const mesCol = MES_COLS[brt.getUTCMonth()]!
+  const year  = brt.getUTCFullYear()
+  const month = brt.getUTCMonth()
+  const day   = brt.getUTCDate()
+
+  // Conta dias úteis desde o dia 1 até hoje (inclusive)
+  let bizDaysInMonth = 0
+  for (let d = 1; d <= day; d++) {
+    const dow = new Date(Date.UTC(year, month, d)).getUTCDay()
+    if (dow !== 0 && dow !== 6) bizDaysInMonth++
+  }
+
+  // Primeiros 2 dias úteis do mês → tratar como mês anterior
+  const usesPrevMonth = bizDaysInMonth <= 2
+  const effMonth = usesPrevMonth ? (month === 0 ? 11 : month - 1) : month
+  const effYear  = usesPrevMonth && month === 0 ? year - 1 : year
+
+  const mesISO = `${effYear}-${String(effMonth + 1).padStart(2, '0')}`
+  const mesCol = MES_COLS[effMonth]!
 
   // 2 datas mais recentes no mês corrente
   const datesRes = await db
@@ -132,7 +148,21 @@ app.get('/captacao-equipes', async (c) => {
 app.get('/receita-equipes', async (c) => {
   const db  = c.env.PERF_DB
   const brt = new Date(Date.now() - 3 * 60 * 60 * 1000)
-  const mesCol = MES_COLS[brt.getUTCMonth()]!
+  const year  = brt.getUTCFullYear()
+  const month = brt.getUTCMonth()
+  const day   = brt.getUTCDate()
+
+  let bizDaysInMonth = 0
+  for (let d = 1; d <= day; d++) {
+    const dow = new Date(Date.UTC(year, month, d)).getUTCDay()
+    if (dow !== 0 && dow !== 6) bizDaysInMonth++
+  }
+
+  const usesPrevMonth = bizDaysInMonth <= 2
+  const effMonth = usesPrevMonth ? (month === 0 ? 11 : month - 1) : month
+  const effYear  = usesPrevMonth && month === 0 ? year - 1 : year
+  const mesCol   = MES_COLS[effMonth]!
+  const effectiveMesISO = `${effYear}-${String(effMonth + 1).padStart(2, '0')}`
 
   const TABELAS = [
     'receita_rv', 'receita_rf', 'receita_coe', 'receita_cambio',
@@ -141,12 +171,19 @@ app.get('/receita-equipes', async (c) => {
     'receita_fundos', 'receita_prev',
   ]
 
-  const [metaRows, ...receitaResults] = await Promise.all([
+  const [metaRows, allSnapRows, ...receitaResults] = await Promise.all([
     db.prepare(`
       SELECT equipe, ${mesCol} AS meta
       FROM   tb_metas_times
       WHERE  equipe IN ${EQUIPES_SQL}
     `).all<{ equipe: string; meta: number | null }>(),
+    db.prepare(`
+      SELECT equipe, data, receita_total
+      FROM   receita_snapshot
+      WHERE  strftime('%Y-%m', data) = ?
+        AND  equipe IN ${EQUIPES_SQL}
+      ORDER  BY data DESC
+    `).bind(effectiveMesISO).all<{ equipe: string; data: string; receita_total: number }>(),
     ...TABELAS.map((tabela) =>
       db.prepare(`
         SELECT a.equipe, SUM(r.receita) AS receita
@@ -182,6 +219,17 @@ app.get('/receita-equipes', async (c) => {
   }
   const dataRef = `${ref.getUTCFullYear()}-${String(ref.getUTCMonth() + 1).padStart(2, '0')}-${String(ref.getUTCDate()).padStart(2, '0')}`
 
+  // Monta snapshot das 2 datas mais recentes
+  const snapDates = [...new Set(allSnapRows.results.map(r => r.data))].slice(0, 2)
+  const snapMatrix: Record<string, Record<string, number | null>> = {}
+  for (const equipe of EQUIPES) {
+    snapMatrix[equipe] = {}
+    const meta = metaMap[equipe] ?? 0
+    for (const row of allSnapRows.results.filter(r => r.equipe === equipe && snapDates.includes(r.data))) {
+      snapMatrix[equipe][row.data] = meta > 0 ? row.receita_total / meta : null
+    }
+  }
+
   return c.json({
     data: {
       equipes: EQUIPES as readonly string[],
@@ -190,6 +238,8 @@ app.get('/receita-equipes', async (c) => {
       grandTotalReceita,
       grandTotalMeta,
       dataRef,
+      snapDates,
+      snapMatrix,
     },
   })
 })

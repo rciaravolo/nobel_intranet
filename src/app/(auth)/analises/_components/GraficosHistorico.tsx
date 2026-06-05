@@ -123,8 +123,9 @@ function YearPill({
 
 /* ─── Gráfico 1: Custódia ────────────────────────────────────────────────── */
 
-function ChartCustodia({ rows }: { rows: MesHistorico[] }) {
+function ChartCustodia({ rows, compact }: { rows: MesHistorico[]; compact?: boolean }) {
   const [vis, setVis] = useState({ y25: true, y26: true })
+  const fSize = compact ? 14 : 11
 
   const maxVal = Math.max(
     ...(vis.y25 ? rows.map((r) => r.custodia.v25 ?? 0) : [0]),
@@ -153,7 +154,7 @@ function ChartCustodia({ rows }: { rows: MesHistorico[] }) {
                 {vis.y25 && r.custodia.v25 != null && (
                   <>
                     <rect x={x0 + B25_X} y={bTop(r.custodia.v25)} width={B_W} height={bH(r.custodia.v25)} rx={3} style={{ fill: 'var(--line-strong)' }} />
-                    <text x={x0 + B25_CX} y={bTop(r.custodia.v25) - 5} textAnchor="middle" fontSize={11} fontWeight={500} style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
+                    <text x={x0 + B25_CX} y={bTop(r.custodia.v25) - 5} textAnchor="middle" fontSize={fSize} fontWeight={500} style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
                       {fC(r.custodia.v25)}
                     </text>
                   </>
@@ -161,12 +162,12 @@ function ChartCustodia({ rows }: { rows: MesHistorico[] }) {
                 {vis.y26 && r.custodia.v26 != null && (
                   <>
                     <rect x={x0 + B26_X} y={bTop(r.custodia.v26)} width={B_W} height={bH(r.custodia.v26)} rx={3} style={{ fill: 'var(--color-b-500)' }} />
-                    <text x={x0 + B26_CX} y={bTop(r.custodia.v26) - 5} textAnchor="middle" fontSize={11} fontWeight={500} style={{ fill: 'var(--fg-mute)', fontFamily: 'var(--f-mono)' }}>
+                    <text x={x0 + B26_CX} y={bTop(r.custodia.v26) - 5} textAnchor="middle" fontSize={fSize} fontWeight={500} style={{ fill: 'var(--fg-mute)', fontFamily: 'var(--f-mono)' }}>
                       {fC(r.custodia.v26)}
                     </text>
                   </>
                 )}
-                <text x={x0 + SLOT / 2} y={VH - 6} textAnchor="middle" fontSize={11} style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
+                <text x={x0 + SLOT / 2} y={VH - 6} textAnchor="middle" fontSize={fSize} style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
                   {r.label}
                 </text>
               </g>
@@ -180,8 +181,9 @@ function ChartCustodia({ rows }: { rows: MesHistorico[] }) {
 
 /* ─── Gráfico 2: Captação Líquida ────────────────────────────────────────── */
 
-function ChartCaptacao({ rows }: { rows: MesHistorico[] }) {
+function ChartCaptacao({ rows, compact }: { rows: MesHistorico[]; compact?: boolean }) {
   const [vis, setVis] = useState({ y25: true, y26: true })
+  const fSize = compact ? 14 : 11
 
   const allVals = [
     ...(vis.y25 ? rows.map((r) => r.captacao.v25 ?? 0) : []),
@@ -215,7 +217,7 @@ function ChartCaptacao({ rows }: { rows: MesHistorico[] }) {
                 {vis.y25 && r.captacao.v25 != null && (
                   <>
                     <rect x={x0 + B25_X} y={bTop(r.captacao.v25)} width={B_W} height={bH(r.captacao.v25)} rx={3} style={{ fill: 'var(--line-strong)' }} />
-                    <text x={x0 + B25_CX} y={lblY(r.captacao.v25)} textAnchor="middle" fontSize={11} fontWeight={500} style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
+                    <text x={x0 + B25_CX} y={lblY(r.captacao.v25)} textAnchor="middle" fontSize={fSize} fontWeight={500} style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
                       {fC(r.captacao.v25)}
                     </text>
                   </>
@@ -230,12 +232,12 @@ function ChartCaptacao({ rows }: { rows: MesHistorico[] }) {
                       rx={3}
                       style={{ fill: r.captacao.v26 >= 0 ? 'var(--color-b-500)' : 'var(--color-negative)' }}
                     />
-                    <text x={x0 + B26_CX} y={lblY(r.captacao.v26)} textAnchor="middle" fontSize={11} fontWeight={500} style={{ fill: 'var(--fg-mute)', fontFamily: 'var(--f-mono)' }}>
+                    <text x={x0 + B26_CX} y={lblY(r.captacao.v26)} textAnchor="middle" fontSize={fSize} fontWeight={500} style={{ fill: 'var(--fg-mute)', fontFamily: 'var(--f-mono)' }}>
                       {fC(r.captacao.v26)}
                     </text>
                   </>
                 )}
-                <text x={x0 + SLOT / 2} y={VH - 6} textAnchor="middle" fontSize={11} style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
+                <text x={x0 + SLOT / 2} y={VH - 6} textAnchor="middle" fontSize={fSize} style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
                   {r.label}
                 </text>
               </g>
@@ -249,8 +251,9 @@ function ChartCaptacao({ rows }: { rows: MesHistorico[] }) {
 
 /* ─── Gráfico 3: Receita ─────────────────────────────────────────────────── */
 
-function ChartReceita({ rows }: { rows: MesHistorico[] }) {
+function ChartReceita({ rows, compact }: { rows: MesHistorico[]; compact?: boolean }) {
   const [vis, setVis] = useState({ y25: true, y26: true })
+  const fSize = compact ? 14 : 11
 
   const maxVal = Math.max(
     ...(vis.y25 ? rows.map((r) => r.receita.v25 ?? 0) : [0]),
@@ -279,7 +282,7 @@ function ChartReceita({ rows }: { rows: MesHistorico[] }) {
                 {vis.y25 && r.receita.v25 != null && (
                   <>
                     <rect x={x0 + B25_X} y={bTop(r.receita.v25)} width={B_W} height={bH(r.receita.v25)} rx={3} style={{ fill: 'var(--line-strong)' }} />
-                    <text x={x0 + B25_CX} y={bTop(r.receita.v25) - 5} textAnchor="middle" fontSize={11} fontWeight={500} style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
+                    <text x={x0 + B25_CX} y={bTop(r.receita.v25) - 5} textAnchor="middle" fontSize={fSize} fontWeight={500} style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
                       {fC(r.receita.v25)}
                     </text>
                   </>
@@ -287,12 +290,12 @@ function ChartReceita({ rows }: { rows: MesHistorico[] }) {
                 {vis.y26 && r.receita.v26 != null && (
                   <>
                     <rect x={x0 + B26_X} y={bTop(r.receita.v26)} width={B_W} height={bH(r.receita.v26)} rx={3} style={{ fill: 'var(--color-b-500)' }} />
-                    <text x={x0 + B26_CX} y={bTop(r.receita.v26) - 5} textAnchor="middle" fontSize={11} fontWeight={500} style={{ fill: 'var(--fg-mute)', fontFamily: 'var(--f-mono)' }}>
+                    <text x={x0 + B26_CX} y={bTop(r.receita.v26) - 5} textAnchor="middle" fontSize={fSize} fontWeight={500} style={{ fill: 'var(--fg-mute)', fontFamily: 'var(--f-mono)' }}>
                       {fC(r.receita.v26)}
                     </text>
                   </>
                 )}
-                <text x={x0 + SLOT / 2} y={VH - 6} textAnchor="middle" fontSize={11} style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
+                <text x={x0 + SLOT / 2} y={VH - 6} textAnchor="middle" fontSize={fSize} style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
                   {r.label}
                 </text>
               </g>
@@ -310,9 +313,10 @@ type GraficosHistoricoProps = {
   histRows: MesHistorico[]
   filterLabel?: string
   filterType?: string
+  layout?: '1col' | '2col'
 }
 
-export function GraficosHistorico({ histRows, filterLabel, filterType: _filterType }: GraficosHistoricoProps) {
+export function GraficosHistorico({ histRows, filterLabel, filterType: _filterType, layout = '1col' }: GraficosHistoricoProps) {
   return (
     <div style={{ marginBottom: 24 }}>
       <div
@@ -356,11 +360,21 @@ export function GraficosHistorico({ histRows, filterLabel, filterType: _filterTy
         )}
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <ChartCustodia rows={histRows} />
-        <ChartCaptacao rows={histRows} />
-        <ChartReceita rows={histRows} />
-      </div>
+      {layout === '2col' ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <ChartCustodia rows={histRows} compact />
+            <ChartCaptacao rows={histRows} compact />
+          </div>
+          <ChartReceita rows={histRows} />
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <ChartCustodia rows={histRows} />
+          <ChartCaptacao rows={histRows} />
+          <ChartReceita rows={histRows} />
+        </div>
+      )}
     </div>
   )
 }

@@ -30,7 +30,7 @@ function fBRL(v: number): string {
 
 const CLASSE_COLOR: Record<'rf' | 'rv', { bg: string; fg: string; border: string }> = {
   rf: { bg: 'color-mix(in srgb,#2D5FA0 12%,transparent)', fg: '#2D5FA0', border: 'color-mix(in srgb,#2D5FA0 30%,transparent)' },
-  rv: { bg: 'color-mix(in srgb,#F59E0B 12%,transparent)', fg: '#B45309', border: 'color-mix(in srgb,#F59E0B 30%,transparent)' },
+  rv: { bg: 'color-mix(in srgb,#C29404 12%,transparent)', fg: '#8F6B12', border: 'color-mix(in srgb,#C29404 30%,transparent)' },
 }
 
 /* ─── Component ──────────────────────────────────────────────────────────── */

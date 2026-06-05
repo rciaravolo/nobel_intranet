@@ -62,7 +62,7 @@ type Props = {
 
 const ACCENT: Record<'rf' | 'rv', string> = {
   rf: '#2D5FA0',
-  rv: '#F59E0B',
+  rv: '#C29404',
 }
 
 /* ─── Component ──────────────────────────────────────────────────────────── */

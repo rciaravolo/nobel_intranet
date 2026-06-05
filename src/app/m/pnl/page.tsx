@@ -34,6 +34,8 @@ export type ReceitaPayload = {
   grandTotalReceita: number
   grandTotalMeta: number
   dataRef?: string
+  snapDates: string[]
+  snapMatrix: Record<string, Record<string, number | null>>
 }
 
 /* ─── Fetch helpers ──────────────────────────────────────────────────────── */

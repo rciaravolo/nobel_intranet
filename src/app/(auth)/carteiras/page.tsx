@@ -49,51 +49,51 @@ type VisaoPayload = {
 
 const MACRO_COLOR: Record<string, string> = {
   rf: '#2D5FA0',
-  rv: '#F59E0B',
-  coe: '#EF4444',
-  liquidez: '#10B981',
+  rv: '#C29404',
+  coe: '#D94141',
+  liquidez: '#248A47',
 }
 
 const IDX_COLOR: Record<string, string> = {
-  '% CDI': '#06B6D4',
-  IPCA: '#F59E0B',
-  PRE: '#EF4444',
+  '% CDI': '#C29404',
+  IPCA: '#8F6B12',
+  PRE: '#D94141',
   'CDI +': '#2D5FA0',
-  LFT: '#10B981',
-  Selic: '#8B5CF6',
-  IGPM: '#F97316',
+  LFT: '#248A47',
+  Selic: '#5F5E5B',
+  IGPM: '#8C8B87',
 }
 
 const TIPO_COLOR: Record<string, string> = {
   'Emissão Bancária': '#2D5FA0',
-  'Credito Privado': '#F59E0B',
-  'Título Público': '#10B981',
-  'Tesouro Direto': '#06B6D4',
-  'Letras Financeiras': '#8B5CF6',
-  'Letra Imobiliária Garantida': '#EC4899',
+  'Credito Privado': '#C29404',
+  'Título Público': '#248A47',
+  'Tesouro Direto': '#8F6B12',
+  'Letras Financeiras': '#5F5E5B',
+  'Letra Imobiliária Garantida': '#8C8B87',
 }
 
 const SETOR_COLOR: Record<string, string> = {
-  'Fundo Imobiliário': '#06B6D4',
+  'Fundo Imobiliário': '#C29404',
   Financeiro: '#2D5FA0',
-  'Energia elétrica & Saneamento': '#10B981',
-  Imobiliário: '#F97316',
-  'Mineração & Siderurgia': '#94A3B8',
-  'Petróleo & Gas': '#EF4444',
-  'Transportes & Bens Industriais': '#8B5CF6',
-  Varejo: '#F59E0B',
-  Tecnologia: '#06B6D4',
-  'Papel & Celulose': '#84CC16',
-  'Agro, Alimentos & Bebidas': '#A78BFA',
-  Telecomunicação: '#EC4899',
-  Shoppings: '#FB923C',
-  Outros: '#64748B',
+  'Energia elétrica & Saneamento': '#248A47',
+  Imobiliário: '#8F6B12',
+  'Mineração & Siderurgia': '#343534',
+  'Petróleo & Gas': '#D94141',
+  'Transportes & Bens Industriais': '#5F5E5B',
+  Varejo: '#8C8B87',
+  Tecnologia: '#C29404',
+  'Papel & Celulose': '#B4B3AE',
+  'Agro, Alimentos & Bebidas': '#8F6B12',
+  Telecomunicação: '#D2D1CC',
+  Shoppings: '#343534',
+  Outros: '#5F5E5B',
 }
 
 const COE_COLOR: Record<string, string> = {
   BOND: '#2D5FA0',
-  PARTICIPACAO: '#10B981',
-  CDS: '#F59E0B',
+  PARTICIPACAO: '#248A47',
+  CDS: '#C29404',
 }
 
 /* ─── Formatters ─────────────────────────────────────────────────────────── */
@@ -541,12 +541,12 @@ export default async function CarteirasPage({
               size={140}
               segments={[
                 { label: 'Renda Fixa', value: totais.rf, color: MACRO_COLOR.rf ?? '#2D5FA0' },
-                { label: 'Renda Variável', value: totais.rv, color: MACRO_COLOR.rv ?? '#F59E0B' },
-                { label: 'COE', value: totais.coe, color: MACRO_COLOR.coe ?? '#EF4444' },
+                { label: 'Renda Variável', value: totais.rv, color: MACRO_COLOR.rv ?? '#C29404' },
+                { label: 'COE', value: totais.coe, color: MACRO_COLOR.coe ?? '#D94141' },
                 {
                   label: 'Liquidez Diária',
                   value: totais.liquidez,
-                  color: MACRO_COLOR.liquidez ?? '#10B981',
+                  color: MACRO_COLOR.liquidez ?? '#248A47',
                 },
               ]}
             />
@@ -621,8 +621,8 @@ export default async function CarteirasPage({
                   <Donut
                     size={140}
                     segments={[
-                      { label: 'Mercado', value: mercado?.total ?? 0, color: '#6366F1' },
-                      { label: 'Curva', value: curva?.total ?? 0, color: '#94A3B8' },
+                      { label: 'Mercado', value: mercado?.total ?? 0, color: '#2D5FA0' },
+                      { label: 'Curva', value: curva?.total ?? 0, color: '#8C8B87' },
                     ]}
                   />
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -630,13 +630,13 @@ export default async function CarteirasPage({
                       {
                         label: 'Marcado a Mercado',
                         data: mercado,
-                        color: '#6366F1',
+                        color: '#2D5FA0',
                         desc: 'P&L visível, sofre MTM',
                       },
                       {
                         label: 'Marcado na Curva',
                         data: curva,
-                        color: '#94A3B8',
+                        color: '#8C8B87',
                         desc: 'Travado até vencimento',
                       },
                     ].map(({ label, data, color, desc }) => (
@@ -738,7 +738,7 @@ export default async function CarteirasPage({
                   sub={`${r.posicoes.toLocaleString('pt-BR')} posições · ${r.clientes.toLocaleString('pt-BR')} clientes`}
                   total={r.total}
                   max={rfIdx[0]?.total ?? 1}
-                  color={IDX_COLOR[r.indexador] ?? '#94A3B8'}
+                  color={IDX_COLOR[r.indexador] ?? '#8C8B87'}
                 />
               </div>
             ))}
@@ -787,7 +787,7 @@ export default async function CarteirasPage({
                         title={`${item.tipo}: ${fBRL(item.total)}`}
                         style={{
                           flex: item.total,
-                          background: TIPO_COLOR[item.tipo] ?? '#94A3B8',
+                          background: TIPO_COLOR[item.tipo] ?? '#8C8B87',
                           height: '100%',
                           opacity: 0.85,
                         }}
@@ -829,7 +829,7 @@ export default async function CarteirasPage({
                   width: 8,
                   height: 8,
                   borderRadius: 2,
-                  background: TIPO_COLOR[tipo] ?? '#94A3B8',
+                  background: TIPO_COLOR[tipo] ?? '#8C8B87',
                 }}
               />
               <span
@@ -876,7 +876,7 @@ export default async function CarteirasPage({
                   sub={`${s.clientes.toLocaleString('pt-BR')} clientes`}
                   total={s.total}
                   max={setorMax}
-                  color={SETOR_COLOR[s.setor] ?? '#64748B'}
+                  color={SETOR_COLOR[s.setor] ?? '#5F5E5B'}
                 />
               </div>
             ))}
@@ -1053,7 +1053,7 @@ export default async function CarteirasPage({
         {/* Por tipo */}
         <div style={{ display: 'grid', gridTemplateColumns: `repeat(${coeTypes.length}, 1fr)` }}>
           {coeTypes.map((t, i) => {
-            const color = COE_COLOR[t.tipo] ?? '#94A3B8'
+            const color = COE_COLOR[t.tipo] ?? '#8C8B87'
             const plUp = t.pl >= 0
             return (
               <div
@@ -1155,7 +1155,7 @@ export default async function CarteirasPage({
                 sub={`${r.posicoes.toLocaleString('pt-BR')} posições · ${r.clientes.toLocaleString('pt-BR')} clientes`}
                 total={r.total}
                 max={ldMax}
-                color={IDX_COLOR[r.indexador] ?? '#10B981'}
+                color={IDX_COLOR[r.indexador] ?? '#248A47'}
               />
             </div>
           ))}

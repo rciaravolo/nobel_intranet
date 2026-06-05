@@ -119,6 +119,19 @@ const SEED_USERS: User[] = [
     department: 'Assessoria — Equipe BRAVO',
     avatarInitials: 'RBo',
   },
+  {
+    id: 'usr_lider_002',
+    username: 'viviane.fabbri',
+    // scrypt hash de "nobel2026"
+    passwordHash:
+      '8d6ee14d321fabdb226d7fb73e6426cd5622a6ebc7a925996b6ecb27fa82ece88c60bc508f60b330c6b315b383b65b2f647b42abc31c80910993bc4977b45122.d7bb74b66f8f099817340ee6024e6449',
+    name: 'Viviane Fabbri',
+    email: 'viviane.fabbri@nobelcapital.com.br',
+    role: 'lider',
+    equipe: 'RIO PRETO',
+    department: 'Assessoria — Equipe RIO PRETO',
+    avatarInitials: 'VF',
+  },
 ]
 
 export function findUserByUsername(username: string): User | undefined {

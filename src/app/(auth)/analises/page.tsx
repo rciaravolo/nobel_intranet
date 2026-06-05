@@ -330,7 +330,7 @@ const iconBox = (color: string): React.CSSProperties => ({
 
 /* ─── Componente: Custódia por Faixa NET ─────────────────────────────────── */
 
-function BlocoFaixasNet({ faixas }: { faixas: FaixaNet[] }) {
+function BlocoFaixasNet({ faixas, noMarginBottom }: { faixas: FaixaNet[]; noMarginBottom?: boolean }) {
   const total = faixas.reduce((acc, f) => ({ clientes: acc.clientes + f.clientes, aum: acc.aum + f.aum }), { clientes: 0, aum: 0 })
 
   const thStyle: React.CSSProperties = {
@@ -358,7 +358,7 @@ function BlocoFaixasNet({ faixas }: { faixas: FaixaNet[] }) {
   const FAIXA_COLORS = ['var(--color-b-500)', 'var(--c-gold)', '#10B981', '#8B5CF6']
 
   return (
-    <div style={{ background: 'var(--bg-elev)', borderRadius: 12, border: '1px solid var(--line)', boxShadow: 'var(--e-float)', overflow: 'hidden', marginBottom: 20 }}>
+    <div style={{ background: 'var(--bg-elev)', borderRadius: 12, border: '1px solid var(--line)', boxShadow: 'var(--e-float)', overflow: 'hidden', marginBottom: noMarginBottom ? 0 : 20 }}>
       <div style={{ padding: '13px 16px', borderBottom: '1px solid var(--line)', background: 'var(--bg-deep)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span style={{ fontFamily: 'var(--f-text)', fontSize: 13, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em' }}>
           Custódia por Faixa NET
@@ -780,6 +780,7 @@ export default async function AnalisesPage({
     getAssessores(session.role, session.email, session.equipe),
   ])
   const firstName = session.name.split(' ')[0]
+  const isLider = session.role === 'lider'
 
   const aum = data?.aum ?? 0
   const clientes = data?.clientes ?? { ativos: 0, inativos: 0 }
@@ -975,24 +976,37 @@ export default async function AnalisesPage({
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: session.role !== 'assessor' ? '1fr 380px' : '1fr',
+          gridTemplateColumns: (session.role === 'admin' || session.role === 'master') ? '1fr 380px' : '1fr',
           gap: 20,
           alignItems: 'start',
         }}
       >
         {/* Coluna principal */}
         <div>
-          {/* Custódia por Faixa NET */}
-          {faixasNet.length > 0 && <BlocoFaixasNet faixas={faixasNet} />}
-
-          {/* Captação — key força remount ao mudar filtro, limpando cache */}
-          <BlocoCaptacao
-            key={`captacao-${filterType ?? ''}-${filterValue ?? ''}`}
-            captacao={captacao}
-            mesLabel={data?.mesLabel ?? ''}
-            {...(canFilter && filterType ? { filterType } : {})}
-            {...(canFilter && filterValue ? { filterValue } : {})}
-          />
+          {/* Custódia + Captação: lado a lado para lider, empilhados para outros */}
+          {isLider && faixasNet.length > 0 ? (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+              <BlocoFaixasNet faixas={faixasNet} noMarginBottom />
+              <BlocoCaptacao
+                key={`captacao-${filterType ?? ''}-${filterValue ?? ''}`}
+                captacao={captacao}
+                mesLabel={data?.mesLabel ?? ''}
+                {...(canFilter && filterType ? { filterType } : {})}
+                {...(canFilter && filterValue ? { filterValue } : {})}
+              />
+            </div>
+          ) : (
+            <>
+              {faixasNet.length > 0 && <BlocoFaixasNet faixas={faixasNet} />}
+              <BlocoCaptacao
+                key={`captacao-${filterType ?? ''}-${filterValue ?? ''}`}
+                captacao={captacao}
+                mesLabel={data?.mesLabel ?? ''}
+                {...(canFilter && filterType ? { filterType } : {})}
+                {...(canFilter && filterValue ? { filterValue } : {})}
+              />
+            </>
+          )}
 
           {/* Receita por Produto — key força remount ao mudar filtro, limpando cache */}
           <BlocoReceita
@@ -1009,6 +1023,7 @@ export default async function AnalisesPage({
               {/* Gráficos histórico */}
               <GraficosHistorico
                 histRows={histRows}
+                layout={isLider ? '2col' : '1col'}
                 {...(filterLabel ? { filterLabel } : {})}
                 {...(canFilter && filterType ? { filterType } : {})}
               />
