@@ -341,7 +341,7 @@ app.get('/indicadores/kpis', async (c) => {
   const mesISO  = `${effYear}-${String(effMonth + 1).padStart(2, '0')}`
   const yearStr = String(effYear)
 
-  const [capYtdRows, assessoresAtivosRes] = await Promise.all([
+  const [capYtdRows, assessoresAtivosRes, recYtdRows] = await Promise.all([
     db.prepare(`
       SELECT a.equipe, SUM(c.captacao) AS ytd
       FROM   tb_cap c
@@ -356,10 +356,22 @@ app.get('/indicadores/kpis', async (c) => {
       FROM   assessores
       WHERE  equipe IN ${EQUIPES_SQL}
     `).first<{ cnt: number }>(),
+
+    db.prepare(`
+      SELECT a.equipe, SUM(h.receita) AS rec_ytd
+      FROM   roa_historico h
+      JOIN   assessores a ON h.id_assessor = a.id_assessor
+      WHERE  h.data LIKE ?
+        AND  a.equipe IN ${EQUIPES_SQL}
+      GROUP  BY a.equipe
+    `).bind(`${yearStr}%`).all<{ equipe: string; rec_ytd: number }>(),
   ])
 
   const ytdByEquipe: Record<string, number> = {}
   for (const r of capYtdRows.results) ytdByEquipe[r.equipe] = r.ytd
+
+  const recYtdByEquipe: Record<string, number> = {}
+  for (const r of recYtdRows.results) recYtdByEquipe[r.equipe] = r.rec_ytd
 
   return c.json({
     data: {
@@ -367,6 +379,7 @@ app.get('/indicadores/kpis', async (c) => {
       yearStr,
       assessoresAtivos: assessoresAtivosRes?.cnt ?? 0,
       ytdByEquipe,
+      recYtdByEquipe,
     },
   })
 })
@@ -401,8 +414,8 @@ app.get('/indicadores/drill', async (c) => {
   const mesISO = `${effYear}-${String(effMonth + 1).padStart(2, '0')}`
   const mesCol = MES_COLS[effMonth]!
 
-  // 13 queries de receita separadas (sem UNION ALL em subquery)
-  const [capMtdRows, metaCapRows, ...receitaResults] = await Promise.all([
+  // 13 queries de receita separadas (sem UNION ALL em subquery) + rec YTD via roa_historico
+  const [capMtdRows, metaCapRows, recYtdRows, ...receitaResults] = await Promise.all([
     // Cap MTD por assessor da equipe
     db.prepare(`
       SELECT a.id_assessor, a.nome_assessor, SUM(c.captacao) AS cap_mtd
@@ -420,6 +433,16 @@ app.get('/indicadores/drill', async (c) => {
       JOIN   assessores a ON mc.id_assessor = a.id_assessor
       WHERE  a.equipe = ?
     `).bind(equipe).all<{ id_assessor: string; meta: number | null }>(),
+
+    // Receita YTD por assessor via roa_historico
+    db.prepare(`
+      SELECT h.id_assessor, SUM(h.receita) AS rec_ytd
+      FROM   roa_historico h
+      JOIN   assessores a ON h.id_assessor = a.id_assessor
+      WHERE  h.data LIKE ?
+        AND  a.equipe = ?
+      GROUP  BY h.id_assessor
+    `).bind(`${effYear}%`, equipe).all<{ id_assessor: string; rec_ytd: number }>(),
 
     // 13 queries de receita por assessor da equipe (sem subquery UNION ALL)
     ...TABELAS_RECEITA.map((tabela) =>
@@ -441,6 +464,9 @@ app.get('/indicadores/drill', async (c) => {
     }
   }
 
+  const recYtdMap: Record<string, number> = {}
+  for (const r of recYtdRows.results) recYtdMap[r.id_assessor] = r.rec_ytd
+
   const metaMap: Record<string, number> = {}
   for (const r of metaCapRows.results) metaMap[r.id_assessor] = r.meta ?? 0
 
@@ -449,6 +475,7 @@ app.get('/indicadores/drill', async (c) => {
     const cap_meta = metaMap[r.id_assessor] ?? 0
     const cap_pct  = cap_meta > 0 ? r.cap_mtd / cap_meta : null
     const rec_mtd  = recMtdMap[r.id_assessor] ?? 0
+    const rec_ytd  = recYtdMap[r.id_assessor] ?? 0
     return {
       id:       r.id_assessor,
       nome:     r.nome_assessor,
@@ -456,6 +483,7 @@ app.get('/indicadores/drill', async (c) => {
       cap_meta,
       cap_pct,
       rec_mtd,
+      rec_ytd,
     }
   }).sort((a, b) => b.cap_mtd - a.cap_mtd)
 

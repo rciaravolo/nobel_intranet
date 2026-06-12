@@ -11,6 +11,7 @@ export type EquipeUnificada = {
   cap_pct:  number | null
   cap_ytd:  number
   rec_mtd:  number
+  rec_ytd:  number
   rec_meta: number
   rec_pct:  number | null
 }
@@ -22,6 +23,7 @@ type AssessorDrill = {
   cap_meta: number
   cap_pct:  number | null
   rec_mtd:  number
+  rec_ytd:  number
 }
 
 type DrillState =
@@ -206,7 +208,7 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
     }
   }
 
-  const COL_COUNT = 8 // Equipe | Cap MTD | Cap Meta | % Cap | Cap YTD | Rec MTD | Rec Meta | % Rec
+  const COL_COUNT = 9 // Equipe | Cap MTD | Cap Meta | % Cap | Cap YTD | Rec MTD | Rec Meta | % Rec | Rec YTD
 
   return (
     <div style={cardWrap}>
@@ -249,6 +251,7 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
               <th style={{ ...thBase, textAlign: 'right' }}>Rec MTD</th>
               <th style={{ ...thBase, textAlign: 'right' }}>Rec Meta</th>
               <th style={{ ...thBase, textAlign: 'right', minWidth: 130 }}>% Rec</th>
+              <th style={{ ...thBase, textAlign: 'right' }}>Rec YTD</th>
             </tr>
           </thead>
           <tbody>
@@ -358,6 +361,11 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
                     <td style={{ ...tdBase, textAlign: 'right' }}>
                       <ProgressBar pct={row.rec_pct} />
                     </td>
+
+                    {/* Rec YTD */}
+                    <td style={{ ...tdBase, textAlign: 'right', color: 'var(--fg-mute)', fontSize: 12 }}>
+                      {fBRL(row.rec_ytd)}
+                    </td>
                   </tr>
 
                   {/* Rows de assessores (quando expandido) */}
@@ -450,6 +458,11 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
                       <td style={{ ...tdBase, textAlign: 'right', fontSize: 12, color: 'var(--fg-faint)' }}>
                         —
                       </td>
+
+                      {/* Rec YTD */}
+                      <td style={{ ...tdBase, textAlign: 'right', fontSize: 12, color: 'var(--fg-mute)' }}>
+                        {a.rec_ytd > 0 ? fBRL(a.rec_ytd) : '—'}
+                      </td>
                     </tr>
                   ))}
                 </>
@@ -533,6 +546,17 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
               </td>
               <td style={{ ...tdBase, textAlign: 'right', borderBottom: 'none' }}>
                 <ProgressBar pct={total.rec_pct} />
+              </td>
+              <td
+                style={{
+                  ...tdBase,
+                  textAlign:    'right',
+                  borderBottom: 'none',
+                  color:        'var(--fg-mute)',
+                  fontSize:     12,
+                }}
+              >
+                {fBRL(total.rec_ytd)}
               </td>
             </tr>
           </tbody>
