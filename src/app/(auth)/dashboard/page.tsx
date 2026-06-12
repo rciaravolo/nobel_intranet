@@ -520,82 +520,8 @@ export default async function DashboardPage() {
           </span>
         </div>
 
-        <div className="grid-news-hero">
-          {/* Destaque */}
-          {featured ? (
-            <div
-              style={{
-                padding: '20px 24px',
-                borderRight: '1px solid var(--line)',
-                background: 'color-mix(in oklch, var(--c-gold) 3%, var(--bg-elev))',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                <span
-                  style={{
-                    fontFamily: 'var(--f-mono)',
-                    fontSize: 9,
-                    fontWeight: 500,
-                    letterSpacing: '.14em',
-                    textTransform: 'uppercase',
-                    color: featured.sourceColor,
-                    borderBottom: `1px solid ${featured.sourceColor}`,
-                    paddingBottom: 1,
-                  }}
-                >
-                  {featured.source}
-                </span>
-                <span
-                  style={{
-                    fontFamily: 'var(--f-mono)',
-                    fontSize: 9,
-                    color: 'var(--fg-faint)',
-                    letterSpacing: '.1em',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  {featured.category}
-                </span>
-                <span
-                  style={{
-                    fontFamily: 'var(--f-mono)',
-                    fontSize: 10,
-                    color: 'var(--fg-faint)',
-                    marginLeft: 'auto',
-                  }}
-                >
-                  {timeAgo(featured.publishedAt)}
-                </span>
-              </div>
-              <h2
-                style={{
-                  fontFamily: 'var(--f-text)',
-                  fontSize: 16,
-                  fontWeight: 600,
-                  color: 'var(--fg)',
-                  lineHeight: 1.4,
-                  letterSpacing: '-.01em',
-                  marginBottom: 12,
-                }}
-              >
-                {featured.url ? (
-                  <a
-                    href={featured.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: 'inherit', textDecoration: 'none' }}
-                  >
-                    {featured.headline}
-                  </a>
-                ) : (
-                  featured.headline
-                )}
-              </h2>
-              <p style={{ fontSize: 13, color: 'var(--fg-mute)', lineHeight: 1.65 }}>
-                {featured.summary}
-              </p>
-            </div>
-          ) : (
+        <div>
+          {!featured ? (
             <div
               style={{
                 padding: '20px 24px',
@@ -608,110 +534,139 @@ export default async function DashboardPage() {
             >
               Notícias disponíveis após a primeira atualização (6h30)
             </div>
-          )}
-
-          {/* Lista secundária */}
-          <div>
-            {secondary.map((n, i) => (
-              <div
-                key={n.id}
-                className="news-item"
-                style={{
-                  display: 'flex',
-                  gap: 14,
-                  padding: '12px 20px',
-                  borderBottom: i < secondary.length - 1 ? '1px solid var(--line)' : 'none',
-                }}
-              >
-                {/* source accent line */}
+          ) : (
+            [featured, ...secondary].map((n, i) => {
+              const isFirst = i === 0
+              const total = 1 + secondary.length
+              return (
                 <div
+                  key={n.id}
+                  className={isFirst ? undefined : 'news-item'}
                   style={{
-                    width: 2,
-                    background: n.sourceColor,
-                    flexShrink: 0,
-                    borderRadius: 1,
-                    opacity: 0.6,
+                    display: 'flex',
+                    gap: 14,
+                    padding: isFirst ? '16px 24px 18px' : '12px 20px',
+                    borderBottom: i < total - 1 ? '1px solid var(--line)' : 'none',
+                    background: isFirst
+                      ? 'color-mix(in oklch, var(--c-gold) 3%, var(--bg-elev))'
+                      : undefined,
                   }}
-                />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <span
+                >
+                  <div
+                    style={{
+                      width: isFirst ? 3 : 2,
+                      background: n.sourceColor,
+                      flexShrink: 0,
+                      borderRadius: 1,
+                      opacity: isFirst ? 0.85 : 0.6,
+                    }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
                       style={{
-                        fontFamily: 'var(--f-mono)',
-                        fontSize: 9,
-                        fontWeight: 500,
-                        letterSpacing: '.12em',
-                        textTransform: 'uppercase',
-                        color: n.sourceColor,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        marginBottom: isFirst ? 8 : 4,
                       }}
                     >
-                      {n.source}
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: 'var(--f-mono)',
-                        fontSize: 9,
-                        color: 'var(--fg-faint)',
-                        letterSpacing: '.08em',
-                        textTransform: 'uppercase',
-                      }}
-                    >
-                      {n.category}
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: 'var(--f-mono)',
-                        fontSize: 10,
-                        color: 'var(--fg-faint)',
-                        marginLeft: 'auto',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {timeAgo(n.publishedAt)}
-                    </span>
-                  </div>
-                  {n.url ? (
-                    <a
-                      href={n.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ textDecoration: 'none' }}
-                    >
+                      <span
+                        style={{
+                          fontFamily: 'var(--f-mono)',
+                          fontSize: 9,
+                          fontWeight: 500,
+                          letterSpacing: '.14em',
+                          textTransform: 'uppercase',
+                          color: n.sourceColor,
+                        }}
+                      >
+                        {n.source}
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: 'var(--f-mono)',
+                          fontSize: 9,
+                          color: 'var(--fg-faint)',
+                          letterSpacing: '.1em',
+                          textTransform: 'uppercase',
+                        }}
+                      >
+                        {n.category}
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: 'var(--f-mono)',
+                          fontSize: 10,
+                          color: 'var(--fg-faint)',
+                          marginLeft: 'auto',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {timeAgo(n.publishedAt)}
+                      </span>
+                    </div>
+
+                    {n.url ? (
+                      <a
+                        href={n.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ textDecoration: 'none' }}
+                      >
+                        <p
+                          style={{
+                            fontSize: isFirst ? 15 : 13,
+                            fontWeight: isFirst ? 600 : 500,
+                            color: 'var(--fg)',
+                            lineHeight: 1.4,
+                            letterSpacing: isFirst ? '-.01em' : undefined,
+                            marginBottom: isFirst && n.summary ? 6 : 0,
+                          }}
+                        >
+                          {n.headline}
+                        </p>
+                      </a>
+                    ) : (
                       <p
                         style={{
-                          fontSize: 13,
-                          fontWeight: 500,
+                          fontSize: isFirst ? 15 : 13,
+                          fontWeight: isFirst ? 600 : 500,
                           color: 'var(--fg)',
                           lineHeight: 1.4,
+                          letterSpacing: isFirst ? '-.01em' : undefined,
+                          marginBottom: isFirst && n.summary ? 6 : 0,
                         }}
                       >
                         {n.headline}
                       </p>
-                    </a>
-                  ) : (
-                    <p
-                      style={{ fontSize: 13, fontWeight: 500, color: 'var(--fg)', lineHeight: 1.4 }}
-                    >
-                      {n.headline}
-                    </p>
-                  )}
-                  <p
-                    style={{
-                      fontSize: 11,
-                      color: 'var(--fg-faint)',
-                      lineHeight: 1.5,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      marginTop: 2,
-                    }}
-                  >
-                    {n.summary}
-                  </p>
+                    )}
+
+                    {isFirst && n.summary && (
+                      <p style={{ fontSize: 13, color: 'var(--fg-mute)', lineHeight: 1.65 }}>
+                        {n.summary}
+                      </p>
+                    )}
+
+                    {!isFirst && n.summary && (
+                      <p
+                        style={{
+                          fontSize: 11,
+                          color: 'var(--fg-faint)',
+                          lineHeight: 1.5,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          marginTop: 2,
+                        }}
+                      >
+                        {n.summary}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              )
+            })
+          )}
         </div>
       </div>
 

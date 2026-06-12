@@ -7,6 +7,7 @@
     "dev:demo": "cross-env NEXT_PUBLIC_API_URL=http://localhost:3000/api/mock INTERNAL_API_SECRET=demo next dev --turbopack",
     "build": "next build --webpack",
     "pages:build": "opennextjs-cloudflare build",
+    "postpages:build": "node -e \"const fs=require('fs'),f='.open-next/cloudflare/next-env.mjs';try{const seen=new Set();const out=fs.readFileSync(f,'utf8').split('\\n').filter(l=>{if(!l.trim())return true;if(seen.has(l))return false;seen.add(l);return true}).join('\\n');fs.writeFileSync(f,out);}catch(e){}\"",
     "pages:deploy": "wrangler pages deploy --project-name=intra",
     "deploy:worker": "cd server && npm run deploy",
     "check": "biome check ./src",

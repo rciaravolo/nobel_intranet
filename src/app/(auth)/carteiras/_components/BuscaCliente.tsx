@@ -26,18 +26,18 @@ type ClienteData = {
 /* ─── Cores ──────────────────────────────────────────────────────────────── */
 
 const PRODUTO_COLOR: Record<string, string> = {
-  'Renda Fixa': '#3B82F6',
-  Fundos: '#8B5CF6',
-  Previdência: '#10B981',
-  'Renda Variável': '#F59E0B',
-  COE: '#EF4444',
-  'Fundo Imobiliário': '#06B6D4',
-  'Off-Shore': '#6366F1',
-  Precatorio: '#84CC16',
-  'Saldo em Conta': '#94A3B8',
-  'XP Internacional': '#F97316',
-  Compromissadas: '#EC4899',
-  Disney: '#A78BFA',
+  'Renda Fixa': '#2D5FA0',
+  Fundos: '#5F5E5B',
+  Previdência: '#248A47',
+  'Renda Variável': '#C29404',
+  COE: '#D94141',
+  'Fundo Imobiliário': '#8F6B12',
+  'Off-Shore': '#343534',
+  Precatorio: '#B4B3AE',
+  'Saldo em Conta': '#8C8B87',
+  'XP Internacional': '#C29404',
+  Compromissadas: '#5F5E5B',
+  Disney: '#D2D1CC',
 }
 const cor = (p: string) => PRODUTO_COLOR[p] ?? '#2D5FA0'
 

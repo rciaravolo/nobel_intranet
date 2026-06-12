@@ -47,6 +47,11 @@ function fBRL(val: number): string {
   return `${pre}${abs.toFixed(0)}`
 }
 
+function fBRLFull(val: number): string {
+  const pre = val < 0 ? '-R$ ' : 'R$ '
+  return `${pre}${Math.abs(val).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+}
+
 function fPct(val: number | null): string {
   if (val == null) return '—'
   return `${(val * 100).toFixed(1).replace('.', ',')}%`
@@ -275,7 +280,7 @@ export function BlocoMetas({ dados, compact = false }: Props) {
                   fontFeatureSettings: '"tnum"',
                 }}
               >
-                {fBRL(total.realizado)}
+                {fBRLFull(total.realizado)}
               </p>
             </div>
             <div style={{ textAlign: 'right' }}>
@@ -333,7 +338,7 @@ export function BlocoMetas({ dados, compact = false }: Props) {
         {/* Lista de produtos */}
         <div style={{ padding: '6px 0' }}>
           {produtos
-            .filter((p) => p.meta > 0)
+            .filter((p) => p.meta > 0 || p.realizado > 0)
             .map((p, i, arr) => {
               const s = sinal(p.pctMeta, p.meta)
               const cor = SINAL_COR[s]
@@ -353,21 +358,21 @@ export function BlocoMetas({ dados, compact = false }: Props) {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      marginBottom: 5,
+                      marginBottom: 6,
                     }}
                   >
-                    <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--fg)' }}>
+                    <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--fg)' }}>
                       {p.label}
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: cor }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                      <span style={{ fontSize: 15, fontWeight: 600, fontFamily: 'var(--f-mono)', letterSpacing: '-.01em', color: cor }}>
                         {fPct(p.pctAtingido)}
                       </span>
                       <span
                         style={{
-                          fontSize: 10,
-                          fontWeight: 700,
-                          padding: '1px 6px',
+                          fontSize: 11,
+                          fontWeight: 600,
+                          padding: '2px 7px',
                           borderRadius: 'var(--r-pill)',
                           background: SINAL_BG[s],
                           color: cor,
@@ -386,7 +391,7 @@ export function BlocoMetas({ dados, compact = false }: Props) {
                       background: 'var(--n-100)',
                       borderRadius: 2,
                       overflow: 'hidden',
-                      marginBottom: 4,
+                      marginBottom: 5,
                     }}
                   >
                     <div
@@ -400,14 +405,14 @@ export function BlocoMetas({ dados, compact = false }: Props) {
                   </div>
                   {/* Sub-linha: realizado / meta | projeção */}
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 11, color: 'var(--fg-mute)' }}>
+                    <span style={{ fontSize: 12, color: 'var(--fg-mute)' }}>
                       {fBRL(p.realizado)}{' '}
                       <span style={{ color: 'var(--fg-faint)' }}>
                         / {p.meta > 0 ? fBRL(p.meta) : '—'}
                       </span>
                     </span>
                     {p.realizado > 0 && p.slug !== 'fundos' && p.slug !== 'previdencia' && (
-                      <span style={{ fontSize: 11, color: 'var(--fg-faint)' }}>
+                      <span style={{ fontSize: 12, color: 'var(--fg-faint)' }}>
                         proj.{' '}
                         <span style={{ color: cor, fontWeight: 600 }}>{fBRL(p.projecao)}</span>
                       </span>
@@ -521,7 +526,7 @@ export function BlocoMetas({ dados, compact = false }: Props) {
                 fontFeatureSettings: '"tnum"',
               }}
             >
-              {fBRL(total.realizado)}
+              {fBRLFull(total.realizado)}
             </p>
           </div>
           <div style={{ fontSize: 18, color: 'var(--line-strong)' }}>/</div>
@@ -737,7 +742,7 @@ export function BlocoMetas({ dados, compact = false }: Props) {
                 Total
               </td>
               <td style={{ ...td, fontWeight: 700, fontSize: 12, borderBottom: 'none' }}>
-                {fBRL(total.realizado)}
+                {fBRLFull(total.realizado)}
               </td>
               <td style={{ ...td, color: 'var(--fg-mute)', fontSize: 12, borderBottom: 'none' }}>
                 {fBRL(total.meta)}

@@ -1,10 +1,21 @@
+import { Suspense } from 'react'
 import { PageGreeting } from '../_components/PageGreeting'
+import { CarteirasNav } from './_components/CarteirasNav'
+import { RFAtivos, type RFAtivo } from './_components/RFAtivos'
+import { BuscaAtivo } from './_components/BuscaAtivo'
+import { AnalisesFilters } from '../analises/_components/AnalisesFilters'
 import { apiFetch } from '@/lib/api/fetch'
 import { requireSession } from '@/lib/auth/session'
 
 /* ─── Tipos ──────────────────────────────────────────────────────────────── */
 
 type Maturity = { janela: string; total: number; itens: { tipo: string; total: number }[] }
+
+type DistribuicaoPayload = {
+  aum: number
+  dataRef: string | null
+  alocacao: { produto: string; total: number; clientes: number }[]
+}
 
 type VisaoPayload = {
   totais: { rf: number; rv: number; coe: number; liquidez: number; total: number }
@@ -42,53 +53,65 @@ type VisaoPayload = {
 
 /* ─── Paleta ─────────────────────────────────────────────────────────────── */
 
+const DIV_COLOR: Record<string, string> = {
+  'Renda Fixa':      '#2D5FA0',
+  'Renda Variável':  '#C29404',
+  'COE':             '#D94141',
+  'Liquidez':        '#248A47',
+  'Liquidez Diária': '#248A47',
+  'Previdência':     '#8B5CF6',
+  'Fundos':          '#0EA5E9',
+  'Internacional':   '#6366F1',
+}
+const divColor = (p: string) => DIV_COLOR[p] ?? '#8C8B87'
+
 const MACRO_COLOR: Record<string, string> = {
   rf: '#2D5FA0',
-  rv: '#F59E0B',
-  coe: '#EF4444',
-  liquidez: '#10B981',
+  rv: '#C29404',
+  coe: '#D94141',
+  liquidez: '#248A47',
 }
 
 const IDX_COLOR: Record<string, string> = {
-  '% CDI': '#06B6D4',
-  IPCA: '#F59E0B',
-  PRE: '#EF4444',
+  '% CDI': '#C29404',
+  IPCA: '#8F6B12',
+  PRE: '#D94141',
   'CDI +': '#2D5FA0',
-  LFT: '#10B981',
-  Selic: '#8B5CF6',
-  IGPM: '#F97316',
+  LFT: '#248A47',
+  Selic: '#5F5E5B',
+  IGPM: '#8C8B87',
 }
 
 const TIPO_COLOR: Record<string, string> = {
   'Emissão Bancária': '#2D5FA0',
-  'Credito Privado': '#F59E0B',
-  'Título Público': '#10B981',
-  'Tesouro Direto': '#06B6D4',
-  'Letras Financeiras': '#8B5CF6',
-  'Letra Imobiliária Garantida': '#EC4899',
+  'Credito Privado': '#C29404',
+  'Título Público': '#248A47',
+  'Tesouro Direto': '#8F6B12',
+  'Letras Financeiras': '#5F5E5B',
+  'Letra Imobiliária Garantida': '#8C8B87',
 }
 
 const SETOR_COLOR: Record<string, string> = {
-  'Fundo Imobiliário': '#06B6D4',
+  'Fundo Imobiliário': '#C29404',
   Financeiro: '#2D5FA0',
-  'Energia elétrica & Saneamento': '#10B981',
-  Imobiliário: '#F97316',
-  'Mineração & Siderurgia': '#94A3B8',
-  'Petróleo & Gas': '#EF4444',
-  'Transportes & Bens Industriais': '#8B5CF6',
-  Varejo: '#F59E0B',
-  Tecnologia: '#06B6D4',
-  'Papel & Celulose': '#84CC16',
-  'Agro, Alimentos & Bebidas': '#A78BFA',
-  Telecomunicação: '#EC4899',
-  Shoppings: '#FB923C',
-  Outros: '#64748B',
+  'Energia elétrica & Saneamento': '#248A47',
+  Imobiliário: '#8F6B12',
+  'Mineração & Siderurgia': '#343534',
+  'Petróleo & Gas': '#D94141',
+  'Transportes & Bens Industriais': '#5F5E5B',
+  Varejo: '#8C8B87',
+  Tecnologia: '#C29404',
+  'Papel & Celulose': '#B4B3AE',
+  'Agro, Alimentos & Bebidas': '#8F6B12',
+  Telecomunicação: '#D2D1CC',
+  Shoppings: '#343534',
+  Outros: '#5F5E5B',
 }
 
 const COE_COLOR: Record<string, string> = {
   BOND: '#2D5FA0',
-  PARTICIPACAO: '#10B981',
-  CDS: '#F59E0B',
+  PARTICIPACAO: '#248A47',
+  CDS: '#C29404',
 }
 
 /* ─── Formatters ─────────────────────────────────────────────────────────── */
@@ -113,18 +136,92 @@ function fVar(v: number): string {
 
 /* ─── Fetch ──────────────────────────────────────────────────────────────── */
 
-async function getVisao(email: string, role: string, equipe?: string): Promise<VisaoPayload | null> {
+type FilterOpts = {
+  email: string
+  role: string
+  equipe?: string
+  filterType?: string
+  filterValue?: string
+}
+
+type AssessoresPayload = {
+  equipes: string[]
+  assessores: { id_assessor: string; nome_assessor: string | null; equipe: string }[]
+}
+
+async function getVisao(opts: FilterOpts): Promise<VisaoPayload | null> {
   try {
     const res = await apiFetch(`/performance/carteiras/visao`, {
       cache: 'no-store',
       headers: {
-        'X-User-Email': email,
-        'X-User-Role': role,
-        'X-User-Equipe': equipe ?? '',
+        'X-User-Email': opts.email,
+        'X-User-Role': opts.role,
+        'X-User-Equipe': opts.equipe ?? '',
+        ...(opts.filterType  ? { 'X-Filter-Type':  opts.filterType  } : {}),
+        ...(opts.filterValue ? { 'X-Filter-Value': opts.filterValue } : {}),
       },
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     const json = (await res.json()) as { data: VisaoPayload }
+    return json.data
+  } catch {
+    return null
+  }
+}
+
+async function getRfAtivos(opts: FilterOpts): Promise<RFAtivo[]> {
+  try {
+    const res = await apiFetch('/performance/carteiras/rf/ativos', {
+      cache: 'no-store',
+      headers: {
+        'X-User-Email': opts.email,
+        'X-User-Role': opts.role,
+        'X-User-Equipe': opts.equipe ?? '',
+        ...(opts.filterType  ? { 'X-Filter-Type':  opts.filterType  } : {}),
+        ...(opts.filterValue ? { 'X-Filter-Value': opts.filterValue } : {}),
+      },
+    })
+    if (!res.ok) return []
+    const json = (await res.json()) as { data: { ativos: RFAtivo[] } }
+    return json.data.ativos
+  } catch {
+    return []
+  }
+}
+
+async function getDistribuicao(opts: FilterOpts): Promise<DistribuicaoPayload | null> {
+  try {
+    const res = await apiFetch('/performance/carteiras', {
+      cache: 'no-store',
+      headers: {
+        'X-User-Email': opts.email,
+        'X-User-Role': opts.role,
+        'X-User-Equipe': opts.equipe ?? '',
+        ...(opts.filterType  ? { 'X-Filter-Type':  opts.filterType  } : {}),
+        ...(opts.filterValue ? { 'X-Filter-Value': opts.filterValue } : {}),
+      },
+    })
+    if (!res.ok) return null
+    const json = (await res.json()) as { data: DistribuicaoPayload }
+    return json.data
+  } catch {
+    return null
+  }
+}
+
+async function getAssessores(role: string, email: string, equipe?: string): Promise<AssessoresPayload | null> {
+  if (role !== 'admin' && role !== 'master' && role !== 'lider') return null
+  try {
+    const res = await apiFetch('/performance/assessores', {
+      cache: 'no-store',
+      headers: {
+        'X-User-Role': role,
+        'X-User-Email': email,
+        ...(equipe ? { 'X-User-Equipe': equipe } : {}),
+      },
+    })
+    if (!res.ok) return null
+    const json = (await res.json()) as { data: AssessoresPayload }
     return json.data
   } catch {
     return null
@@ -285,9 +382,33 @@ function HBar({
 
 /* ─── Page ───────────────────────────────────────────────────────────────── */
 
-export default async function CarteirasPage() {
+export default async function CarteirasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string; filter_type?: string; filter_value?: string }>
+}) {
+  const sp = await searchParams
+  const tab = sp.tab ?? 'geral'
   const session = await requireSession()
-  const d = await getVisao(session.email, session.role, session.equipe)
+
+  const canFilter = session.role === 'admin' || session.role === 'master' || session.role === 'lider'
+  const filterType  = canFilter ? sp.filter_type  : undefined
+  const filterValue = canFilter ? sp.filter_value : undefined
+
+  const opts: FilterOpts = {
+    email: session.email,
+    role: session.role,
+    ...(session.equipe ? { equipe: session.equipe } : {}),
+    ...(filterType  ? { filterType  } : {}),
+    ...(filterValue ? { filterValue } : {}),
+  }
+
+  const [d, rfAtivos, assessoresData, distribuicao] = await Promise.all([
+    getVisao(opts),
+    getRfAtivos(opts),
+    getAssessores(session.role, session.email, session.equipe),
+    getDistribuicao(opts),
+  ])
 
   const totais = d?.totais ?? { rf: 0, rv: 0, coe: 0, liquidez: 0, total: 0 }
   const rfIdx = d?.rf.porIndexador ?? []
@@ -344,6 +465,25 @@ export default async function CarteirasPage() {
     <div style={{ maxWidth: 1400 }}>
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <PageGreeting name={session.name} label="Posição analítica" />
+
+      {/* ── Filtros (admin / master / lider) ────────────────────────────── */}
+      {canFilter && (
+        <AnalisesFilters
+          basePath="/carteiras"
+          equipes={session.role === 'lider' ? [] : (assessoresData?.equipes ?? []).slice().sort((a, b) => a.localeCompare(b, 'pt-BR'))}
+          assessores={(assessoresData?.assessores ?? []).slice().sort((a, b) =>
+            (a.nome_assessor ?? a.id_assessor).localeCompare(b.nome_assessor ?? b.id_assessor, 'pt-BR'),
+          )}
+        />
+      )}
+
+      {/* ── Navegação ──────────────────────────────────────────────────── */}
+      <Suspense fallback={<div style={{ height: 40, marginBottom: 'var(--s-4)' }} />}>
+        <CarteirasNav />
+      </Suspense>
+
+      {/* ── Busca por Ativo ─────────────────────────────────────────────── */}
+      <BuscaAtivo />
 
 
       {/* ── 4 KPI Cards ────────────────────────────────────────────────── */}
@@ -423,29 +563,69 @@ export default async function CarteirasPage() {
         ))}
       </div>
 
+      {/* ── Distribuição por Produto (tb_diversificador) ────────────────── */}
+      {tab === 'geral' && distribuicao && distribuicao.alocacao.length > 0 && (
+        <div style={{ ...cardStyle, boxShadow: 'var(--e-float)', marginBottom: 'var(--s-4)' }}>
+          <SectionHeader title="Distribuição por Produto" sub={`${fBRL(distribuicao.aum)} · tb_diversificador`} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 32, padding: '20px 24px' }}>
+            <Donut
+              size={148}
+              segments={distribuicao.alocacao.map(a => ({
+                label: a.produto,
+                value: a.total,
+                color: divColor(a.produto),
+              }))}
+            />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {distribuicao.alocacao.map(a => {
+                const pct = distribuicao.aum > 0 ? (a.total / distribuicao.aum) * 100 : 0
+                const color = divColor(a.produto)
+                return (
+                  <div key={a.produto} style={{ display: 'grid', gridTemplateColumns: '160px 1fr 80px 60px', alignItems: 'center', gap: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: 2, background: color, flexShrink: 0 }} />
+                      <span style={{ fontFamily: 'var(--f-text)', fontSize: 12, fontWeight: 500, color: 'var(--fg)' }}>{a.produto}</span>
+                    </div>
+                    <div style={{ height: 5, background: 'var(--bg-deep)', borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 2, opacity: 0.8 }} />
+                    </div>
+                    <span style={{ fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 600, color, textAlign: 'right', fontFeatureSettings: '"tnum"' }}>
+                      {pct.toFixed(1).replace('.', ',')}%
+                    </span>
+                    <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--fg-faint)', textAlign: 'right', fontFeatureSettings: '"tnum"' }}>
+                      {fBRL(a.total)}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Row: Macro Donut + RF Marcação ─────────────────────────────── */}
-      <div
+      {tab !== 'rv' && <div
         style={{
           display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
+          gridTemplateColumns: tab === 'rf' ? '1fr' : '1fr 1fr',
           gap: 'var(--s-4)',
           marginBottom: 'var(--s-4)',
         }}
       >
-        {/* Macro Allocation */}
-        <div style={{ ...cardStyle, boxShadow: 'var(--e-float)' }}>
+        {/* Macro Allocation — oculto no tab RF (foco só em RF Marcação) */}
+        {tab !== 'rf' && <div style={{ ...cardStyle, boxShadow: 'var(--e-float)' }}>
           <SectionHeader title="Alocação por Classe" sub={fBRL(totais.total)} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '20px 24px' }}>
             <Donut
               size={140}
               segments={[
                 { label: 'Renda Fixa', value: totais.rf, color: MACRO_COLOR.rf ?? '#2D5FA0' },
-                { label: 'Renda Variável', value: totais.rv, color: MACRO_COLOR.rv ?? '#F59E0B' },
-                { label: 'COE', value: totais.coe, color: MACRO_COLOR.coe ?? '#EF4444' },
+                { label: 'Renda Variável', value: totais.rv, color: MACRO_COLOR.rv ?? '#C29404' },
+                { label: 'COE', value: totais.coe, color: MACRO_COLOR.coe ?? '#D94141' },
                 {
                   label: 'Liquidez Diária',
                   value: totais.liquidez,
-                  color: MACRO_COLOR.liquidez ?? '#10B981',
+                  color: MACRO_COLOR.liquidez ?? '#248A47',
                 },
               ]}
             />
@@ -503,7 +683,7 @@ export default async function CarteirasPage() {
               ))}
             </div>
           </div>
-        </div>
+        </div>}
 
         {/* RF Marcação */}
         <div style={{ ...cardStyle, boxShadow: 'var(--e-float)' }}>
@@ -520,8 +700,8 @@ export default async function CarteirasPage() {
                   <Donut
                     size={140}
                     segments={[
-                      { label: 'Mercado', value: mercado?.total ?? 0, color: '#6366F1' },
-                      { label: 'Curva', value: curva?.total ?? 0, color: '#94A3B8' },
+                      { label: 'Mercado', value: mercado?.total ?? 0, color: '#2D5FA0' },
+                      { label: 'Curva', value: curva?.total ?? 0, color: '#8C8B87' },
                     ]}
                   />
                   <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -529,13 +709,13 @@ export default async function CarteirasPage() {
                       {
                         label: 'Marcado a Mercado',
                         data: mercado,
-                        color: '#6366F1',
+                        color: '#2D5FA0',
                         desc: 'P&L visível, sofre MTM',
                       },
                       {
                         label: 'Marcado na Curva',
                         data: curva,
-                        color: '#94A3B8',
+                        color: '#8C8B87',
                         desc: 'Travado até vencimento',
                       },
                     ].map(({ label, data, color, desc }) => (
@@ -616,10 +796,10 @@ export default async function CarteirasPage() {
             <div style={{ padding: 24, color: 'var(--fg-faint)', fontSize: 13 }}>Sem dados</div>
           )}
         </div>
-      </div>
+      </div>}
 
       {/* ── RF: Indexadores ────────────────────────────────────────────── */}
-      <div style={{ ...cardStyle, marginBottom: 'var(--s-4)' }}>
+      {tab !== 'rv' && <div style={{ ...cardStyle, marginBottom: 'var(--s-4)' }}>
         <SectionHeader
           title="Renda Fixa — Exposição por Indexador"
           sub={`${rfIdx.length} indexadores`}
@@ -637,15 +817,15 @@ export default async function CarteirasPage() {
                   sub={`${r.posicoes.toLocaleString('pt-BR')} posições · ${r.clientes.toLocaleString('pt-BR')} clientes`}
                   total={r.total}
                   max={rfIdx[0]?.total ?? 1}
-                  color={IDX_COLOR[r.indexador] ?? '#94A3B8'}
+                  color={IDX_COLOR[r.indexador] ?? '#8C8B87'}
                 />
               </div>
             ))}
         </div>
-      </div>
+      </div>}
 
       {/* ── RF: Wall of Maturities ─────────────────────────────────────── */}
-      <div style={{ ...cardStyle, marginBottom: 'var(--s-4)' }}>
+      {tab !== 'rv' && <div style={{ ...cardStyle, marginBottom: 'var(--s-4)' }}>
         <SectionHeader title="Renda Fixa — Vencimentos por Janela" sub="wall of maturities" />
         <div style={{ padding: '16px 20px 8px' }}>
           {rfMat.map((m) => {
@@ -686,7 +866,7 @@ export default async function CarteirasPage() {
                         title={`${item.tipo}: ${fBRL(item.total)}`}
                         style={{
                           flex: item.total,
-                          background: TIPO_COLOR[item.tipo] ?? '#94A3B8',
+                          background: TIPO_COLOR[item.tipo] ?? '#8C8B87',
                           height: '100%',
                           opacity: 0.85,
                         }}
@@ -728,7 +908,7 @@ export default async function CarteirasPage() {
                   width: 8,
                   height: 8,
                   borderRadius: 2,
-                  background: TIPO_COLOR[tipo] ?? '#94A3B8',
+                  background: TIPO_COLOR[tipo] ?? '#8C8B87',
                 }}
               />
               <span
@@ -745,10 +925,13 @@ export default async function CarteirasPage() {
             </div>
           ))}
         </div>
-      </div>
+      </div>}
+
+      {/* ── RF: Top Ativos (drill-down por cliente) ─────────────────────── */}
+      {tab !== 'rv' && <RFAtivos ativos={rfAtivos} />}
 
       {/* ── RV: Setorial + Top Ativos ──────────────────────────────────── */}
-      <div
+      {tab !== 'rf' && <div
         style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1.5fr',
@@ -772,7 +955,7 @@ export default async function CarteirasPage() {
                   sub={`${s.clientes.toLocaleString('pt-BR')} clientes`}
                   total={s.total}
                   max={setorMax}
-                  color={SETOR_COLOR[s.setor] ?? '#64748B'}
+                  color={SETOR_COLOR[s.setor] ?? '#5F5E5B'}
                 />
               </div>
             ))}
@@ -900,10 +1083,10 @@ export default async function CarteirasPage() {
             </tbody>
           </table>
         </div>
-      </div>
+      </div>}
 
       {/* ── COE ────────────────────────────────────────────────────────── */}
-      <div style={{ ...cardStyle, marginBottom: 'var(--s-4)' }}>
+      {tab === 'geral' && <div style={{ ...cardStyle, marginBottom: 'var(--s-4)' }}>
         <SectionHeader
           title="COE — Posição & Performance"
           sub={`${coeTypes.reduce((s, t) => s + t.posicoes, 0).toLocaleString('pt-BR')} posições`}
@@ -949,7 +1132,7 @@ export default async function CarteirasPage() {
         {/* Por tipo */}
         <div style={{ display: 'grid', gridTemplateColumns: `repeat(${coeTypes.length}, 1fr)` }}>
           {coeTypes.map((t, i) => {
-            const color = COE_COLOR[t.tipo] ?? '#94A3B8'
+            const color = COE_COLOR[t.tipo] ?? '#8C8B87'
             const plUp = t.pl >= 0
             return (
               <div
@@ -1035,10 +1218,10 @@ export default async function CarteirasPage() {
             )
           })}
         </div>
-      </div>
+      </div>}
 
       {/* ── Liquidez Diária ────────────────────────────────────────────── */}
-      <div style={cardStyle}>
+      {tab === 'geral' && <div style={cardStyle}>
         <SectionHeader title="Liquidez Diária — por Indexador" sub={fBRL(totais.liquidez)} />
         <div style={{ padding: '8px 0' }}>
           {ldIdx.map((r, i) => (
@@ -1051,12 +1234,12 @@ export default async function CarteirasPage() {
                 sub={`${r.posicoes.toLocaleString('pt-BR')} posições · ${r.clientes.toLocaleString('pt-BR')} clientes`}
                 total={r.total}
                 max={ldMax}
-                color={IDX_COLOR[r.indexador] ?? '#10B981'}
+                color={IDX_COLOR[r.indexador] ?? '#248A47'}
               />
             </div>
           ))}
         </div>
-      </div>
+      </div>}
     </div>
   )
 }

@@ -33,6 +33,7 @@ async function resolveFilter(
   }
   if (role === 'lider') {
     if (!equipe) return { type: 'denied' }
+    if (filterType === 'assessor' && filterValue) return { type: 'assessor', id: filterValue }
     return { type: 'equipe', equipe }
   }
   // assessor (e legacy 'member')
@@ -55,6 +56,13 @@ function buildAndFilter(f: FilterResult, col = 'id_assessor'): string {
   if (f.type === 'all')      return ''
   if (f.type === 'assessor') return ` AND ${col} = '${f.id}'`
   if (f.type === 'equipe')   return ` AND ${col} IN (SELECT id_assessor FROM assessores WHERE equipe = '${f.equipe}')`
+  return ''
+}
+
+function buildDivFilter(f: FilterResult): string {
+  if (f.type === 'all')      return ''
+  if (f.type === 'assessor') return ` WHERE id_cliente IN (SELECT id_cliente FROM tb_positivador WHERE id_assessor = '${f.id}')`
+  if (f.type === 'equipe')   return ` WHERE id_cliente IN (SELECT id_cliente FROM tb_positivador WHERE id_assessor IN (SELECT id_assessor FROM assessores WHERE equipe = '${f.equipe}'))`
   return ''
 }
 
@@ -116,6 +124,7 @@ app.get('/kpis', async (c) => {
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_oferta_fundos${w}`).first<{ v: number }>(),
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_fundos${w}`).first<{ v: number }>(),
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_prev${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_precas${w}`).first<{ v: number }>(),
     ]),
   ])
 
@@ -283,6 +292,7 @@ app.get('/onepage', async (c) => {
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_oferta_fundos${buildWhereFilter(filter)}`).first<{ v: number }>(),
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_fundos${buildWhereFilter(filter)}`).first<{ v: number }>(),
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_prev${buildWhereFilter(filter)}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_precas${buildWhereFilter(filter)}`).first<{ v: number }>(),
     ]),
     db.prepare(`
       SELECT
@@ -306,7 +316,7 @@ app.get('/onepage', async (c) => {
   const LABELS = [
     'Renda Variável', 'Renda Fixa', 'COE', 'Câmbio', 'Fee Fixo',
     'Seguros', 'Consórcio', 'Dominion', 'Oferta de Fundos',
-    'Fundos', 'Previdência',
+    'Fundos', 'Previdência', 'Precatórios',
   ]
   const porProduto = receitaRows
     .map((r, i) => ({ produto: LABELS[i]!, receita: r?.v ?? 0 }))
@@ -343,27 +353,30 @@ app.get('/onepage', async (c) => {
   })
 })
 
-const PRODUTOS_METAS = [
-  { slug: 'rv',            tabela: 'receita_rv',            label: 'Renda Variável'   },
-  { slug: 'rf',            tabela: 'receita_rf',            label: 'Renda Fixa'       },
-  { slug: 'coe',           tabela: 'receita_coe',           label: 'COE'              },
-  { slug: 'cambio',        tabela: 'receita_cambio',        label: 'Câmbio'           },
-  { slug: 'feefixo',       tabela: 'receita_feefixo',       label: 'Fee Fixo'         },
-  { slug: 'seguros',       tabela: 'receita_seguros',       label: 'Seguros'          },
-  { slug: 'consorcio',     tabela: 'receita_consorcio',     label: 'Consórcio'        },
-  { slug: 'dominion',      tabela: 'receita_dominion',      label: 'Dominion'         },
-  { slug: 'oferta_fundos', tabela: 'receita_oferta_fundos', label: 'Oferta de Fundos' },
-  { slug: 'fundos',        tabela: 'receita_fundos',        label: 'Fundos'           },
-  { slug: 'previdencia',   tabela: 'receita_prev',          label: 'Previdência'      },
-] as const
+type ProdutoMeta = { slug: string; tabela: string; tabelaExtra?: string; label: string }
+
+const PRODUTOS_METAS: ProdutoMeta[] = [
+  { slug: 'rv',             tabela: 'receita_rv',            label: 'Renda Variável'   },
+  { slug: 'rf',             tabela: 'receita_rf',            label: 'Renda Fixa'       },
+  { slug: 'coe',            tabela: 'receita_coe',           label: 'COE'              },
+  { slug: 'cambio',         tabela: 'receita_cambio',        label: 'Câmbio'           },
+  { slug: 'feefixo',        tabela: 'receita_feefixo',       label: 'Fee Fixo'         },
+  { slug: 'seguros',        tabela: 'receita_seguros',       label: 'Seguros'          },
+  { slug: 'consorcio',      tabela: 'receita_consorcio',     label: 'Consórcio'        },
+  { slug: 'internacional',  tabela: 'receita_dominion', tabelaExtra: 'receita_parceiros', label: 'Internacional' },
+  { slug: 'oferta_fundos',  tabela: 'receita_oferta_fundos', label: 'Oferta de Fundos' },
+  { slug: 'fundos',         tabela: 'receita_fundos',        label: 'Fundos'           },
+  { slug: 'previdencia',    tabela: 'receita_prev',          label: 'Previdência'      },
+  { slug: 'precas',         tabela: 'receita_precas',        label: 'Precatórios'      },
+]
 
 app.get('/metas', async (c) => {
   const db    = c.env.PERF_DB
-  const agora = new Date()
+  const role  = c.req.header('X-User-Role')
 
   const filter = await resolveFilter(
     db,
-    c.req.header('X-User-Role'),
+    role,
     c.req.header('X-User-Email'),
     c.req.header('X-User-Equipe'),
     c.req.header('X-Filter-Type'),
@@ -371,9 +384,24 @@ app.get('/metas', async (c) => {
   )
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
-  // Mês corrente em BRT (UTC-3)
-  const brt    = new Date(agora.getTime() - 3 * 60 * 60 * 1000)
-  const mesISO = `${brt.getUTCFullYear()}-${String(brt.getUTCMonth() + 1).padStart(2, '0')}`
+  const agora = new Date()
+
+  // Mês de referência em BRT (UTC-3): primeiros 2 dias úteis → mês anterior (ainda fechando)
+  const brt   = new Date(agora.getTime() - 3 * 60 * 60 * 1000)
+  const year  = brt.getUTCFullYear()
+  const month = brt.getUTCMonth()
+  const day   = brt.getUTCDate()
+
+  let bizDaysInMonth = 0
+  for (let d = 1; d <= day; d++) {
+    const dow = new Date(Date.UTC(year, month, d)).getUTCDay()
+    if (dow !== 0 && dow !== 6) bizDaysInMonth++
+  }
+
+  const usesPrevMonth = bizDaysInMonth <= 2
+  const effMonth = usesPrevMonth ? (month === 0 ? 11 : month - 1) : month
+  const effYear  = usesPrevMonth && month === 0 ? year - 1 : year
+  const mesISO   = `${effYear}-${String(effMonth + 1).padStart(2, '0')}`
 
   const metasData = metasJson as Record<string, Record<string, number>>
   let metasMes = metasData[mesISO]
@@ -387,13 +415,17 @@ app.get('/metas', async (c) => {
 
   if (!metasMes) return c.json({ data: { semMeta: true, mesISO } })
 
-  const dias = diasUteisDoMes(agora)
+  // Mês anterior já encerrado → passa último dia dele para dias úteis (restantes = 0)
+  const dataParaDias = usesPrevMonth ? new Date(Date.UTC(effYear, effMonth + 1, 0)) : agora
+  const dias = diasUteisDoMes(dataParaDias)
 
   const receitaRows = await Promise.all(
-    PRODUTOS_METAS.map(p =>
-      db.prepare(`SELECT COALESCE(SUM(receita), 0) AS v FROM ${p.tabela}${buildWhereFilter(filter)}`)
-        .first<{ v: number }>()
-    )
+    PRODUTOS_METAS.map(p => {
+      const sql = p.tabelaExtra
+        ? `SELECT COALESCE(SUM(v),0) AS v FROM (SELECT receita AS v FROM ${p.tabela}${buildWhereFilter(filter)} UNION ALL SELECT receita AS v FROM ${p.tabelaExtra}${buildWhereFilter(filter)})`
+        : `SELECT COALESCE(SUM(receita), 0) AS v FROM ${p.tabela}${buildWhereFilter(filter)}`
+      return db.prepare(sql).first<{ v: number }>()
+    })
   )
 
   const produtos = PRODUTOS_METAS.map((p, i) => {
@@ -453,28 +485,32 @@ app.get('/deepdive/captacao', async (c) => {
     db.prepare(`
       SELECT c.id_cliente,
              bc.nome_cliente,
+             a.nome_assessor,
              SUM(c.captacao) AS valor
       FROM   tb_cap c
       LEFT JOIN base_clientes bc ON CAST(c.id_cliente AS INTEGER) = bc.id_cliente
+      LEFT JOIN assessores a ON c.id_assessor = a.id_assessor
       WHERE  c.aux = 'C'
         AND  strftime('%Y-%m', c.data) = (SELECT strftime('%Y-%m', MAX(data)) FROM tb_cap)${f}
       GROUP  BY c.id_cliente
       ORDER  BY valor DESC
       LIMIT  20
-    `).all<{ id_cliente: string; nome_cliente: string | null; valor: number }>(),
+    `).all<{ id_cliente: string; nome_cliente: string | null; nome_assessor: string | null; valor: number }>(),
 
     db.prepare(`
       SELECT c.id_cliente,
              bc.nome_cliente,
+             a.nome_assessor,
              SUM(c.captacao) AS valor
       FROM   tb_cap c
       LEFT JOIN base_clientes bc ON CAST(c.id_cliente AS INTEGER) = bc.id_cliente
+      LEFT JOIN assessores a ON c.id_assessor = a.id_assessor
       WHERE  c.aux = 'D'
         AND  strftime('%Y-%m', c.data) = (SELECT strftime('%Y-%m', MAX(data)) FROM tb_cap)${f}
       GROUP  BY c.id_cliente
       ORDER  BY valor ASC
       LIMIT  20
-    `).all<{ id_cliente: string; nome_cliente: string | null; valor: number }>(),
+    `).all<{ id_cliente: string; nome_cliente: string | null; nome_assessor: string | null; valor: number }>(),
   ])
 
   const mesLabel = new Date().toLocaleDateString('pt-BR', {
@@ -506,6 +542,7 @@ app.get('/deepdive/receita/:produto', async (c) => {
     oferta_fundos: { tabela: 'receita_oferta_fundos', label: 'Oferta de Fundos' },
     fundos:        { tabela: 'receita_fundos',        label: 'Fundos'           },
     previdencia:   { tabela: 'receita_prev',          label: 'Previdência'      },
+    precas:        { tabela: 'receita_precas',        label: 'Precatórios'      },
   }
 
   const info = PRODUTO_MAP[produto]
@@ -521,40 +558,63 @@ app.get('/deepdive/receita/:produto', async (c) => {
   )
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
-  const rows = await db.prepare(`
-    SELECT r.id_cliente,
-           bc.nome_cliente,
-           SUM(r.receita) AS valor
-    FROM   ${info.tabela} r
-    LEFT JOIN base_clientes bc ON r.id_cliente = bc.id_cliente
-    ${buildWhereFilter(filter, 'r.id_assessor')}
-    GROUP  BY r.id_cliente
-    ORDER  BY valor DESC
-    LIMIT  20
-  `).all<{ id_cliente: number; nome_cliente: string | null; valor: number }>()
+  type ClienteRow = { id_cliente: string | number; nome_cliente: string | null; nome_assessor: string | null; valor: number }
+
+  let clientes: ClienteRow[]
+
+  if (produto === 'dominion') {
+    const r = await db.prepare(`
+      SELECT r.conta        AS id_cliente,
+             r.consultor    AS nome_cliente,
+             NULL           AS nome_assessor,
+             SUM(r.receita) AS valor
+      FROM   receita_dominion r
+      ${buildWhereFilter(filter, 'r.id_assessor')}
+      GROUP  BY r.conta
+      ORDER  BY valor DESC
+      LIMIT  20
+    `).all<ClienteRow>()
+    clientes = r.results
+  } else {
+    const r = await db.prepare(`
+      SELECT r.id_cliente,
+             bc.nome_cliente,
+             a.nome_assessor,
+             SUM(r.receita) AS valor
+      FROM   ${info.tabela} r
+      LEFT JOIN base_clientes bc ON r.id_cliente = bc.id_cliente
+      LEFT JOIN assessores a ON r.id_assessor = a.id_assessor
+      ${buildWhereFilter(filter, 'r.id_assessor')}
+      GROUP  BY r.id_cliente
+      ORDER  BY valor DESC
+      LIMIT  20
+    `).all<ClienteRow>()
+    clientes = r.results
+  }
 
   return c.json({
     data: {
       produto,
       label:    info.label,
-      clientes: rows.results,
+      clientes,
     },
   })
 })
 
 app.get('/assessores', async (c) => {
   const role = c.req.header('X-User-Role')
-  if (role !== 'admin' && role !== 'master') return c.json({ error: 'Forbidden' }, 403)
+  const equipeHeader = c.req.header('X-User-Equipe')
+  if (role !== 'admin' && role !== 'master' && role !== 'lider') return c.json({ error: 'Forbidden' }, 403)
 
   const db = c.env.PERF_DB
-  const rows = await db
-    .prepare(`
-      SELECT id_assessor, nome_assessor, equipe
-      FROM   assessores
-      WHERE  equipe IS NOT NULL
-      ORDER  BY equipe, nome_assessor
-    `)
-    .all<{ id_assessor: string; nome_assessor: string | null; equipe: string }>()
+  const rows = role === 'lider' && equipeHeader
+    ? await db
+        .prepare(`SELECT id_assessor, nome_assessor, equipe FROM assessores WHERE equipe = ? AND equipe IS NOT NULL ORDER BY nome_assessor`)
+        .bind(equipeHeader)
+        .all<{ id_assessor: string; nome_assessor: string | null; equipe: string }>()
+    : await db
+        .prepare(`SELECT id_assessor, nome_assessor, equipe FROM assessores WHERE equipe IS NOT NULL ORDER BY equipe, nome_assessor`)
+        .all<{ id_assessor: string; nome_assessor: string | null; equipe: string }>()
 
   const assessores = rows.results
   const equipes = [...new Set(assessores.map(a => a.equipe))].sort()
@@ -603,19 +663,31 @@ app.get('/carteiras/cliente', async (c) => {
 app.get('/carteiras', async (c) => {
   const db = c.env.PERF_DB
 
+  const filter = await resolveFilter(
+    db,
+    c.req.header('X-User-Role'),
+    c.req.header('X-User-Email'),
+    c.req.header('X-User-Equipe'),
+    c.req.header('X-Filter-Type'),
+    c.req.header('X-Filter-Value'),
+  )
+  if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
+
+  const fw = buildDivFilter(filter)
+
   const [alocacaoRows, totalRow] = await Promise.all([
     db
       .prepare(`
         SELECT produto,
                SUM(net)              AS total,
                COUNT(DISTINCT id_cliente) AS clientes
-        FROM   tb_diversificador
+        FROM   tb_diversificador${fw}
         GROUP  BY produto
         ORDER  BY total DESC
       `)
       .all<{ produto: string; total: number; clientes: number }>(),
     db
-      .prepare('SELECT SUM(net) AS aum, MAX(data_posicao) AS data_ref FROM tb_diversificador')
+      .prepare(`SELECT SUM(net) AS aum, MAX(data_posicao) AS data_ref FROM tb_diversificador${fw}`)
       .first<{ aum: number; data_ref: string }>(),
   ])
 
@@ -624,6 +696,228 @@ app.get('/carteiras', async (c) => {
       aum: totalRow?.aum ?? 0,
       dataRef: totalRow?.data_ref ?? null,
       alocacao: alocacaoRows.results,
+    },
+  })
+})
+
+/* ─── /carteiras/ativos/busca ────────────────────────────────────────────── */
+
+app.get('/carteiras/ativos/busca', async (c) => {
+  const q = (c.req.query('q') ?? '').trim()
+  if (q.length < 2) return c.json({ data: { resultados: [] } })
+
+  const db = c.env.PERF_DB
+
+  const filter = await resolveFilter(
+    db,
+    c.req.header('X-User-Role'),
+    c.req.header('X-User-Email'),
+    c.req.header('X-User-Equipe'),
+  )
+  if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
+
+  const waRV  = buildAndFilter(filter)                   // analitico_rv tem id_assessor direto
+  const waRFJ = buildAndFilter(filter, 'p.id_assessor')  // tb_diversificador via JOIN positivador
+
+  const like = `%${q}%`
+
+  const [rvRows, rfRows] = await Promise.all([
+    db
+      .prepare(`
+        SELECT 'rv' AS classe, ativo, setor AS categoria,
+               SUM(auc) AS total, COUNT(DISTINCT id_cliente) AS clientes
+        FROM   analitico_rv
+        WHERE  ativo LIKE ?
+          AND  ativo IS NOT NULL
+          ${waRV}
+        GROUP  BY ativo, setor
+        ORDER  BY total DESC
+        LIMIT  8
+      `)
+      .bind(like)
+      .all<{ classe: 'rv'; ativo: string; categoria: string | null; total: number; clientes: number }>(),
+
+    db
+      .prepare(`
+        SELECT 'rf' AS classe, d.ativo, d.sub_produto AS categoria,
+               SUM(d.net) AS total, COUNT(DISTINCT d.id_cliente) AS clientes
+        FROM   tb_diversificador d
+        INNER  JOIN tb_positivador p ON d.id_cliente = p.id_cliente
+        WHERE  d.ativo LIKE ?
+          AND  d.ativo IS NOT NULL
+          AND  d.produto = 'Renda Fixa'
+          ${waRFJ}
+        GROUP  BY d.ativo, d.sub_produto
+        ORDER  BY total DESC
+        LIMIT  8
+      `)
+      .bind(like)
+      .all<{ classe: 'rf'; ativo: string; categoria: string | null; total: number; clientes: number }>(),
+  ])
+
+  const resultados = [...rvRows.results, ...rfRows.results]
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 10)
+
+  return c.json({ data: { resultados } })
+})
+
+/* ─── /carteiras/drill/rv ────────────────────────────────────────────────── */
+
+app.get('/carteiras/drill/rv', async (c) => {
+  const ativo = c.req.query('ativo')
+  if (!ativo) return c.json({ error: 'ativo obrigatório' }, 400)
+
+  const db = c.env.PERF_DB
+
+  const filter = await resolveFilter(
+    db,
+    c.req.header('X-User-Role'),
+    c.req.header('X-User-Email'),
+    c.req.header('X-User-Equipe'),
+  )
+  if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
+
+  const wa = buildAndFilter(filter)
+
+  const [clientesRows, summaryRow] = await Promise.all([
+    db
+      .prepare(`
+        SELECT rv.id_cliente, bc.nome_cliente,
+               SUM(rv.auc) AS total,
+               rv.setor, rv.produto,
+               AVG(rv.variacao) AS variacao
+        FROM   analitico_rv rv
+        LEFT   JOIN base_clientes bc ON rv.id_cliente = bc.id_cliente
+        WHERE  rv.ativo = ?
+          ${wa}
+        GROUP  BY rv.id_cliente, bc.nome_cliente, rv.setor, rv.produto
+        ORDER  BY total DESC
+        LIMIT  20
+      `)
+      .bind(ativo)
+      .all<{ id_cliente: number; nome_cliente: string | null; total: number; setor: string | null; produto: string | null; variacao: number | null }>(),
+
+    db
+      .prepare(`
+        SELECT SUM(auc) AS total, COUNT(*) AS posicoes, COUNT(DISTINCT id_cliente) AS clientes
+        FROM   analitico_rv
+        WHERE  ativo = ?
+          ${wa}
+      `)
+      .bind(ativo)
+      .first<{ total: number; posicoes: number; clientes: number }>(),
+  ])
+
+  return c.json({
+    data: {
+      ativo,
+      total: summaryRow?.total ?? 0,
+      posicoes: summaryRow?.posicoes ?? 0,
+      clientes_count: summaryRow?.clientes ?? 0,
+      clientes: clientesRows.results,
+    },
+  })
+})
+
+/* ─── /carteiras/rf/ativos ───────────────────────────────────────────────── */
+
+app.get('/carteiras/rf/ativos', async (c) => {
+  const db = c.env.PERF_DB
+
+  const filter = await resolveFilter(
+    db,
+    c.req.header('X-User-Role'),
+    c.req.header('X-User-Email'),
+    c.req.header('X-User-Equipe'),
+    c.req.header('X-Filter-Type'),
+    c.req.header('X-Filter-Value'),
+  )
+  if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
+
+  const wa = buildAndFilter(filter, 'p.id_assessor')
+
+  const rows = await db
+    .prepare(`
+      SELECT d.ativo, d.sub_produto, d.emissor,
+             SUM(d.net)              AS total,
+             COUNT(DISTINCT d.id_cliente) AS clientes,
+             COUNT(*)                AS posicoes
+      FROM   tb_diversificador d
+      INNER  JOIN tb_positivador p ON d.id_cliente = p.id_cliente
+      WHERE  d.produto = 'Renda Fixa'
+        AND  d.ativo IS NOT NULL
+        ${wa}
+      GROUP  BY d.ativo, d.sub_produto, d.emissor
+      ORDER  BY total DESC
+      LIMIT  40
+    `)
+    .all<{ ativo: string; sub_produto: string; emissor: string | null; total: number; clientes: number; posicoes: number }>()
+
+  return c.json({ data: { ativos: rows.results } })
+})
+
+/* ─── /carteiras/drill ───────────────────────────────────────────────────── */
+
+app.get('/carteiras/drill', async (c) => {
+  const ativo = c.req.query('ativo')
+  if (!ativo) return c.json({ error: 'ativo obrigatório' }, 400)
+
+  const db = c.env.PERF_DB
+
+  const filter = await resolveFilter(
+    db,
+    c.req.header('X-User-Role'),
+    c.req.header('X-User-Email'),
+    c.req.header('X-User-Equipe'),
+  )
+  if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
+
+  const wa = buildAndFilter(filter, 'p.id_assessor')
+
+  const [clientesRows, summaryRow] = await Promise.all([
+    db
+      .prepare(`
+        SELECT d.id_cliente, bc.nome_cliente,
+               SUM(d.net)       AS total,
+               d.data_vencimento,
+               d.sub_produto
+        FROM   tb_diversificador d
+        INNER  JOIN tb_positivador p ON d.id_cliente = p.id_cliente
+        LEFT   JOIN base_clientes bc ON d.id_cliente = bc.id_cliente
+        WHERE  d.ativo = ?
+          AND  d.produto = 'Renda Fixa'
+          ${wa}
+        GROUP  BY d.id_cliente, bc.nome_cliente, d.data_vencimento, d.sub_produto
+        ORDER  BY total DESC
+        LIMIT  20
+      `)
+      .bind(ativo)
+      .all<{ id_cliente: number; nome_cliente: string | null; total: number; data_vencimento: string | null; sub_produto: string }>(),
+
+    db
+      .prepare(`
+        SELECT SUM(d.net) AS total, COUNT(*) AS posicoes,
+               COUNT(DISTINCT d.id_cliente) AS clientes,
+               MAX(d.emissor) AS emissor
+        FROM   tb_diversificador d
+        INNER  JOIN tb_positivador p ON d.id_cliente = p.id_cliente
+        WHERE  d.ativo = ?
+          AND  d.produto = 'Renda Fixa'
+          ${wa}
+      `)
+      .bind(ativo)
+      .first<{ total: number; posicoes: number; clientes: number; emissor: string | null }>(),
+  ])
+
+  return c.json({
+    data: {
+      ativo,
+      emissor: summaryRow?.emissor ?? null,
+      total: summaryRow?.total ?? 0,
+      posicoes: summaryRow?.posicoes ?? 0,
+      clientes_count: summaryRow?.clientes ?? 0,
+      clientes: clientesRows.results,
     },
   })
 })
@@ -686,7 +980,6 @@ app.get('/clientes', async (c) => {
         SUM(CASE WHEN p.status = 'INATIVO' THEN 1 ELSE 0 END) as inativos,
         SUM(p.net_em_m) as aum_total
       FROM tb_positivador p
-      INNER JOIN base_clientes b ON p.id_cliente = b.id_cliente
       ${where}
     `).first<{ total: number; ativos: number; inativos: number; aum_total: number }>(),
   ])
@@ -714,6 +1007,8 @@ app.get('/carteiras/visao', async (c) => {
     c.req.header('X-User-Role'),
     c.req.header('X-User-Email'),
     c.req.header('X-User-Equipe'),
+    c.req.header('X-Filter-Type'),
+    c.req.header('X-Filter-Value'),
   )
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
@@ -736,7 +1031,7 @@ app.get('/carteiras/visao', async (c) => {
   ] = await Promise.all([
     db.prepare(`SELECT SUM(posicao_atual) as total FROM analitico_rf WHERE tipo_ativo IS NOT NULL AND posicao_atual IS NOT NULL${wa}`).first<{ total: number }>(),
     db.prepare(`SELECT SUM(auc) as total FROM analitico_rv WHERE setor IS NOT NULL AND auc IS NOT NULL${wa}`).first<{ total: number }>(),
-    db.prepare(`SELECT SUM(posicao_atual) as total FROM posicao_coe WHERE tipo IS NOT NULL${wa}`).first<{ total: number }>(),
+    db.prepare(`SELECT SUM(posicao_atual) as total FROM analitico_coe WHERE tipo IS NOT NULL${wa}`).first<{ total: number }>(),
     db.prepare(`SELECT SUM(custodia) as total FROM custodia_ld WHERE indexador IS NOT NULL${wa}`).first<{ total: number }>(),
 
     db.prepare(`
@@ -774,7 +1069,7 @@ app.get('/carteiras/visao', async (c) => {
       SELECT tipo, COUNT(*) as posicoes, SUM(posicao_atual) as total_atual,
              SUM(valor_compra) as total_compra, SUM(cupom_recebido) as total_cupom,
              COUNT(DISTINCT id_cliente) as clientes
-      FROM posicao_coe WHERE tipo IS NOT NULL${wa}
+      FROM analitico_coe WHERE tipo IS NOT NULL${wa}
       GROUP BY tipo ORDER BY total_atual DESC
     `).all<{ tipo: string; posicoes: number; total_atual: number; total_compra: number; total_cupom: number; clientes: number }>(),
 

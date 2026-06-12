@@ -5,6 +5,7 @@ import { AnalisesFilters } from './_components/AnalisesFilters'
 import { BlocoCaptacao } from './_components/BlocoCaptacao'
 import { BlocoMetas } from './_components/BlocoMetas'
 import { BlocoReceita } from './_components/BlocoReceita'
+import { GraficosHistorico } from './_components/GraficosHistorico'
 
 /* ─── Tipos ──────────────────────────────────────────────────────────────── */
 
@@ -96,6 +97,12 @@ function fBRL(val: number | null): string {
   return `${pre}${abs.toFixed(0)}`
 }
 
+function fBRLFull(val: number | null): string {
+  if (val == null) return '—'
+  const pre = val < 0 ? '-R$ ' : 'R$ '
+  return `${pre}${Math.abs(val).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+}
+
 function fNum(val: number): string {
   return val.toLocaleString('pt-BR')
 }
@@ -160,6 +167,13 @@ type FetchOpts = {
 }
 
 async function getOnepage(opts: FetchOpts): Promise<OnepagePayload | null> {
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      const res = await fetch('http://localhost:3000/api/mock/performance/onepage')
+      const json = (await res.json()) as { data: OnepagePayload }
+      return json.data
+    } catch { return null }
+  }
   try {
     const res = await apiFetch(`/performance/onepage`, {
       cache: 'no-store',
@@ -180,6 +194,13 @@ async function getOnepage(opts: FetchOpts): Promise<OnepagePayload | null> {
 }
 
 async function getMetas(opts: FetchOpts): Promise<MetasPayload | null> {
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      const res = await fetch('http://localhost:3000/api/mock/performance/metas')
+      const json = (await res.json()) as { data: MetasPayload }
+      return json.data
+    } catch { return null }
+  }
   try {
     const res = await apiFetch(`/performance/metas`, {
       headers: perfHeaders(
@@ -199,6 +220,13 @@ async function getMetas(opts: FetchOpts): Promise<MetasPayload | null> {
 }
 
 async function getHistorico(opts: FetchOpts): Promise<HistoricoPayload | null> {
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      const res = await fetch('http://localhost:3000/api/mock/performance/historico')
+      const json = (await res.json()) as { data: HistoricoPayload }
+      return json.data
+    } catch { return null }
+  }
   try {
     const res = await apiFetch(`/performance/historico`, {
       cache: 'no-store',
@@ -223,14 +251,15 @@ type AssessoresPayload = {
   assessores: { id_assessor: string; nome_assessor: string | null; equipe: string }[]
 }
 
-async function getAssessores(role: string, email: string): Promise<AssessoresPayload | null> {
-  if (role !== 'admin' && role !== 'master') return null
+async function getAssessores(role: string, email: string, equipe?: string): Promise<AssessoresPayload | null> {
+  if (role !== 'admin' && role !== 'master' && role !== 'lider') return null
   try {
     const res = await apiFetch(`/performance/assessores`, {
       cache: 'no-store',
       headers: {
         'X-User-Role': role,
         'X-User-Email': email,
+        ...(equipe ? { 'X-User-Equipe': equipe } : {}),
       },
     })
     if (!res.ok) return null
@@ -301,7 +330,7 @@ const iconBox = (color: string): React.CSSProperties => ({
 
 /* ─── Componente: Custódia por Faixa NET ─────────────────────────────────── */
 
-function BlocoFaixasNet({ faixas }: { faixas: FaixaNet[] }) {
+function BlocoFaixasNet({ faixas, noMarginBottom }: { faixas: FaixaNet[]; noMarginBottom?: boolean }) {
   const total = faixas.reduce((acc, f) => ({ clientes: acc.clientes + f.clientes, aum: acc.aum + f.aum }), { clientes: 0, aum: 0 })
 
   const thStyle: React.CSSProperties = {
@@ -329,7 +358,7 @@ function BlocoFaixasNet({ faixas }: { faixas: FaixaNet[] }) {
   const FAIXA_COLORS = ['var(--color-b-500)', 'var(--c-gold)', '#10B981', '#8B5CF6']
 
   return (
-    <div style={{ background: 'var(--bg-elev)', borderRadius: 12, border: '1px solid var(--line)', boxShadow: 'var(--e-float)', overflow: 'hidden', marginBottom: 20 }}>
+    <div style={{ background: 'var(--bg-elev)', borderRadius: 12, border: '1px solid var(--line)', boxShadow: 'var(--e-float)', overflow: 'hidden', marginBottom: noMarginBottom ? 0 : 20 }}>
       <div style={{ padding: '13px 16px', borderBottom: '1px solid var(--line)', background: 'var(--bg-deep)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span style={{ fontFamily: 'var(--f-text)', fontSize: 13, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em' }}>
           Custódia por Faixa NET
@@ -735,7 +764,7 @@ export default async function AnalisesPage({
   const filterType = typeof sp.filter_type === 'string' ? sp.filter_type : undefined
   const filterValue = typeof sp.filter_value === 'string' ? sp.filter_value : undefined
 
-  const canFilter = session.role === 'admin' || session.role === 'master'
+  const canFilter = session.role === 'admin' || session.role === 'master' || session.role === 'lider'
   const opts: FetchOpts = {
     email: session.email,
     role: session.role,
@@ -748,9 +777,10 @@ export default async function AnalisesPage({
     getOnepage(opts),
     getMetas(opts),
     getHistorico(opts),
-    getAssessores(session.role, session.email),
+    getAssessores(session.role, session.email, session.equipe),
   ])
   const firstName = session.name.split(' ')[0]
+  const isLider = session.role === 'lider'
 
   const aum = data?.aum ?? 0
   const clientes = data?.clientes ?? { ativos: 0, inativos: 0 }
@@ -761,6 +791,22 @@ export default async function AnalisesPage({
   const histRows = hist?.historico ?? []
   const totais = hist?.totais
 
+  // Label legível do filtro ativo para exibir nos gráficos históricos
+  const filterLabel: string | undefined = (() => {
+    // Admin/master com filtro selecionado
+    if (canFilter && filterType && filterValue) {
+      if (filterType === 'equipe') return filterValue
+      if (filterType === 'assessor') {
+        return assessoresData?.assessores.find((a) => a.id_assessor === filterValue)?.nome_assessor ?? filterValue
+      }
+    }
+    // Lider vê sempre a própria equipe
+    if (session.role === 'lider' && session.equipe) return session.equipe
+    // Assessor vê sempre o próprio nome
+    if (session.role === 'assessor') return session.name.split(' ').slice(0, 2).join(' ')
+    return undefined
+  })()
+
   return (
     <div style={{ maxWidth: 1340 }}>
       {/* ── Header ── */}
@@ -769,10 +815,10 @@ export default async function AnalisesPage({
         label={`Posição em ${fDataRef(data?.dataRef ?? null)}`}
       />
 
-      {/* ── Filtros (admin / master) ── */}
+      {/* ── Filtros (admin / master / lider) ── */}
       {canFilter && (
         <AnalisesFilters
-          equipes={(assessoresData?.equipes ?? []).slice().sort((a, b) => a.localeCompare(b, 'pt-BR'))}
+          equipes={session.role === 'lider' ? [] : (assessoresData?.equipes ?? []).slice().sort((a, b) => a.localeCompare(b, 'pt-BR'))}
           assessores={(assessoresData?.assessores ?? []).slice().sort((a, b) =>
             (a.nome_assessor ?? a.id_assessor).localeCompare(b.nome_assessor ?? b.id_assessor, 'pt-BR'),
           )}
@@ -920,7 +966,7 @@ export default async function AnalisesPage({
                 </svg>
               </div>
             </div>
-            <p style={valor}>{fBRL(receita.total)}</p>
+            <p style={valor}>{fBRLFull(receita.total)}</p>
             <span style={pill()}>todos os produtos</span>
           </div>
         </div>
@@ -930,24 +976,37 @@ export default async function AnalisesPage({
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: session.role !== 'assessor' ? '1fr 380px' : '1fr',
+          gridTemplateColumns: (session.role === 'admin' || session.role === 'master') ? '1fr 380px' : '1fr',
           gap: 20,
           alignItems: 'start',
         }}
       >
         {/* Coluna principal */}
         <div>
-          {/* Custódia por Faixa NET */}
-          {faixasNet.length > 0 && <BlocoFaixasNet faixas={faixasNet} />}
-
-          {/* Captação — key força remount ao mudar filtro, limpando cache */}
-          <BlocoCaptacao
-            key={`captacao-${filterType ?? ''}-${filterValue ?? ''}`}
-            captacao={captacao}
-            mesLabel={data?.mesLabel ?? ''}
-            {...(canFilter && filterType ? { filterType } : {})}
-            {...(canFilter && filterValue ? { filterValue } : {})}
-          />
+          {/* Custódia + Captação: lado a lado para lider, empilhados para outros */}
+          {isLider && faixasNet.length > 0 ? (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+              <BlocoFaixasNet faixas={faixasNet} noMarginBottom />
+              <BlocoCaptacao
+                key={`captacao-${filterType ?? ''}-${filterValue ?? ''}`}
+                captacao={captacao}
+                mesLabel={data?.mesLabel ?? ''}
+                {...(canFilter && filterType ? { filterType } : {})}
+                {...(canFilter && filterValue ? { filterValue } : {})}
+              />
+            </div>
+          ) : (
+            <>
+              {faixasNet.length > 0 && <BlocoFaixasNet faixas={faixasNet} />}
+              <BlocoCaptacao
+                key={`captacao-${filterType ?? ''}-${filterValue ?? ''}`}
+                captacao={captacao}
+                mesLabel={data?.mesLabel ?? ''}
+                {...(canFilter && filterType ? { filterType } : {})}
+                {...(canFilter && filterValue ? { filterValue } : {})}
+              />
+            </>
+          )}
 
           {/* Receita por Produto — key força remount ao mudar filtro, limpando cache */}
           <BlocoReceita
@@ -961,6 +1020,14 @@ export default async function AnalisesPage({
           {/* Histórico */}
           {histRows.length > 0 && (
             <>
+              {/* Gráficos histórico */}
+              <GraficosHistorico
+                histRows={histRows}
+                layout={isLider ? '2col' : '1col'}
+                {...(filterLabel ? { filterLabel } : {})}
+                {...(canFilter && filterType ? { filterType } : {})}
+              />
+
               <div
                 style={{
                   marginBottom: 14,
@@ -1095,8 +1162,8 @@ export default async function AnalisesPage({
           )}
         </div>
 
-        {/* Sidebar — Metas (sticky) — oculto para assessor */}
-        {session.role !== 'assessor' && (
+        {/* Sidebar — Metas (sticky) — apenas admin e master */}
+        {(session.role === 'admin' || session.role === 'master') && (
           <div style={{ position: 'sticky', top: 24 }}>
             <BlocoMetas dados={metas} compact />
           </div>

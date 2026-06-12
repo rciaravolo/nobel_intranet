@@ -126,6 +126,20 @@ const NAV: NavGroup[] = [
           </svg>
         ),
       },
+      {
+        href: '/indicadores',
+        label: 'Indicadores',
+        icon: (
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <circle cx="12" cy="12" r="9" />
+            <circle cx="12" cy="12" r="3" />
+            <line x1="12" y1="3" x2="12" y2="7" />
+            <line x1="12" y1="17" x2="12" y2="21" />
+            <line x1="3" y1="12" x2="7" y2="12" />
+            <line x1="17" y1="12" x2="21" y2="12" />
+          </svg>
+        ),
+      },
     ],
   },
   {

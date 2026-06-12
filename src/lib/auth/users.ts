@@ -93,6 +93,45 @@ const SEED_USERS: User[] = [
     department: 'Assessoria — SMART-Alfa',
     avatarInitials: 'IL',
   },
+  {
+    id: 'usr_a44655_001',
+    username: 'filipe.rezende',
+    // scrypt hash de "nobel2026"
+    passwordHash:
+      '32b4a2a5a840a138633a2a1bb37d9a5c39c1f696d8f45dfa2c5dbc147a10c448a86ee87cc3626a9eac4fb43b41657f6b7c9a25d83df22965532c7fc407e7046b.c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8',
+    name: 'Filipe Rezende',
+    email: 'filipe.rezende@nobelcapital.com.br',
+    role: 'assessor',
+    equipe: 'SMART',
+    department: 'Assessoria — SMART',
+    avatarInitials: 'FZ',
+  },
+  {
+    id: 'usr_lider_001',
+    username: 'rafael.bonfim',
+    // scrypt hash de "nobel2026"
+    passwordHash:
+      '506d8e15d26d81be3824ac7056c6dac8721f6366cd9cc708b6dfb4bcf39dc7f79af06104d17d88e36f4fdcd0bb013fc5a72f5144280c138a3e1b88d1efe7186f.d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9',
+    name: 'Rafael Bonfim',
+    email: 'rafael.bonfim@nobelcapital.com.br',
+    role: 'lider',
+    equipe: 'BRAVO',
+    department: 'Assessoria — Equipe BRAVO',
+    avatarInitials: 'RBo',
+  },
+  {
+    id: 'usr_lider_002',
+    username: 'viviane.fabbri',
+    // scrypt hash de "nobel2026"
+    passwordHash:
+      '8d6ee14d321fabdb226d7fb73e6426cd5622a6ebc7a925996b6ecb27fa82ece88c60bc508f60b330c6b315b383b65b2f647b42abc31c80910993bc4977b45122.d7bb74b66f8f099817340ee6024e6449',
+    name: 'Viviane Fabbri',
+    email: 'viviane.fabbri@nobelcapital.com.br',
+    role: 'lider',
+    equipe: 'RIO PRETO',
+    department: 'Assessoria — Equipe RIO PRETO',
+    avatarInitials: 'VF',
+  },
 ]
 
 export function findUserByUsername(username: string): User | undefined {

@@ -11,8 +11,8 @@ A Nobel opera dois sistemas complementares — nunca os misture na mesma superf�
 
 | Sistema | Onde usar | Vocabulário |
 |---|---|---|
-| **Editorial** | Site institucional, peças de marca, decks executivos, relatórios para clientes, materiais impressos | Cormorant Garamond, ouro, fundo midnight, hairlines, respiro generoso |
-| **Operacional** | Dashboards, plataforma do assessor, sistemas internos, ferramentas, formulários | Inter Tight, neutros levemente quentes, azul de sistema, ouro **só** para marca |
+| **Editorial** | Site institucional, peças de marca, decks executivos, relatórios para clientes, materiais impressos | Relicta, ouro, fundo midnight, hairlines, respiro generoso |
+| **Operacional** | Dashboards, plataforma do assessor, sistemas internos, ferramentas, formulários | Garet, neutros levemente quentes, azul de sistema, ouro **só** para marca |
 
 **Quatro princípios guiam toda decisão:**
 
@@ -98,18 +98,20 @@ Usado para foco, links de ação, elementos selecionados — **substitui o ouro*
 ### 3.1 Famílias
 
 ```css
---f-display: "Cormorant Garamond", "Times New Roman", serif;  /* editorial */
---f-text:    "Inter Tight", "Inter", system-ui, sans-serif;   /* UI/produto */
---f-mono:    "JetBrains Mono", ui-monospace, monospace;       /* dado quantitativo */
+--f-display: "Relicta", "Georgia", serif;                   /* editorial */
+--f-text:    "Garet", "Helvetica Neue", sans-serif;         /* UI/produto */
+--f-mono:    "JetBrains Mono", ui-monospace, monospace;     /* dado quantitativo */
 ```
 
 **Quando usar cada uma:**
 
-| Família | Onde |
-|---|---|
-| **Cormorant Garamond** | Hero, títulos editoriais, decks, relatórios, palavras-chave em itálico ouro |
-| **Inter Tight** | Toda interface de produto, formulários, navegação, body de aplicações |
-| **JetBrains Mono** | Números, valores monetários, percentuais, datas, tokens, IDs, qualquer dado quantitativo |
+| Família | Onde | Pesos disponíveis |
+|---|---|---|
+| **Relicta** | Hero, títulos editoriais, decks, relatórios, palavras-chave em itálico ouro | 300 (Light), 800 Italic (Ultrabold Italic) |
+| **Garet** | Toda interface de produto, formulários, navegação, body de aplicações | 400 (Book), 700 (Heavy) |
+| **JetBrains Mono** | Números, valores monetários, percentuais, datas, tokens, IDs, qualquer dado quantitativo | 400, 500 |
+
+**Arquivos locais:** `public/fonts/garet/` e `public/fonts/relicta/`
 
 ### 3.2 Escala editorial
 
@@ -134,7 +136,7 @@ Usado para foco, links de ação, elementos selecionados — **substitui o ouro*
 | Small | 12px / 400 | Caption |
 | Mono | 11–13px | Dado tabular |
 
-**Regra:** itálico em Cormorant + cor ouro é reservado para **uma palavra emocional por bloco** — "*por gerações*", "*por completo*", "*com cuidado*". Nunca duas em sequência.
+**Regra:** Relicta Ultrabold Italic + cor ouro é reservado para **uma palavra emocional por bloco** — "*por gerações*", "*por completo*", "*com cuidado*". Nunca duas em sequência.
 
 ---
 
@@ -300,7 +302,7 @@ Texturas sutis para empty states, headers e splashes. Construídas em CSS/SVG pu
 - ~~Cantos arredondados acima de 8px~~
 - ~~Emoji~~ em comunicação institucional
 - ~~Cor para hierarquia~~ (use peso e tamanho)
-- ~~Misturar Cormorant + Inter Tight~~ na mesma superfície (escolha o sistema)
+- ~~Misturar Relicta + Garet~~ na mesma superfície (escolha o sistema)
 
 ---
 
@@ -324,15 +326,40 @@ Texturas sutis para empty states, headers e splashes. Construídas em CSS/SVG pu
 
 ## 9. Setup técnico (stack moderna)
 
-### 9.1 Fontes (Next.js / `next/font/google`)
+### 9.1 Fontes (arquivos locais via `@font-face`)
+
+Relicta e Garet são fontes licenciadas — servidas de `public/fonts/`, não via Google Fonts.
+
+```css
+@font-face {
+  font-family: "Garet";
+  src: url("/fonts/garet/Garet-Book.woff2") format("woff2"),
+       url("/fonts/garet/Garet-Book.ttf") format("truetype");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Garet";
+  src: url("/fonts/garet/Garet-Heavy.woff2") format("woff2"),
+       url("/fonts/garet/Garet-Heavy.ttf") format("truetype");
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Relicta";
+  src: url("/fonts/relicta/Relicta-Light.otf") format("opentype");
+  font-weight: 300; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Relicta";
+  src: url("/fonts/relicta/Relicta-UltraboldItalic.otf") format("opentype");
+  font-weight: 800; font-style: italic; font-display: swap;
+}
+```
+
+JetBrains Mono continua via Google Fonts:
 
 ```ts
-// app/layout.tsx
-import { Cormorant_Garamond, Inter_Tight, JetBrains_Mono } from "next/font/google";
-
-const display = Cormorant_Garamond({ subsets: ["latin"], variable: "--f-display", weight: ["400","500","600"] });
-const text    = Inter_Tight({ subsets: ["latin"], variable: "--f-text",    weight: ["400","500","600","700"] });
-const mono    = JetBrains_Mono({ subsets: ["latin"], variable: "--f-mono", weight: ["400","500"] });
+import { JetBrains_Mono } from "next/font/google";
+const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--f-mono", weight: ["400","500"] });
 ```
 
 ### 9.2 Tailwind v4 (`globals.css`)
@@ -387,7 +414,7 @@ Toda alteração no design system passa por:
 - **Design system editorial (HTML):** `Nobel Design System.html`
 - **Design system operacional (HTML):** `Nobel Operational System.html`
 - **Guia de integração técnica:** `Nobel Integration Guide.html`
-- **Fontes:** Google Fonts (Cormorant Garamond, Inter Tight, JetBrains Mono)
+- **Fontes:** Relicta + Garet (locais em `public/fonts/`) · JetBrains Mono (Google Fonts)
 - **Logo & marcas:** `assets/logo-*.png`
 
 ---

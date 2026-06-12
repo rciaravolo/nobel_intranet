@@ -1,5 +1,5 @@
 {
-  "2026-04": {
+  "2026-06": {
     "rv":            356572.36,
     "rf":            214731.01,
     "coe":           51988.20,
@@ -7,7 +7,7 @@
     "feefixo":       177932.96,
     "seguros":       159000.00,
     "consorcio":     281100.90,
-    "dominion":      0,
+    "internacional":  0,
     "oferta_fundos": 123664.63,
     "fundos":        123664.63,
     "previdencia":   41519.27

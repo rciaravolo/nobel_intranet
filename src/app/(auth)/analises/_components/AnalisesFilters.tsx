@@ -11,9 +11,10 @@ type Assessor = {
 type Props = {
   equipes: string[]
   assessores: Assessor[]
+  basePath?: string
 }
 
-export function AnalisesFilters({ equipes, assessores }: Props) {
+export function AnalisesFilters({ equipes, assessores, basePath = '/analises' }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const currentType = searchParams.get('filter_type')
@@ -29,7 +30,7 @@ export function AnalisesFilters({ equipes, assessores }: Props) {
       params.set('filter_value', value)
     }
     const qs = params.toString()
-    router.push(`/analises${qs ? `?${qs}` : ''}`)
+    router.push(`${basePath}${qs ? `?${qs}` : ''}`)
   }
 
   const selectStyle: React.CSSProperties = {

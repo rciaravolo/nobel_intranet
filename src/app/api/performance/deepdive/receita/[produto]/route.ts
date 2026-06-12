@@ -11,7 +11,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prod
   const PRODUTOS_VALIDOS = new Set([
     'rv', 'rf', 'coe', 'cambio', 'feefixo',
     'seguros', 'consorcio', 'dominion', 'oferta_fundos',
-    'fundos', 'previdencia',
+    'fundos', 'previdencia', 'precas',
   ])
   if (!PRODUTOS_VALIDOS.has(produto)) {
     return NextResponse.json({ error: 'produto inválido' }, { status: 400 })
