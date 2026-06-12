@@ -49,6 +49,7 @@ type KpisPayload = {
   yearStr:          string
   assessoresAtivos: number
   ytdByEquipe:      Record<string, number>
+  recYtdByEquipe:   Record<string, number>
 }
 
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
@@ -178,6 +179,7 @@ export default async function IndicadoresPage() {
     cap_pct:  number | null
     cap_ytd:  number
     rec_mtd:  number
+    rec_ytd:  number
     rec_meta: number
     rec_pct:  number | null
   }
@@ -195,12 +197,17 @@ export default async function IndicadoresPage() {
     const cap_pct  = cap?.pctHoje  ?? null
     const cap_ytd  = kpis?.ytdByEquipe[equipe] ?? 0
     const rec_mtd  = receita?.totalReceita[equipe] ?? 0
+    const rec_ytd  = kpis?.recYtdByEquipe[equipe] ?? 0
     const rec_meta = receita?.metas[equipe] ?? 0
     const rec_pct  = rec_meta > 0 ? rec_mtd / rec_meta : null
-    return { equipe, cap_mtd, cap_meta, cap_pct, cap_ytd, rec_mtd, rec_meta, rec_pct }
+    return { equipe, cap_mtd, cap_meta, cap_pct, cap_ytd, rec_mtd, rec_ytd, rec_meta, rec_pct }
   })
 
   // Totais da linha de rodapé
+  const recYtdTotal = kpis
+    ? Object.values(kpis.recYtdByEquipe).reduce((s, v) => s + v, 0)
+    : 0
+
   const totalUnificado: EquipeUnificada = {
     equipe:   'Total',
     cap_mtd:  equipesUnificadas.reduce((s, e) => s + e.cap_mtd, 0),
@@ -208,6 +215,7 @@ export default async function IndicadoresPage() {
     cap_pct:  null,
     cap_ytd:  capYtdTotal,
     rec_mtd:  recMtdTotal,
+    rec_ytd:  recYtdTotal,
     rec_meta: receita?.grandTotalMeta ?? 0,
     rec_pct:  null,
   }
