@@ -7,6 +7,7 @@ import noticiasRouter, { KV_KEY as NOTICIAS_KV_KEY } from './routes/noticias'
 import tickerRouter, { TICKER_KV_KEY } from './routes/ticker'
 import performanceRouter from './routes/performance'
 import pnlRouter from './routes/pnl'
+import adminRouter from './routes/admin'
 import { fetchAllNews } from './lib/rss'
 import { fetchAllTickers } from './lib/ticker'
 
@@ -40,6 +41,7 @@ app.route('/noticias', noticiasRouter)
 app.route('/ticker', tickerRouter)
 app.route('/performance', performanceRouter)
 app.route('/pnl', pnlRouter)
+app.route('/admin', adminRouter)
 
 // ---------------------------------------------------------------------------
 // 404 catch-all
@@ -55,8 +57,7 @@ app.onError((err, c) => {
 })
 
 // ---------------------------------------------------------------------------
-// Scheduled handler — cron: "30 9 * * 1-5" (06h30 BRT, seg–sex)
-// Atualiza notícias e ticker em paralelo
+// Cron 1 — "30 9 * * 1-5" (06h30 BRT): atualiza notícias e ticker
 // ---------------------------------------------------------------------------
 async function handleScheduled(env: Env): Promise<void> {
   console.log('[cron] Iniciando atualização matinal...')
@@ -87,9 +88,73 @@ async function handleScheduled(env: Env): Promise<void> {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Cron 2 — "0 21 * * 1-5" (18h BRT): snapshot diário de receita por equipe
+// Lê as 13 tabelas receita_* e grava um registro em receita_snapshot.
+// Idempotente: re-rodar no mesmo dia sobrescreve (INSERT OR REPLACE).
+// ---------------------------------------------------------------------------
+const RECEITA_TABELAS = [
+  'receita_rv', 'receita_rf', 'receita_coe', 'receita_cambio',
+  'receita_feefixo', 'receita_seguros', 'receita_consorcio', 'receita_dominion',
+  'receita_oferta_fundos', 'receita_parceiros', 'receita_precas',
+  'receita_fundos', 'receita_prev',
+] as const
+
+async function snapshotReceita(env: Env): Promise<void> {
+  console.log('[cron-snapshot] Iniciando snapshot de receita...')
+
+  const db = env.PERF_DB
+  const brt = new Date(Date.now() - 3 * 60 * 60 * 1000)
+  const dataHoje = [
+    brt.getUTCFullYear(),
+    String(brt.getUTCMonth() + 1).padStart(2, '0'),
+    String(brt.getUTCDate()).padStart(2, '0'),
+  ].join('-')
+
+  await db.prepare(`
+    CREATE TABLE IF NOT EXISTS receita_snapshot (
+      equipe        TEXT NOT NULL,
+      data          TEXT NOT NULL,
+      receita_total REAL NOT NULL DEFAULT 0,
+      PRIMARY KEY (equipe, data)
+    )
+  `).run()
+
+  const unionSQL = RECEITA_TABELAS
+    .map((t) => `SELECT id_assessor, receita FROM ${t}`)
+    .join(' UNION ALL ')
+
+  const rows = await db.prepare(`
+    SELECT a.equipe, COALESCE(SUM(r.receita), 0) AS receita_total
+    FROM   (${unionSQL}) r
+    JOIN   assessores a ON r.id_assessor = a.id_assessor
+    WHERE  a.equipe IN ('SMART', 'PRIVATE', 'RIO PRETO', 'BRAVO')
+    GROUP  BY a.equipe
+  `).all<{ equipe: string; receita_total: number }>()
+
+  if (rows.results.length === 0) {
+    console.log('[cron-snapshot] Sem dados de receita — snapshot ignorado')
+    return
+  }
+
+  await db.batch(
+    rows.results.map((r) =>
+      db
+        .prepare(`INSERT OR REPLACE INTO receita_snapshot (equipe, data, receita_total) VALUES (?, ?, ?)`)
+        .bind(r.equipe, dataHoje, r.receita_total),
+    ),
+  )
+
+  console.log(`[cron-snapshot] ${rows.results.length} equipes gravadas para ${dataHoje}`)
+}
+
 export default {
   fetch: app.fetch,
-  async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
-    ctx.waitUntil(handleScheduled(env))
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
+    if (event.cron === '0 21 * * 1-5') {
+      ctx.waitUntil(snapshotReceita(env))
+    } else {
+      ctx.waitUntil(handleScheduled(env))
+    }
   },
 }
