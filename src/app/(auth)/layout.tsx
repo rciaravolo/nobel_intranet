@@ -1,5 +1,9 @@
 import { apiFetch } from '@/lib/api/fetch'
-type TickerPayload = { tickers: { name: string; value: string; change: string; up: boolean | null }[]; atualizadoEm: string }
+type TickerPayload = {
+  tickers: { name: string; value: string; change: string; up: boolean | null }[]
+  atualizadoEm: string
+}
+import { logDailyAccess } from '@/lib/api/admin'
 import { requireSession } from '@/lib/auth/session'
 import { Sidebar } from './_components/Sidebar'
 import { TickerBar } from './_components/TickerBar'
@@ -17,6 +21,7 @@ async function getTicker() {
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const [session, tickers] = await Promise.all([requireSession(), getTicker()])
+  void logDailyAccess(session)
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#F5F4F0' }}>

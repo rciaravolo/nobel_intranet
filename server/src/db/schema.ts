@@ -20,6 +20,16 @@ export const userRoles = sqliteTable('user_roles', {
   criadoEm: text('criado_em').notNull().default(sql`(datetime('now'))`),
 })
 
+export const loginEvents = sqliteTable('login_events', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  email: text('email').notNull(),
+  nome: text('nome').notNull().default(''),
+  role: text('role').notNull().default(''),
+  data: text('data').notNull(),
+  loggedAt: text('logged_at').notNull().default(sql`(datetime('now'))`),
+})
+
 export type Comunicado = typeof comunicados.$inferSelect
 export type NovoComunicado = typeof comunicados.$inferInsert
 export type UserRole = typeof userRoles.$inferSelect
+export type LoginEvent = typeof loginEvents.$inferSelect
