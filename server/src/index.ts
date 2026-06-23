@@ -103,12 +103,21 @@ const RECEITA_TABELAS = [
 async function snapshotReceita(env: Env): Promise<void> {
   console.log('[cron-snapshot] Iniciando snapshot de receita...')
 
-  const db = env.PERF_DB
+  const db  = env.PERF_DB
   const brt = new Date(Date.now() - 3 * 60 * 60 * 1000)
-  const dataHoje = [
-    brt.getUTCFullYear(),
-    String(brt.getUTCMonth() + 1).padStart(2, '0'),
-    String(brt.getUTCDate()).padStart(2, '0'),
+
+  // Usa D-2 dias úteis como data de referência (dados do custodian chegam com lag de D+2)
+  const refD2 = new Date(brt)
+  let bizCount = 0
+  while (bizCount < 2) {
+    refD2.setUTCDate(refD2.getUTCDate() - 1)
+    const dow = refD2.getUTCDay()
+    if (dow !== 0 && dow !== 6) bizCount++
+  }
+  const dataD2 = [
+    refD2.getUTCFullYear(),
+    String(refD2.getUTCMonth() + 1).padStart(2, '0'),
+    String(refD2.getUTCDate()).padStart(2, '0'),
   ].join('-')
 
   await db.prepare(`
@@ -120,32 +129,42 @@ async function snapshotReceita(env: Env): Promise<void> {
     )
   `).run()
 
-  const unionSQL = RECEITA_TABELAS
-    .map((t) => `SELECT id_assessor, receita FROM ${t}`)
-    .join(' UNION ALL ')
+  // D1 limita compound SELECT a 5 termos — rodamos uma query por tabela e
+  // agregamos em JS (mesmo padrão de /pnl/indicadores/drill).
+  const receitaResults = await Promise.all(
+    RECEITA_TABELAS.map((tabela) =>
+      db.prepare(`
+        SELECT a.equipe, COALESCE(SUM(r.receita), 0) AS receita_total
+        FROM   ${tabela} r
+        JOIN   assessores a ON r.id_assessor = a.id_assessor
+        WHERE  a.equipe IN ('SMART', 'PRIVATE', 'RIO PRETO', 'BRAVO')
+        GROUP  BY a.equipe
+      `).all<{ equipe: string; receita_total: number }>()
+    ),
+  )
 
-  const rows = await db.prepare(`
-    SELECT a.equipe, COALESCE(SUM(r.receita), 0) AS receita_total
-    FROM   (${unionSQL}) r
-    JOIN   assessores a ON r.id_assessor = a.id_assessor
-    WHERE  a.equipe IN ('SMART', 'PRIVATE', 'RIO PRETO', 'BRAVO')
-    GROUP  BY a.equipe
-  `).all<{ equipe: string; receita_total: number }>()
+  const totalByEquipe: Record<string, number> = {}
+  for (const res of receitaResults) {
+    for (const r of res.results) {
+      totalByEquipe[r.equipe] = (totalByEquipe[r.equipe] ?? 0) + r.receita_total
+    }
+  }
 
-  if (rows.results.length === 0) {
+  const equipes = Object.keys(totalByEquipe)
+  if (equipes.length === 0) {
     console.log('[cron-snapshot] Sem dados de receita — snapshot ignorado')
     return
   }
 
   await db.batch(
-    rows.results.map((r) =>
+    equipes.map((equipe) =>
       db
         .prepare(`INSERT OR REPLACE INTO receita_snapshot (equipe, data, receita_total) VALUES (?, ?, ?)`)
-        .bind(r.equipe, dataHoje, r.receita_total),
+        .bind(equipe, dataD2, totalByEquipe[equipe]!),
     ),
   )
 
-  console.log(`[cron-snapshot] ${rows.results.length} equipes gravadas para ${dataHoje}`)
+  console.log(`[cron-snapshot] ${equipes.length} equipes gravadas para ${dataD2} (D-2 de ${brt.toISOString().slice(0, 10)})`)
 }
 
 export default {
