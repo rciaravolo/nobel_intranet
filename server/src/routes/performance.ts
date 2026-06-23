@@ -994,15 +994,10 @@ app.get('/carteiras/drill/export', async (c) => {
 
 /* ─── /carteiras/drill/setor ────────────────────────────────────────────── */
 
-app.get('/carteiras/drill/setor', async (c) => {
-  // X-Setor-B64: setor em base64 para contornar o bug do Service Binding com '&'.
-  // Fallback para query param (chamadas diretas sem base64).
-  const setorB64 = c.req.header('X-Setor-B64')
-  const setor = (
-    setorB64
-      ? Buffer.from(setorB64, 'base64').toString('utf-8')
-      : (c.req.query('setor') ?? '')
-  ).trim()
+app.post('/carteiras/drill/setor', async (c) => {
+  // POST body evita o truncamento de '&' em query strings pelo Cloudflare.
+  const body = await c.req.json() as { setor?: string }
+  const setor = (body.setor ?? '').trim()
   if (!setor) return c.json({ error: 'setor obrigatório' }, 400)
 
   const db = c.env.PERF_DB

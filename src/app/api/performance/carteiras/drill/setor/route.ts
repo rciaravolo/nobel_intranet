@@ -2,25 +2,27 @@ import { apiFetch } from '@/lib/api/fetch'
 import { getSession } from '@/lib/auth/session'
 import { type NextRequest, NextResponse } from 'next/server'
 
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const setor = req.nextUrl.searchParams.get('setor')
+  const body = (await req.json()) as { setor?: string }
+  const setor = body.setor?.trim()
   if (!setor) return NextResponse.json({ error: 'setor obrigatório' }, { status: 400 })
 
-  // '&' no Service Binding Cloudflare é truncado como separador mesmo em headers.
-  // Fix: envia setor em base64 via X-Setor-B64 para garantir transmissão segura.
-  const setorB64 = Buffer.from(setor, 'utf-8').toString('base64')
+  // POST body avoids Cloudflare URL decode que trunca '&' em query strings.
+  // Passa setor via JSON body para o Hono handler.
   const res = await apiFetch(
     '/performance/carteiras/drill/setor',
     {
+      method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
         'X-User-Email':  session.email,
         'X-User-Role':   session.role,
         'X-User-Equipe': session.equipe ?? '',
-        'X-Setor-B64':   setorB64,
       },
+      body: JSON.stringify({ setor }),
     },
   )
 

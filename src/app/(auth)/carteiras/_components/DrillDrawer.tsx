@@ -205,7 +205,11 @@ export function DrillDrawer({ ativo = null, janela = null, setor = null, classe 
     setSetorErro(false)
     setSetorData(null)
 
-    fetch(`/api/performance/carteiras/drill/setor?setor=${encodeURIComponent(setor)}`)
+    fetch('/api/performance/carteiras/drill/setor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ setor }),
+      })
       .then((r) => {
         if (!r.ok) throw new Error()
         return r.json() as Promise<{ data: SetorData }>
