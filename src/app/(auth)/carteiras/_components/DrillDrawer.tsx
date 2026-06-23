@@ -28,6 +28,25 @@ type DrillData = {
   clientes: DrillCliente[]
 }
 
+type JanelaCliente = {
+  id_cliente: number
+  nome_cliente: string | null
+  total: number
+  posicoes: number
+  tipo_ativo: string | null
+  proximo_vencimento: string | null
+  nome_assessor: string | null
+  equipe: string | null
+}
+
+type JanelaData = {
+  janela: string
+  total: number
+  clientes_count: number
+  posicoes: number
+  clientes: JanelaCliente[]
+}
+
 /* ─── Formatters ─────────────────────────────────────────────────────────── */
 
 function fBRL(v: number): string {
@@ -57,7 +76,8 @@ function fVar(v: number | null | undefined): string {
 /* ─── Props ──────────────────────────────────────────────────────────────── */
 
 type Props = {
-  ativo: string | null
+  ativo?: string | null
+  janela?: string | null
   classe?: 'rf' | 'rv'
   onClose: () => void
 }
@@ -69,11 +89,15 @@ const ACCENT: Record<'rf' | 'rv', string> = {
 
 /* ─── Component ──────────────────────────────────────────────────────────── */
 
-export function DrillDrawer({ ativo, classe = 'rf', onClose }: Props) {
+export function DrillDrawer({ ativo = null, janela = null, classe = 'rf', onClose }: Props) {
   const [data, setData] = useState<DrillData | null>(null)
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState(false)
   const [downloading, setDownloading] = useState(false)
+
+  const [janelaData, setJanelaData] = useState<JanelaData | null>(null)
+  const [janelaLoading, setJanelaLoading] = useState(false)
+  const [janelaErro, setJanelaErro] = useState(false)
 
   useEffect(() => {
     if (!ativo) {
@@ -109,6 +133,36 @@ export function DrillDrawer({ ativo, classe = 'rf', onClose }: Props) {
       cancelled = true
     }
   }, [ativo, classe])
+
+  useEffect(() => {
+    if (!janela) {
+      setJanelaData(null)
+      return
+    }
+    let cancelled = false
+    setJanelaLoading(true)
+    setJanelaErro(false)
+    setJanelaData(null)
+
+    fetch(`/api/performance/carteiras/drill/janela?janela=${encodeURIComponent(janela)}`)
+      .then((r) => {
+        if (!r.ok) throw new Error()
+        return r.json() as Promise<{ data: JanelaData }>
+      })
+      .then((json) => {
+        if (!cancelled) setJanelaData(json.data)
+      })
+      .catch(() => {
+        if (!cancelled) setJanelaErro(true)
+      })
+      .finally(() => {
+        if (!cancelled) setJanelaLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [janela])
 
   async function handleExport() {
     if (!ativo || downloading) return
@@ -159,9 +213,11 @@ export function DrillDrawer({ ativo, classe = 'rf', onClose }: Props) {
     }
   }
 
-  if (!ativo) return null
+  if (!ativo && !janela) return null
 
-  const accent = ACCENT[classe]
+  const isJanelaMode = !!janela
+
+  const accent = isJanelaMode ? ACCENT['rf'] : ACCENT[classe]
 
   const mono10: React.CSSProperties = {
     fontFamily: 'var(--f-mono)',
@@ -171,7 +227,7 @@ export function DrillDrawer({ ativo, classe = 'rf', onClose }: Props) {
     color: 'var(--fg-faint)',
   }
 
-  const isRV = classe === 'rv'
+  const isRV = !isJanelaMode && classe === 'rv'
 
   return (
     <>
@@ -244,13 +300,13 @@ export function DrillDrawer({ ativo, classe = 'rf', onClose }: Props) {
                 whiteSpace: 'nowrap',
               }}
             >
-              {ativo}
+              {isJanelaMode ? `Vencimentos ${janela}` : ativo}
             </p>
             <p style={{ ...mono10, marginTop: 2 }}>
-              {isRV ? 'RV' : 'RF'} — detalhamento por cliente
+              {isJanelaMode ? 'RF — janela de vencimento · top clientes' : isRV ? 'RV — detalhamento por cliente' : 'RF — detalhamento por cliente'}
             </p>
           </div>
-          {/* Classe badge */}
+          {/* Classe / Janela badge */}
           <span
             style={{
               fontFamily: 'var(--f-mono)',
@@ -266,7 +322,7 @@ export function DrillDrawer({ ativo, classe = 'rf', onClose }: Props) {
               flexShrink: 0,
             }}
           >
-            {classe.toUpperCase()}
+            {isJanelaMode ? janela : classe.toUpperCase()}
           </span>
           {/* Download Excel */}
           <button
@@ -323,7 +379,7 @@ export function DrillDrawer({ ativo, classe = 'rf', onClose }: Props) {
 
         {/* Content */}
         <div style={{ flex: 1, overflow: 'auto' }}>
-          {loading && (
+          {!isJanelaMode && loading && (
             <div
               style={{
                 padding: '40px 20px',
@@ -337,7 +393,7 @@ export function DrillDrawer({ ativo, classe = 'rf', onClose }: Props) {
             </div>
           )}
 
-          {erro && (
+          {!isJanelaMode && erro && (
             <div
               style={{
                 padding: '40px 20px',
@@ -351,7 +407,107 @@ export function DrillDrawer({ ativo, classe = 'rf', onClose }: Props) {
             </div>
           )}
 
-          {data && (
+          {/* ── Janela mode ────────────────────────────────────────────────── */}
+          {isJanelaMode && janelaLoading && (
+            <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: 'var(--f-mono)', fontSize: 12, color: 'var(--fg-faint)' }}>
+              Carregando...
+            </div>
+          )}
+          {isJanelaMode && janelaErro && (
+            <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: 'var(--f-mono)', fontSize: 12, color: 'var(--color-negative)' }}>
+              Erro ao carregar dados.
+            </div>
+          )}
+          {isJanelaMode && janelaData && (
+            <>
+              {/* KPI strip */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderBottom: '1px solid var(--line)' }}>
+                {[
+                  { label: 'Volume Total', value: fBRL(janelaData.total) },
+                  { label: 'Posições', value: janelaData.posicoes.toLocaleString('pt-BR') },
+                  { label: 'Clientes', value: janelaData.clientes_count.toLocaleString('pt-BR') },
+                ].map(({ label, value }) => (
+                  <div key={label} style={{ padding: '14px 16px', borderRight: '1px solid var(--line)' }}>
+                    <p style={mono10}>{label}</p>
+                    <p style={{ fontFamily: 'var(--f-mono)', fontSize: 18, fontWeight: 700, color: 'var(--fg)', marginTop: 6, letterSpacing: '-.01em', fontFeatureSettings: '"tnum"' }}>
+                      {value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Clients table */}
+              <div>
+                <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid var(--line)', background: 'var(--bg-deep)' }}>
+                  <span style={mono10}>Top clientes · {janelaData.clientes.length} exibidos</span>
+                </div>
+                {janelaData.clientes.length === 0 ? (
+                  <div style={{ padding: '24px 16px', fontFamily: 'var(--f-mono)', fontSize: 12, color: 'var(--fg-faint)' }}>
+                    Nenhum cliente encontrado.
+                  </div>
+                ) : (
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ background: 'var(--bg-deep)' }}>
+                        {['#', 'ID', 'Nome', 'Tipo', 'Próx. Venc.', 'Volume', 'Assessor'].map((h, i) => (
+                          <th
+                            key={h}
+                            style={{
+                              fontFamily: 'var(--f-mono)', fontSize: 9, fontWeight: 500,
+                              color: 'var(--fg-faint)', letterSpacing: '.18em',
+                              textTransform: 'uppercase', padding: '8px 14px',
+                              textAlign: i >= 5 ? 'right' : 'left',
+                              borderBottom: '1px solid var(--line)',
+                            }}
+                          >
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {janelaData.clientes.map((cl, i) => (
+                        <tr key={`${cl.id_cliente}-${i}`} style={{ borderBottom: i < janelaData.clientes.length - 1 ? '1px solid var(--line)' : 'none' }}>
+                          <td style={{ padding: '9px 14px', fontFamily: 'var(--f-mono)', fontSize: 10, color: 'var(--fg-faint)', width: 28 }}>{i + 1}</td>
+                          <td style={{ padding: '9px 14px' }}>
+                            <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, fontWeight: 600, color: accent, fontFeatureSettings: '"tnum"' }}>
+                              {cl.id_cliente}
+                            </span>
+                          </td>
+                          <td style={{ padding: '9px 14px', maxWidth: 140 }}>
+                            <span style={{ fontFamily: 'var(--f-text)', fontSize: 12, color: 'var(--fg)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {cl.nome_cliente ?? '—'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '9px 14px' }}>
+                            <span style={{ fontFamily: 'var(--f-mono)', fontSize: 10, color: 'var(--fg-faint)', letterSpacing: '.06em' }}>
+                              {cl.tipo_ativo ?? '—'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '9px 14px', textAlign: 'right' }}>
+                            <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--fg-faint)', fontFeatureSettings: '"tnum"' }}>
+                              {fData(cl.proximo_vencimento)}
+                            </span>
+                          </td>
+                          <td style={{ padding: '9px 14px', textAlign: 'right', fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 600, color: 'var(--fg)', fontFeatureSettings: '"tnum"' }}>
+                            {fBRL(cl.total)}
+                          </td>
+                          <td style={{ padding: '9px 14px', maxWidth: 120 }}>
+                            <span style={{ fontFamily: 'var(--f-text)', fontSize: 11, color: 'var(--fg-mute)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {cl.nome_assessor ?? '—'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* ── Ativo mode ──────────────────────────────────────────────────── */}
+          {!isJanelaMode && data && (
             <>
               {/* KPI strip */}
               <div

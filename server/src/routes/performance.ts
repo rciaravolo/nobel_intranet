@@ -992,6 +992,90 @@ app.get('/carteiras/drill/export', async (c) => {
   return c.json({ data: { ativo, tipo: 'rf', clientes: rows.results } })
 })
 
+/* ─── /carteiras/drill/janela ───────────────────────────────────────────── */
+
+const JANELA_CONDS: Record<string, string> = {
+  '0-6m':  `vencimento < date('now', '+6 months')`,
+  '6-12m': `vencimento >= date('now', '+6 months') AND vencimento < date('now', '+12 months')`,
+  '1-2a':  `vencimento >= date('now', '+12 months') AND vencimento < date('now', '+24 months')`,
+  '2-5a':  `vencimento >= date('now', '+24 months') AND vencimento < date('now', '+60 months')`,
+  '5+a':   `vencimento >= date('now', '+60 months')`,
+}
+
+app.get('/carteiras/drill/janela', async (c) => {
+  const janela = c.req.query('janela') ?? ''
+  if (!JANELA_CONDS[janela]) {
+    return c.json({ error: 'janela inválida — use: 0-6m, 6-12m, 1-2a, 2-5a, 5+a' }, 400)
+  }
+
+  const db = c.env.PERF_DB
+
+  const filter = await resolveFilter(
+    db,
+    c.req.header('X-User-Role'),
+    c.req.header('X-User-Email'),
+    c.req.header('X-User-Equipe'),
+  )
+  if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
+
+  const wa       = buildAndFilter(filter)                      // analitico_rf (sem alias)
+  const waJoin   = buildAndFilter(filter, 'ar.id_assessor')    // query com JOIN
+
+  const cond     = JANELA_CONDS[janela]!
+  const condJoin = cond.replace(/vencimento/g, 'ar.vencimento')
+
+  const [summaryRow, clientesRows] = await Promise.all([
+    db
+      .prepare(`
+        SELECT SUM(posicao_atual) AS total,
+               COUNT(DISTINCT id_cliente) AS clientes,
+               COUNT(*) AS posicoes
+        FROM analitico_rf
+        WHERE vencimento IS NOT NULL AND ${cond}${wa}
+      `)
+      .first<{ total: number; clientes: number; posicoes: number }>(),
+
+    db
+      .prepare(`
+        SELECT ar.id_cliente,
+               bc.nome_cliente,
+               SUM(ar.posicao_atual) AS total,
+               COUNT(*)              AS posicoes,
+               MAX(ar.tipo_ativo)    AS tipo_ativo,
+               MIN(ar.vencimento)    AS proximo_vencimento,
+               MAX(a.nome_assessor)  AS nome_assessor,
+               MAX(a.equipe)         AS equipe
+        FROM   analitico_rf ar
+        LEFT   JOIN base_clientes bc ON ar.id_cliente = bc.id_cliente
+        LEFT   JOIN assessores a     ON ar.id_assessor = a.id_assessor
+        WHERE  ar.vencimento IS NOT NULL AND ${condJoin}${waJoin}
+        GROUP  BY ar.id_cliente, bc.nome_cliente
+        ORDER  BY total DESC
+        LIMIT  20
+      `)
+      .all<{
+        id_cliente: number
+        nome_cliente: string | null
+        total: number
+        posicoes: number
+        tipo_ativo: string | null
+        proximo_vencimento: string | null
+        nome_assessor: string | null
+        equipe: string | null
+      }>(),
+  ])
+
+  return c.json({
+    data: {
+      janela,
+      total:          summaryRow?.total    ?? 0,
+      clientes_count: summaryRow?.clientes ?? 0,
+      posicoes:       summaryRow?.posicoes ?? 0,
+      clientes:       clientesRows.results,
+    },
+  })
+})
+
 /* ─── /clientes ──────────────────────────────────────────────────────────── */
 
 app.get('/clientes', async (c) => {
@@ -1162,7 +1246,8 @@ app.get('/carteiras/visao', async (c) => {
   const matMap: Record<string, Record<string, number>> = {}
   for (const r of rfMatRows.results) {
     if (!matMap[r.janela]) matMap[r.janela] = {}
-    matMap[r.janela][r.tipo_ativo] = (matMap[r.janela][r.tipo_ativo] ?? 0) + r.total
+    const jRow = matMap[r.janela]!
+    jRow[r.tipo_ativo] = (jRow[r.tipo_ativo] ?? 0) + r.total
   }
   const maturities = JANELAS.map((j) => ({
     janela: j,

@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { PageGreeting } from '../_components/PageGreeting'
 import { CarteirasNav } from './_components/CarteirasNav'
 import { RFAtivos, type RFAtivo } from './_components/RFAtivos'
+import { WallOfMaturities } from './_components/WallOfMaturities'
 import { BuscaAtivo } from './_components/BuscaAtivo'
 import { AnalisesFilters } from '../analises/_components/AnalisesFilters'
 import { apiFetch } from '@/lib/api/fetch'
@@ -82,14 +83,6 @@ const IDX_COLOR: Record<string, string> = {
   IGPM: '#8C8B87',
 }
 
-const TIPO_COLOR: Record<string, string> = {
-  'Emissão Bancária': '#2D5FA0',
-  'Credito Privado': '#C29404',
-  'Título Público': '#248A47',
-  'Tesouro Direto': '#8F6B12',
-  'Letras Financeiras': '#5F5E5B',
-  'Letra Imobiliária Garantida': '#8C8B87',
-}
 
 const SETOR_COLOR: Record<string, string> = {
   'Fundo Imobiliário': '#C29404',
@@ -432,12 +425,6 @@ export default async function CarteirasPage({
     textTransform: 'uppercase',
     color: 'var(--fg-faint)',
   }
-
-  /* Wall-of-maturities: max total determines bar scale */
-  const matMax = Math.max(...rfMat.map((m) => m.total), 1)
-  /* Tipos distintos para legenda */
-  const tipoSet = new Set(rfMat.flatMap((m) => m.itens.map((i) => i.tipo)))
-  const tipos = Array.from(tipoSet)
 
   /* RV: agrupar por setor (soma de todos os produtos) */
   const setorMap: Record<string, { total: number; clientes: number }> = {}
@@ -830,104 +817,7 @@ export default async function CarteirasPage({
       {/* ── RF: Wall of Maturities ─────────────────────────────────────── */}
       {tab !== 'rv' && <div style={{ ...cardStyle, marginBottom: 'var(--s-4)' }}>
         <SectionHeader title="Renda Fixa — Vencimentos por Janela" sub="wall of maturities" />
-        <div style={{ padding: '16px 20px 8px' }}>
-          {rfMat.map((m) => {
-            const barPct = matMax > 0 ? (m.total / matMax) * 100 : 0
-            return (
-              <div
-                key={m.janela}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '60px 1fr 96px',
-                  alignItems: 'center',
-                  gap: 14,
-                  marginBottom: 10,
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: 'var(--f-mono)',
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: 'var(--fg)',
-                  }}
-                >
-                  {m.janela}
-                </span>
-                <div
-                  style={{
-                    height: 22,
-                    background: 'var(--bg-deep)',
-                    borderRadius: 3,
-                    overflow: 'hidden',
-                  }}
-                >
-                  <div style={{ display: 'flex', height: '100%', width: `${barPct}%` }}>
-                    {m.itens.map((item) => (
-                      <div
-                        key={item.tipo}
-                        title={`${item.tipo}: ${fBRL(item.total)}`}
-                        style={{
-                          flex: item.total,
-                          background: TIPO_COLOR[item.tipo] ?? '#8C8B87',
-                          height: '100%',
-                          opacity: 0.85,
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-                <span
-                  style={{
-                    fontFamily: 'var(--f-mono)',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: 'var(--fg)',
-                    textAlign: 'right',
-                    fontFeatureSettings: '"tnum"',
-                  }}
-                >
-                  {fBRL(m.total)}
-                </span>
-              </div>
-            )
-          })}
-        </div>
-        {/* Legenda */}
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '8px 20px',
-            padding: '12px 20px',
-            borderTop: '1px solid var(--line)',
-            background: 'var(--bg-deep)',
-          }}
-        >
-          {tipos.map((tipo) => (
-            <div key={tipo} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <div
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: 2,
-                  background: TIPO_COLOR[tipo] ?? '#8C8B87',
-                }}
-              />
-              <span
-                style={{
-                  fontFamily: 'var(--f-mono)',
-                  fontSize: 9,
-                  color: 'var(--fg-faint)',
-                  letterSpacing: '.18em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {tipo}
-              </span>
-            </div>
-          ))}
-        </div>
+        <WallOfMaturities maturities={rfMat} />
       </div>}
 
       {/* ── RF: Top Ativos (drill-down por cliente) ─────────────────────── */}
