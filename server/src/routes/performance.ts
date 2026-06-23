@@ -995,7 +995,9 @@ app.get('/carteiras/drill/export', async (c) => {
 /* ─── /carteiras/drill/setor ────────────────────────────────────────────── */
 
 app.get('/carteiras/drill/setor', async (c) => {
-  const setor = (c.req.query('setor') ?? '').trim()
+  // Lê de X-Setor (header) primeiro — evita bug de decode duplo de '&' no Service Binding.
+  // Fallback para query param para compatibilidade com chamadas diretas.
+  const setor = (c.req.header('X-Setor') ?? c.req.query('setor') ?? '').trim()
   if (!setor) return c.json({ error: 'setor obrigatório' }, 400)
 
   const db = c.env.PERF_DB

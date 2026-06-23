@@ -9,13 +9,16 @@ export async function GET(req: NextRequest) {
   const setor = req.nextUrl.searchParams.get('setor')
   if (!setor) return NextResponse.json({ error: 'setor obrigatório' }, { status: 400 })
 
+  // Passa setor via header para evitar que '&' no nome seja tratado como separador
+  // de query string pelo Cloudflare Service Binding (bug de decode duplo de %26).
   const res = await apiFetch(
-    `/performance/carteiras/drill/setor?setor=${encodeURIComponent(setor)}`,
+    '/performance/carteiras/drill/setor',
     {
       headers: {
         'X-User-Email':  session.email,
         'X-User-Role':   session.role,
         'X-User-Equipe': session.equipe ?? '',
+        'X-Setor':       setor,
       },
     },
   )
