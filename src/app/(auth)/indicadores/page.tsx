@@ -52,22 +52,6 @@ type KpisPayload = {
   recYtdByEquipe:   Record<string, number>
 }
 
-/* ─── Helpers ────────────────────────────────────────────────────────────── */
-
-function fBRL(v: number): string {
-  const abs = Math.abs(v)
-  const pre = v < 0 ? '-R$ ' : 'R$ '
-  if (abs >= 1_000_000_000) return `${pre}${(abs / 1_000_000_000).toFixed(2).replace('.', ',')}B`
-  if (abs >= 1_000_000)     return `${pre}${(abs / 1_000_000).toFixed(1).replace('.', ',')}M`
-  if (abs >= 1_000)         return `${pre}${(abs / 1_000).toFixed(0)}K`
-  return `${pre}${abs.toFixed(0)}`
-}
-
-function getMesLabel(mesISO: string): string {
-  return new Date(`${mesISO}-15`).toLocaleDateString('pt-BR', {
-    month: 'long', year: 'numeric', timeZone: 'UTC',
-  })
-}
 
 /* ─── Fetches ────────────────────────────────────────────────────────────── */
 
@@ -107,45 +91,6 @@ async function getKpis(role: string, email: string): Promise<KpisPayload | null>
   } catch { return null }
 }
 
-/* ─── KpiChip ────────────────────────────────────────────────────────────── */
-
-function KpiChip({ label, value }: { label: string; value: string }) {
-  return (
-    <div
-      style={{
-        background:   'var(--bg-elev)',
-        border:       '1px solid var(--line)',
-        borderRadius: 8,
-        padding:      '10px 16px',
-      }}
-    >
-      <div
-        style={{
-          fontFamily:    'var(--f-mono)',
-          fontSize:      18,
-          fontWeight:    600,
-          color:         'var(--fg)',
-          letterSpacing: '-.01em',
-        }}
-      >
-        {value}
-      </div>
-      <div
-        style={{
-          fontFamily:    'var(--f-mono)',
-          fontSize:      10,
-          color:         'var(--fg-faint)',
-          marginTop:     2,
-          textTransform: 'uppercase',
-          letterSpacing: '.06em',
-        }}
-      >
-        {label}
-      </div>
-    </div>
-  )
-}
-
 /* ─── Page ───────────────────────────────────────────────────────────────── */
 
 export default async function IndicadoresPage() {
@@ -161,15 +106,9 @@ export default async function IndicadoresPage() {
     getKpis(session.role, session.email),
   ])
 
-  const mesISO   = kpis?.mesISO ?? captacao?.mesISO ?? ''
-  const yearStr  = kpis?.yearStr ?? (mesISO ? mesISO.substring(0, 4) : '')
-  const mesLabel = mesISO ? getMesLabel(mesISO) : ''
-
-  // Totais para KPI bar
-  const capMtdTotal = captacao && !captacao.semDados ? captacao.total.capHoje : 0
+  const mesISO      = kpis?.mesISO ?? captacao?.mesISO ?? ''
   const capYtdTotal = kpis ? Object.values(kpis.ytdByEquipe).reduce((s, v) => s + v, 0) : 0
   const recMtdTotal = receita ? receita.grandTotalReceita : 0
-  const assessoresAtivos = kpis?.assessoresAtivos ?? 0
 
   // Monta dados consolidados por equipe para o componente client
   type EquipeUnificada = {
@@ -231,34 +170,6 @@ export default async function IndicadoresPage() {
   return (
     <div style={{ maxWidth: 1340 }}>
       <PageGreeting name={session.name} label="Indicadores gerenciais" />
-
-      {/* KPI bar */}
-      <div
-        style={{
-          display:      'flex',
-          gap:          12,
-          marginTop:    16,
-          marginBottom: 20,
-          flexWrap:     'wrap',
-        }}
-      >
-        <KpiChip
-          label="Assessores ativos"
-          value={String(assessoresAtivos)}
-        />
-        <KpiChip
-          label={`Cap MTD${mesLabel ? ` — ${mesLabel}` : ''}`}
-          value={fBRL(capMtdTotal)}
-        />
-        <KpiChip
-          label={`Cap YTD${yearStr ? ` — ${yearStr}` : ''}`}
-          value={fBRL(capYtdTotal)}
-        />
-        <KpiChip
-          label={`Rec MTD${mesLabel ? ` — ${mesLabel}` : ''}`}
-          value={fBRL(recMtdTotal)}
-        />
-      </div>
 
       {semDados ? (
         <div
