@@ -132,6 +132,32 @@ const SEED_USERS: User[] = [
     department: 'Assessoria — Equipe RIO PRETO',
     avatarInitials: 'VF',
   },
+  {
+    id: 'usr_a21351_001',
+    username: 'alexandre.franca',
+    // scrypt hash de "nobel2026"
+    passwordHash:
+      'caeb4f2fd2f68f4092a6bba0915cba148e1f619d8e1c5834d1a55c9af519425c36d692a347a5e70adeb622c58cf432a58d600282cbfaf942745da783a4616d9e.4fea7cf257d789e8dbb7f2a930f6883a',
+    name: 'Alexandre França',
+    email: 'alexandre.franca@nobelcapital.com.br',
+    role: 'assessor',
+    equipe: 'PRIVATE',
+    department: 'Assessoria — PRIVATE',
+    avatarInitials: 'AF',
+  },
+  {
+    id: 'usr_a23591_001',
+    username: 'marcos.pereira',
+    // scrypt hash de "nobel2026"
+    passwordHash:
+      'a7828656586ee0783fca64d93e6b61539f856f6565ab4588db0e499fd970f217d4c8bb68761ced2bb6a2e65c42af86219005929017ddcb08d8b6e43b405e5fed.b6517036d46169d961a02e950b4c4185',
+    name: 'Marcos Pereira',
+    email: 'marcos.pereira@nobelcapital.com.br',
+    role: 'assessor',
+    equipe: 'SMART',
+    department: 'Assessoria — SMART',
+    avatarInitials: 'MP',
+  },
 ]
 
 export function findUserByUsername(username: string): User | undefined {
