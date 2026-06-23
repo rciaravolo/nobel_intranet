@@ -66,6 +66,7 @@ function buildDivFilter(f: FilterResult): string {
   return ''
 }
 
+
 // Auth: aceita internal secret (Next.js SSR) ou CF Access JWT (browser direto)
 app.use('*', async (c, next) => {
   const auth = c.req.header('Authorization') ?? ''
@@ -881,10 +882,12 @@ app.get('/carteiras/drill', async (c) => {
         SELECT d.id_cliente, bc.nome_cliente,
                SUM(d.net)       AS total,
                d.data_vencimento,
-               d.sub_produto
+               d.sub_produto,
+               MAX(a.nome_assessor) AS nome_assessor
         FROM   tb_diversificador d
         INNER  JOIN tb_positivador p ON d.id_cliente = p.id_cliente
         LEFT   JOIN base_clientes bc ON d.id_cliente = bc.id_cliente
+        LEFT   JOIN assessores a ON p.id_assessor = a.id_assessor
         WHERE  d.ativo = ?
           AND  d.produto = 'Renda Fixa'
           ${wa}
@@ -893,7 +896,7 @@ app.get('/carteiras/drill', async (c) => {
         LIMIT  20
       `)
       .bind(ativo)
-      .all<{ id_cliente: number; nome_cliente: string | null; total: number; data_vencimento: string | null; sub_produto: string }>(),
+      .all<{ id_cliente: number; nome_cliente: string | null; total: number; data_vencimento: string | null; sub_produto: string; nome_assessor: string | null }>(),
 
     db
       .prepare(`
@@ -920,6 +923,73 @@ app.get('/carteiras/drill', async (c) => {
       clientes: clientesRows.results,
     },
   })
+})
+
+/* ─── /carteiras/drill/export ───────────────────────────────────────────── */
+
+app.get('/carteiras/drill/export', async (c) => {
+  const ativo = c.req.query('ativo')
+  const tipo  = c.req.query('tipo') ?? 'rf' // 'rf' | 'rv'
+  if (!ativo) return c.json({ error: 'ativo obrigatório' }, 400)
+
+  const db = c.env.PERF_DB
+
+  const filter = await resolveFilter(
+    db,
+    c.req.header('X-User-Role'),
+    c.req.header('X-User-Email'),
+    c.req.header('X-User-Equipe'),
+  )
+  if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
+
+  const wa = buildAndFilter(filter, 'p.id_assessor')
+
+  if (tipo === 'rv') {
+    const waRV = buildAndFilter(filter)
+    const rows = await db
+      .prepare(`
+        SELECT rv.id_cliente, bc.nome_cliente,
+               SUM(rv.auc)       AS total,
+               rv.setor, rv.produto,
+               AVG(rv.variacao)  AS variacao,
+               MAX(a.nome_assessor) AS nome_assessor,
+               MAX(a.equipe)        AS equipe
+        FROM   analitico_rv rv
+        LEFT   JOIN base_clientes bc ON rv.id_cliente = bc.id_cliente
+        LEFT   JOIN tb_positivador p  ON rv.id_cliente = p.id_cliente
+        LEFT   JOIN assessores a ON p.id_assessor = a.id_assessor
+        WHERE  rv.ativo = ?
+          ${waRV}
+        GROUP  BY rv.id_cliente, bc.nome_cliente, rv.setor, rv.produto
+        ORDER  BY total DESC
+      `)
+      .bind(ativo)
+      .all<{ id_cliente: number; nome_cliente: string | null; total: number; setor: string | null; produto: string | null; variacao: number | null; nome_assessor: string | null; equipe: string | null }>()
+    return c.json({ data: { ativo, tipo: 'rv', clientes: rows.results } })
+  }
+
+  const rows = await db
+    .prepare(`
+      SELECT d.id_cliente, bc.nome_cliente,
+             SUM(d.net)           AS total,
+             d.data_vencimento,
+             d.sub_produto,
+             MAX(a.nome_assessor) AS nome_assessor,
+             MAX(a.equipe)        AS equipe
+      FROM   tb_diversificador d
+      INNER  JOIN tb_positivador p ON d.id_cliente = p.id_cliente
+      LEFT   JOIN base_clientes bc ON d.id_cliente = bc.id_cliente
+      LEFT   JOIN assessores a ON p.id_assessor = a.id_assessor
+      WHERE  d.ativo = ?
+        AND  d.produto = 'Renda Fixa'
+        ${wa}
+      GROUP  BY d.id_cliente, bc.nome_cliente, d.data_vencimento, d.sub_produto
+      ORDER  BY total DESC
+    `)
+    .bind(ativo)
+    .all<{ id_cliente: number; nome_cliente: string | null; total: number; data_vencimento: string | null; sub_produto: string; nome_assessor: string | null; equipe: string | null }>()
+
+  return c.json({ data: { ativo, tipo: 'rf', clientes: rows.results } })
 })
 
 /* ─── /clientes ──────────────────────────────────────────────────────────── */
@@ -1012,7 +1082,8 @@ app.get('/carteiras/visao', async (c) => {
   )
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
-  const wa = buildAndFilter(filter)
+  const wa  = buildAndFilter(filter)
+  const fwd = buildDivFilter(filter)
 
   const JANELAS = ['0-6m', '6-12m', '1-2a', '2-5a', '5+a'] as const
   const janelaExpr = `CASE
@@ -1024,7 +1095,7 @@ app.get('/carteiras/visao', async (c) => {
   END`
 
   const [
-    rfTotalRow, rvTotalRow, coeTotalRow, ldTotalRow,
+    rfTotalRow, rvTotalRow, coeTotalRow, ldTotalRow, aumRow,
     rfIdxRows, rfMatRows, rfMarcRows,
     rvSetRows, rvTopRows,
     coeRows, ldRows,
@@ -1033,6 +1104,7 @@ app.get('/carteiras/visao', async (c) => {
     db.prepare(`SELECT SUM(auc) as total FROM analitico_rv WHERE setor IS NOT NULL AND auc IS NOT NULL${wa}`).first<{ total: number }>(),
     db.prepare(`SELECT SUM(posicao_atual) as total FROM analitico_coe WHERE tipo IS NOT NULL${wa}`).first<{ total: number }>(),
     db.prepare(`SELECT SUM(custodia) as total FROM custodia_ld WHERE indexador IS NOT NULL${wa}`).first<{ total: number }>(),
+    db.prepare(`SELECT SUM(net) AS aum FROM tb_diversificador${fwd}`).first<{ aum: number | null }>(),
 
     db.prepare(`
       SELECT indexador, SUM(posicao_atual) as total, COUNT(*) as posicoes, COUNT(DISTINCT id_cliente) as clientes
@@ -1084,6 +1156,7 @@ app.get('/carteiras/visao', async (c) => {
   const rvTotal  = rvTotalRow?.total  ?? 0
   const coeTotal = coeTotalRow?.total ?? 0
   const ldTotal  = ldTotalRow?.total  ?? 0
+  const aumTotal = aumRow?.aum ?? (rfTotal + rvTotal + coeTotal + ldTotal)
 
   // Build wall-of-maturities
   const matMap: Record<string, Record<string, number>> = {}
@@ -1101,7 +1174,7 @@ app.get('/carteiras/visao', async (c) => {
 
   return c.json({
     data: {
-      totais: { rf: rfTotal, rv: rvTotal, coe: coeTotal, liquidez: ldTotal, total: rfTotal + rvTotal + coeTotal + ldTotal },
+      totais: { rf: rfTotal, rv: rvTotal, coe: coeTotal, liquidez: ldTotal, total: aumTotal },
       rf: {
         porIndexador: rfIdxRows.results,
         maturities,

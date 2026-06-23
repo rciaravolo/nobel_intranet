@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import * as XLSX from 'xlsx'
 
 /* ─── Tipos ──────────────────────────────────────────────────────────────── */
 
@@ -8,6 +9,7 @@ type DrillCliente = {
   id_cliente: number
   nome_cliente: string | null
   total: number
+  nome_assessor?: string | null
   // RF
   data_vencimento?: string | null
   sub_produto?: string
@@ -71,6 +73,7 @@ export function DrillDrawer({ ativo, classe = 'rf', onClose }: Props) {
   const [data, setData] = useState<DrillData | null>(null)
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState(false)
+  const [downloading, setDownloading] = useState(false)
 
   useEffect(() => {
     if (!ativo) {
@@ -107,6 +110,55 @@ export function DrillDrawer({ ativo, classe = 'rf', onClose }: Props) {
     }
   }, [ativo, classe])
 
+  async function handleExport() {
+    if (!ativo || downloading) return
+    setDownloading(true)
+    try {
+      const tipo = classe === 'rv' ? 'rv' : 'rf'
+      const res  = await fetch(
+        `/api/performance/carteiras/drill/export?ativo=${encodeURIComponent(ativo)}&tipo=${tipo}`,
+      )
+      if (!res.ok) throw new Error()
+      const json = (await res.json()) as { data: { ativo: string; tipo: string; clientes: Record<string, unknown>[] } }
+      const clientes = json.data.clientes
+
+      const rows = clientes.map((cl) => {
+        if (tipo === 'rv') {
+          return {
+            ID:         cl.id_cliente,
+            Nome:       cl.nome_cliente ?? '',
+            Assessor:   cl.nome_assessor ?? '',
+            Equipe:     cl.equipe ?? '',
+            Produto:    cl.produto ?? '',
+            Setor:      cl.setor ?? '',
+            'Volume (R$)': cl.total,
+            'Variação (%)': cl.variacao ?? '',
+          }
+        }
+        return {
+          ID:              cl.id_cliente,
+          Nome:            cl.nome_cliente ?? '',
+          Assessor:        cl.nome_assessor ?? '',
+          Equipe:          cl.equipe ?? '',
+          'Sub Produto':   cl.sub_produto ?? '',
+          Vencimento:      cl.data_vencimento ?? '',
+          'Volume (R$)':   cl.total,
+        }
+      })
+
+      const ws = XLSX.utils.json_to_sheet(rows)
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, ativo.replace(/[\\/:*?[\]]/g, '_').slice(0, 31))
+
+      const date = new Date().toISOString().slice(0, 10)
+      XLSX.writeFile(wb, `${ativo}_${date}.xlsx`)
+    } catch {
+      // silently fail
+    } finally {
+      setDownloading(false)
+    }
+  }
+
   if (!ativo) return null
 
   const accent = ACCENT[classe]
@@ -140,7 +192,7 @@ export function DrillDrawer({ ativo, classe = 'rf', onClose }: Props) {
           position: 'fixed',
           top: 0,
           right: 0,
-          width: 460,
+          width: 580,
           height: '100dvh',
           background: 'var(--bg-elev)',
           borderLeft: '1px solid var(--line)',
@@ -216,6 +268,36 @@ export function DrillDrawer({ ativo, classe = 'rf', onClose }: Props) {
           >
             {classe.toUpperCase()}
           </span>
+          {/* Download Excel */}
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={downloading}
+            title="Baixar Excel com todos os clientes"
+            style={{
+              height: 30,
+              paddingInline: 10,
+              borderRadius: 6,
+              border: '1px solid var(--line)',
+              background: downloading ? 'var(--bg-deep)' : 'transparent',
+              cursor: downloading ? 'wait' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              color: downloading ? 'var(--fg-faint)' : 'var(--fg-mute)',
+              fontFamily: 'var(--f-mono)',
+              fontSize: 10,
+              letterSpacing: '.08em',
+              flexShrink: 0,
+              transition: 'background .15s, color .15s',
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 2v8M5 7l3 3 3-3"/>
+              <path d="M3 12h10"/>
+            </svg>
+            {downloading ? 'Gerando...' : 'Excel'}
+          </button>
           <button
             type="button"
             onClick={onClose}
@@ -362,7 +444,7 @@ export function DrillDrawer({ ativo, classe = 'rf', onClose }: Props) {
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ background: 'var(--bg-deep)' }}>
-                        {['#', 'ID', 'Nome', 'Volume', isRV ? 'Variação' : 'Vencimento'].map(
+                        {['#', 'ID', 'Nome', 'Assessor', 'Volume', isRV ? 'Variação' : 'Vencimento'].map(
                           (h, i) => (
                             <th
                               key={h}
@@ -374,7 +456,7 @@ export function DrillDrawer({ ativo, classe = 'rf', onClose }: Props) {
                                 letterSpacing: '.18em',
                                 textTransform: 'uppercase',
                                 padding: '8px 14px',
-                                textAlign: i < 3 ? 'left' : 'right',
+                                textAlign: i < 4 ? 'left' : 'right',
                                 borderBottom: '1px solid var(--line)',
                               }}
                             >
@@ -419,7 +501,7 @@ export function DrillDrawer({ ativo, classe = 'rf', onClose }: Props) {
                                 {cl.id_cliente}
                               </span>
                             </td>
-                            <td style={{ padding: '9px 14px', maxWidth: 140 }}>
+                            <td style={{ padding: '9px 14px', maxWidth: 160 }}>
                               <span
                                 style={{
                                   fontFamily: 'var(--f-text)',
@@ -443,6 +525,21 @@ export function DrillDrawer({ ativo, classe = 'rf', onClose }: Props) {
                                 }}
                               >
                                 {isRV ? (cl.setor ?? cl.produto ?? '') : (cl.sub_produto ?? '')}
+                              </span>
+                            </td>
+                            <td style={{ padding: '9px 14px', maxWidth: 130 }}>
+                              <span
+                                style={{
+                                  fontFamily: 'var(--f-text)',
+                                  fontSize: 11,
+                                  color: 'var(--fg-mute)',
+                                  display: 'block',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {cl.nome_assessor ?? '—'}
                               </span>
                             </td>
                             <td

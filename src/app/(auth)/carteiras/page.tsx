@@ -566,7 +566,7 @@ export default async function CarteirasPage({
       {/* ── Distribuição por Produto (tb_diversificador) ────────────────── */}
       {tab === 'geral' && distribuicao && distribuicao.alocacao.length > 0 && (
         <div style={{ ...cardStyle, boxShadow: 'var(--e-float)', marginBottom: 'var(--s-4)' }}>
-          <SectionHeader title="Distribuição por Produto" sub={`${fBRL(distribuicao.aum)} · tb_diversificador`} />
+          <SectionHeader title="Distribuição por Produto" sub={`${fBRL(distribuicao.aum)} · visão completa da custódia`} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 32, padding: '20px 24px' }}>
             <Donut
               size={148}
@@ -598,6 +598,9 @@ export default async function CarteirasPage({
                   </div>
                 )
               })}
+              <p style={{ margin: '8px 0 0', fontFamily: 'var(--f-text)', fontSize: 11, color: 'var(--fg-faint)', lineHeight: 1.4 }}>
+                Consolidado geral de todos os produtos. Os tabs RF e RV aprofundam cada classe individualmente.
+              </p>
             </div>
           </div>
         </div>
