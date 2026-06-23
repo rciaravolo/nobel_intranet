@@ -3,6 +3,7 @@ import { PageGreeting } from '../_components/PageGreeting'
 import { CarteirasNav } from './_components/CarteirasNav'
 import { RFAtivos, type RFAtivo } from './_components/RFAtivos'
 import { WallOfMaturities } from './_components/WallOfMaturities'
+import { RVSetorial } from './_components/RVSetorial'
 import { BuscaAtivo } from './_components/BuscaAtivo'
 import { AnalisesFilters } from '../analises/_components/AnalisesFilters'
 import { apiFetch } from '@/lib/api/fetch'
@@ -84,22 +85,6 @@ const IDX_COLOR: Record<string, string> = {
 }
 
 
-const SETOR_COLOR: Record<string, string> = {
-  'Fundo Imobiliário': '#C29404',
-  Financeiro: '#2D5FA0',
-  'Energia elétrica & Saneamento': '#248A47',
-  Imobiliário: '#8F6B12',
-  'Mineração & Siderurgia': '#343534',
-  'Petróleo & Gas': '#D94141',
-  'Transportes & Bens Industriais': '#5F5E5B',
-  Varejo: '#8C8B87',
-  Tecnologia: '#C29404',
-  'Papel & Celulose': '#B4B3AE',
-  'Agro, Alimentos & Bebidas': '#8F6B12',
-  Telecomunicação: '#D2D1CC',
-  Shoppings: '#343534',
-  Outros: '#5F5E5B',
-}
 
 const COE_COLOR: Record<string, string> = {
   BOND: '#2D5FA0',
@@ -835,24 +820,7 @@ export default async function CarteirasPage({
         {/* Setorial */}
         <div style={cardStyle}>
           <SectionHeader title="Renda Variável — Setorial" sub={`${fBRL(totais.rv)}`} />
-          <div style={{ padding: '8px 0' }}>
-            {setorList.map((s, i) => (
-              <div
-                key={s.setor}
-                style={{
-                  borderBottom: i < setorList.length - 1 ? '1px solid var(--line)' : 'none',
-                }}
-              >
-                <HBar
-                  label={s.setor}
-                  sub={`${s.clientes.toLocaleString('pt-BR')} clientes`}
-                  total={s.total}
-                  max={setorMax}
-                  color={SETOR_COLOR[s.setor] ?? '#5F5E5B'}
-                />
-              </div>
-            ))}
-          </div>
+          <RVSetorial setorList={setorList} setorMax={setorMax} />
         </div>
 
         {/* Top Ativos */}

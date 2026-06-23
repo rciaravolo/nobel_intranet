@@ -992,6 +992,91 @@ app.get('/carteiras/drill/export', async (c) => {
   return c.json({ data: { ativo, tipo: 'rf', clientes: rows.results } })
 })
 
+/* ─── /carteiras/drill/setor ────────────────────────────────────────────── */
+
+app.get('/carteiras/drill/setor', async (c) => {
+  const setor = (c.req.query('setor') ?? '').trim()
+  if (!setor) return c.json({ error: 'setor obrigatório' }, 400)
+
+  const db = c.env.PERF_DB
+
+  const filter = await resolveFilter(
+    db,
+    c.req.header('X-User-Role'),
+    c.req.header('X-User-Email'),
+    c.req.header('X-User-Equipe'),
+  )
+  if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
+
+  const wa     = buildAndFilter(filter)                       // analitico_rv (sem alias)
+  const waJoin = buildAndFilter(filter, 'rv.id_assessor')     // query com JOIN
+
+  const [summaryRow, topAtivosRows, topClientesRows] = await Promise.all([
+    db
+      .prepare(`
+        SELECT SUM(auc)               AS total,
+               COUNT(DISTINCT id_cliente) AS clientes,
+               COUNT(DISTINCT ativo)  AS ativos
+        FROM   analitico_rv
+        WHERE  setor = ? AND auc IS NOT NULL${wa}
+      `)
+      .bind(setor)
+      .first<{ total: number; clientes: number; ativos: number }>(),
+
+    db
+      .prepare(`
+        SELECT ativo, produto,
+               SUM(auc)                  AS total,
+               COUNT(DISTINCT id_cliente) AS clientes,
+               AVG(variacao)             AS variacao
+        FROM   analitico_rv
+        WHERE  setor = ? AND auc IS NOT NULL${wa}
+        GROUP  BY ativo, produto
+        ORDER  BY total DESC
+        LIMIT  10
+      `)
+      .bind(setor)
+      .all<{ ativo: string; produto: string | null; total: number; clientes: number; variacao: number | null }>(),
+
+    db
+      .prepare(`
+        SELECT rv.id_cliente,
+               bc.nome_cliente,
+               SUM(rv.auc)           AS total,
+               AVG(rv.variacao)      AS variacao,
+               MAX(a.nome_assessor)  AS nome_assessor,
+               MAX(a.equipe)         AS equipe
+        FROM   analitico_rv rv
+        LEFT   JOIN base_clientes bc ON rv.id_cliente = bc.id_cliente
+        LEFT   JOIN assessores a     ON rv.id_assessor = a.id_assessor
+        WHERE  rv.setor = ? AND rv.auc IS NOT NULL${waJoin}
+        GROUP  BY rv.id_cliente, bc.nome_cliente
+        ORDER  BY total DESC
+        LIMIT  20
+      `)
+      .bind(setor)
+      .all<{
+        id_cliente: number
+        nome_cliente: string | null
+        total: number
+        variacao: number | null
+        nome_assessor: string | null
+        equipe: string | null
+      }>(),
+  ])
+
+  return c.json({
+    data: {
+      setor,
+      total:          summaryRow?.total    ?? 0,
+      clientes_count: summaryRow?.clientes ?? 0,
+      ativos_count:   summaryRow?.ativos   ?? 0,
+      top_ativos:     topAtivosRows.results,
+      top_clientes:   topClientesRows.results,
+    },
+  })
+})
+
 /* ─── /carteiras/drill/janela ───────────────────────────────────────────── */
 
 const JANELA_CONDS: Record<string, string> = {

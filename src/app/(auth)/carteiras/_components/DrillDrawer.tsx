@@ -47,6 +47,32 @@ type JanelaData = {
   clientes: JanelaCliente[]
 }
 
+type SetorAtivoItem = {
+  ativo: string
+  produto: string | null
+  total: number
+  clientes: number
+  variacao: number | null
+}
+
+type SetorClienteItem = {
+  id_cliente: number
+  nome_cliente: string | null
+  total: number
+  variacao: number | null
+  nome_assessor: string | null
+  equipe: string | null
+}
+
+type SetorData = {
+  setor: string
+  total: number
+  clientes_count: number
+  ativos_count: number
+  top_ativos: SetorAtivoItem[]
+  top_clientes: SetorClienteItem[]
+}
+
 /* ─── Formatters ─────────────────────────────────────────────────────────── */
 
 function fBRL(v: number): string {
@@ -78,6 +104,7 @@ function fVar(v: number | null | undefined): string {
 type Props = {
   ativo?: string | null
   janela?: string | null
+  setor?: string | null
   classe?: 'rf' | 'rv'
   onClose: () => void
 }
@@ -89,7 +116,7 @@ const ACCENT: Record<'rf' | 'rv', string> = {
 
 /* ─── Component ──────────────────────────────────────────────────────────── */
 
-export function DrillDrawer({ ativo = null, janela = null, classe = 'rf', onClose }: Props) {
+export function DrillDrawer({ ativo = null, janela = null, setor = null, classe = 'rf', onClose }: Props) {
   const [data, setData] = useState<DrillData | null>(null)
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState(false)
@@ -98,6 +125,10 @@ export function DrillDrawer({ ativo = null, janela = null, classe = 'rf', onClos
   const [janelaData, setJanelaData] = useState<JanelaData | null>(null)
   const [janelaLoading, setJanelaLoading] = useState(false)
   const [janelaErro, setJanelaErro] = useState(false)
+
+  const [setorData, setSetorData] = useState<SetorData | null>(null)
+  const [setorLoading, setSetorLoading] = useState(false)
+  const [setorErro, setSetorErro] = useState(false)
 
   useEffect(() => {
     if (!ativo) {
@@ -164,6 +195,36 @@ export function DrillDrawer({ ativo = null, janela = null, classe = 'rf', onClos
     }
   }, [janela])
 
+  useEffect(() => {
+    if (!setor) {
+      setSetorData(null)
+      return
+    }
+    let cancelled = false
+    setSetorLoading(true)
+    setSetorErro(false)
+    setSetorData(null)
+
+    fetch(`/api/performance/carteiras/drill/setor?setor=${encodeURIComponent(setor)}`)
+      .then((r) => {
+        if (!r.ok) throw new Error()
+        return r.json() as Promise<{ data: SetorData }>
+      })
+      .then((json) => {
+        if (!cancelled) setSetorData(json.data)
+      })
+      .catch(() => {
+        if (!cancelled) setSetorErro(true)
+      })
+      .finally(() => {
+        if (!cancelled) setSetorLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [setor])
+
   async function handleExport() {
     if (!ativo || downloading) return
     setDownloading(true)
@@ -213,11 +274,12 @@ export function DrillDrawer({ ativo = null, janela = null, classe = 'rf', onClos
     }
   }
 
-  if (!ativo && !janela) return null
+  if (!ativo && !janela && !setor) return null
 
   const isJanelaMode = !!janela
+  const isSetorMode  = !!setor
 
-  const accent = isJanelaMode ? ACCENT['rf'] : ACCENT[classe]
+  const accent = isSetorMode ? ACCENT['rv'] : isJanelaMode ? ACCENT['rf'] : ACCENT[classe]
 
   const mono10: React.CSSProperties = {
     fontFamily: 'var(--f-mono)',
@@ -227,7 +289,7 @@ export function DrillDrawer({ ativo = null, janela = null, classe = 'rf', onClos
     color: 'var(--fg-faint)',
   }
 
-  const isRV = !isJanelaMode && classe === 'rv'
+  const isRV = !isJanelaMode && !isSetorMode && classe === 'rv'
 
   return (
     <>
@@ -300,13 +362,19 @@ export function DrillDrawer({ ativo = null, janela = null, classe = 'rf', onClos
                 whiteSpace: 'nowrap',
               }}
             >
-              {isJanelaMode ? `Vencimentos ${janela}` : ativo}
+              {isSetorMode ? setor : isJanelaMode ? `Vencimentos ${janela}` : ativo}
             </p>
             <p style={{ ...mono10, marginTop: 2 }}>
-              {isJanelaMode ? 'RF — janela de vencimento · top clientes' : isRV ? 'RV — detalhamento por cliente' : 'RF — detalhamento por cliente'}
+              {isSetorMode
+                ? 'RV — distribuição setorial · ativos e clientes'
+                : isJanelaMode
+                  ? 'RF — janela de vencimento · top clientes'
+                  : isRV
+                    ? 'RV — detalhamento por cliente'
+                    : 'RF — detalhamento por cliente'}
             </p>
           </div>
-          {/* Classe / Janela badge */}
+          {/* Mode badge */}
           <span
             style={{
               fontFamily: 'var(--f-mono)',
@@ -322,7 +390,7 @@ export function DrillDrawer({ ativo = null, janela = null, classe = 'rf', onClos
               flexShrink: 0,
             }}
           >
-            {isJanelaMode ? janela : classe.toUpperCase()}
+            {isSetorMode ? 'RV' : isJanelaMode ? janela : classe.toUpperCase()}
           </span>
           {/* Download Excel */}
           <button
@@ -405,6 +473,134 @@ export function DrillDrawer({ ativo = null, janela = null, classe = 'rf', onClos
             >
               Erro ao carregar dados.
             </div>
+          )}
+
+          {/* ── Setor mode ─────────────────────────────────────────────────── */}
+          {isSetorMode && setorLoading && (
+            <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: 'var(--f-mono)', fontSize: 12, color: 'var(--fg-faint)' }}>
+              Carregando...
+            </div>
+          )}
+          {isSetorMode && setorErro && (
+            <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: 'var(--f-mono)', fontSize: 12, color: 'var(--color-negative)' }}>
+              Erro ao carregar dados.
+            </div>
+          )}
+          {isSetorMode && setorData && (
+            <>
+              {/* KPI strip */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderBottom: '1px solid var(--line)' }}>
+                {[
+                  { label: 'AUC Total', value: fBRL(setorData.total) },
+                  { label: 'Clientes',  value: setorData.clientes_count.toLocaleString('pt-BR') },
+                  { label: 'Ativos',    value: setorData.ativos_count.toLocaleString('pt-BR') },
+                ].map(({ label, value }) => (
+                  <div key={label} style={{ padding: '14px 16px', borderRight: '1px solid var(--line)' }}>
+                    <p style={mono10}>{label}</p>
+                    <p style={{ fontFamily: 'var(--f-mono)', fontSize: 18, fontWeight: 700, color: 'var(--fg)', marginTop: 6, letterSpacing: '-.01em', fontFeatureSettings: '"tnum"' }}>
+                      {value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Top Ativos */}
+              <div>
+                <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid var(--line)', background: 'var(--bg-deep)' }}>
+                  <span style={mono10}>Top ativos · {setorData.top_ativos.length} exibidos</span>
+                </div>
+                {setorData.top_ativos.length === 0 ? (
+                  <div style={{ padding: '16px', fontFamily: 'var(--f-mono)', fontSize: 12, color: 'var(--fg-faint)' }}>Nenhum ativo encontrado.</div>
+                ) : (
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ background: 'var(--bg-deep)' }}>
+                        {['Ativo', 'Produto', 'AUC', 'Clientes', 'P&L Médio'].map((h, i) => (
+                          <th key={h} style={{ fontFamily: 'var(--f-mono)', fontSize: 9, fontWeight: 500, color: 'var(--fg-faint)', letterSpacing: '.18em', textTransform: 'uppercase', padding: '8px 14px', textAlign: i > 1 ? 'right' : 'left', borderBottom: '1px solid var(--line)' }}>
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {setorData.top_ativos.map((a, i) => {
+                        const up = (a.variacao ?? 0) >= 0
+                        return (
+                          <tr key={`${a.ativo}-${i}`} style={{ borderBottom: i < setorData.top_ativos.length - 1 ? '1px solid var(--line)' : 'none' }}>
+                            <td style={{ padding: '9px 14px' }}>
+                              <span style={{ fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 700, color: accent, fontFeatureSettings: '"tnum"' }}>{a.ativo}</span>
+                            </td>
+                            <td style={{ padding: '9px 14px' }}>
+                              <span style={{ fontFamily: 'var(--f-mono)', fontSize: 10, color: 'var(--fg-faint)', letterSpacing: '.06em' }}>{a.produto ?? '—'}</span>
+                            </td>
+                            <td style={{ padding: '9px 14px', textAlign: 'right', fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 600, color: 'var(--fg)', fontFeatureSettings: '"tnum"' }}>
+                              {fBRL(a.total)}
+                            </td>
+                            <td style={{ padding: '9px 14px', textAlign: 'right', fontFamily: 'var(--f-mono)', fontSize: 12, color: 'var(--fg-faint)', fontFeatureSettings: '"tnum"' }}>
+                              {a.clientes}
+                            </td>
+                            <td style={{ padding: '9px 14px', textAlign: 'right' }}>
+                              <span style={{ display: 'inline-flex', alignItems: 'center', fontFamily: 'var(--f-mono)', fontSize: 10, fontWeight: 500, letterSpacing: '.08em', fontFeatureSettings: '"tnum"', color: up ? 'var(--color-positive)' : 'var(--color-negative)', background: up ? 'var(--color-positive-bg)' : 'var(--color-negative-bg)', padding: '2px 7px', borderRadius: 999 }}>
+                                {fVar(a.variacao)}
+                              </span>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+
+              {/* Top Clientes */}
+              <div style={{ borderTop: '1px solid var(--line)' }}>
+                <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid var(--line)', background: 'var(--bg-deep)' }}>
+                  <span style={mono10}>Top clientes · {setorData.top_clientes.length} exibidos</span>
+                </div>
+                {setorData.top_clientes.length === 0 ? (
+                  <div style={{ padding: '16px', fontFamily: 'var(--f-mono)', fontSize: 12, color: 'var(--fg-faint)' }}>Nenhum cliente encontrado.</div>
+                ) : (
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <thead>
+                      <tr style={{ background: 'var(--bg-deep)' }}>
+                        {['#', 'ID', 'Nome', 'AUC', 'P&L Médio', 'Assessor'].map((h, i) => (
+                          <th key={h} style={{ fontFamily: 'var(--f-mono)', fontSize: 9, fontWeight: 500, color: 'var(--fg-faint)', letterSpacing: '.18em', textTransform: 'uppercase', padding: '8px 14px', textAlign: i >= 3 && i < 5 ? 'right' : 'left', borderBottom: '1px solid var(--line)' }}>
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {setorData.top_clientes.map((cl, i) => {
+                        const up = (cl.variacao ?? 0) >= 0
+                        return (
+                          <tr key={`${cl.id_cliente}-${i}`} style={{ borderBottom: i < setorData.top_clientes.length - 1 ? '1px solid var(--line)' : 'none' }}>
+                            <td style={{ padding: '9px 14px', fontFamily: 'var(--f-mono)', fontSize: 10, color: 'var(--fg-faint)', width: 28 }}>{i + 1}</td>
+                            <td style={{ padding: '9px 14px' }}>
+                              <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, fontWeight: 600, color: accent, fontFeatureSettings: '"tnum"' }}>{cl.id_cliente}</span>
+                            </td>
+                            <td style={{ padding: '9px 14px', maxWidth: 150 }}>
+                              <span style={{ fontFamily: 'var(--f-text)', fontSize: 12, color: 'var(--fg)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cl.nome_cliente ?? '—'}</span>
+                            </td>
+                            <td style={{ padding: '9px 14px', textAlign: 'right', fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 600, color: 'var(--fg)', fontFeatureSettings: '"tnum"' }}>
+                              {fBRL(cl.total)}
+                            </td>
+                            <td style={{ padding: '9px 14px', textAlign: 'right' }}>
+                              <span style={{ display: 'inline-flex', alignItems: 'center', fontFamily: 'var(--f-mono)', fontSize: 10, fontWeight: 500, letterSpacing: '.08em', fontFeatureSettings: '"tnum"', color: up ? 'var(--color-positive)' : 'var(--color-negative)', background: up ? 'var(--color-positive-bg)' : 'var(--color-negative-bg)', padding: '2px 7px', borderRadius: 999 }}>
+                                {fVar(cl.variacao)}
+                              </span>
+                            </td>
+                            <td style={{ padding: '9px 14px', maxWidth: 120 }}>
+                              <span style={{ fontFamily: 'var(--f-text)', fontSize: 11, color: 'var(--fg-mute)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cl.nome_assessor ?? '—'}</span>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </>
           )}
 
           {/* ── Janela mode ────────────────────────────────────────────────── */}
