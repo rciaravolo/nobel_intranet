@@ -392,36 +392,38 @@ export function DrillDrawer({ ativo = null, janela = null, setor = null, classe 
           >
             {isSetorMode ? 'RV' : isJanelaMode ? janela : classe.toUpperCase()}
           </span>
-          {/* Download Excel */}
-          <button
-            type="button"
-            onClick={handleExport}
-            disabled={downloading}
-            title="Baixar Excel com todos os clientes"
-            style={{
-              height: 30,
-              paddingInline: 10,
-              borderRadius: 6,
-              border: '1px solid var(--line)',
-              background: downloading ? 'var(--bg-deep)' : 'transparent',
-              cursor: downloading ? 'wait' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-              color: downloading ? 'var(--fg-faint)' : 'var(--fg-mute)',
-              fontFamily: 'var(--f-mono)',
-              fontSize: 10,
-              letterSpacing: '.08em',
-              flexShrink: 0,
-              transition: 'background .15s, color .15s',
-            }}
-          >
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M8 2v8M5 7l3 3 3-3"/>
-              <path d="M3 12h10"/>
-            </svg>
-            {downloading ? 'Gerando...' : 'Excel'}
-          </button>
+          {/* Download Excel — only in ativo mode */}
+          {!isJanelaMode && !isSetorMode && (
+            <button
+              type="button"
+              onClick={handleExport}
+              disabled={downloading}
+              title="Baixar Excel com todos os clientes"
+              style={{
+                height: 30,
+                paddingInline: 10,
+                borderRadius: 6,
+                border: '1px solid var(--line)',
+                background: downloading ? 'var(--bg-deep)' : 'transparent',
+                cursor: downloading ? 'wait' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
+                color: downloading ? 'var(--fg-faint)' : 'var(--fg-mute)',
+                fontFamily: 'var(--f-mono)',
+                fontSize: 10,
+                letterSpacing: '.08em',
+                flexShrink: 0,
+                transition: 'background .15s, color .15s',
+              }}
+            >
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M8 2v8M5 7l3 3 3-3"/>
+                <path d="M3 12h10"/>
+              </svg>
+              {downloading ? 'Gerando...' : 'Excel'}
+            </button>
+          )}
           <button
             type="button"
             onClick={onClose}
