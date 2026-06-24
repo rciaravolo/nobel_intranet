@@ -496,4 +496,98 @@ app.get('/indicadores/drill', async (c) => {
   })
 })
 
+/* ─── GET /pnl/plano-carreira ────────────────────────────────────────────── */
+
+app.get('/plano-carreira', async (c) => {
+  const db = c.env.PERF_DB
+
+  const brt   = new Date(Date.now() - 3 * 60 * 60 * 1000)
+  const year  = brt.getUTCFullYear()
+  const month = brt.getUTCMonth()
+  const day   = brt.getUTCDate()
+
+  let bizDaysInMonth = 0
+  for (let d = 1; d <= day; d++) {
+    const dow = new Date(Date.UTC(year, month, d)).getUTCDay()
+    if (dow !== 0 && dow !== 6) bizDaysInMonth++
+  }
+
+  const usesPrevMonth = bizDaysInMonth <= 2
+  const effMonth = usesPrevMonth ? (month === 0 ? 11 : month - 1) : month
+  const effYear  = usesPrevMonth && month === 0 ? year - 1 : year
+  const mesISO = `${effYear}-${String(effMonth + 1).padStart(2, '0')}`
+
+  const TRIGGERS: Record<string, { cap: number; rec: number; mds: number }> = {
+    Pleno:  { cap: 700_000, rec: 40_000, mds: 65 },
+    Senior: { cap: 1_400_000, rec: 60_000, mds: 65 },
+  }
+
+  const [planRows, capRows, mdsRows, ...receitaResults] = await Promise.all([
+    db.prepare('SELECT id_assessor, nome_assessor, equipe, classe FROM plano_carreira')
+      .all<{ id_assessor: string; nome_assessor: string; equipe: string; classe: string }>(),
+
+    db.prepare(`SELECT id_assessor, SUM(captacao) AS cap_mtd FROM tb_cap WHERE strftime('%Y-%m', data) = ? GROUP BY id_assessor`)
+      .bind(mesISO)
+      .all<{ id_assessor: string; cap_mtd: number }>(),
+
+    db.prepare(`SELECT id_assessor, indice_modelo_servir FROM modelo_servir WHERE CAST(ano_mes AS REAL) > 100000 ORDER BY CAST(ano_mes AS REAL) DESC`)
+      .all<{ id_assessor: string; indice_modelo_servir: number }>(),
+
+    ...TABELAS_RECEITA.map((tabela) =>
+      db.prepare(`SELECT id_assessor, SUM(receita) AS receita FROM ${tabela} GROUP BY id_assessor`)
+        .all<{ id_assessor: string; receita: number }>()
+    ),
+  ])
+
+  const planSet = new Set(planRows.results.map((r) => r.id_assessor))
+
+  const capMap: Record<string, number> = {}
+  for (const r of capRows.results) {
+    if (planSet.has(r.id_assessor)) capMap[r.id_assessor] = r.cap_mtd
+  }
+
+  const recMap: Record<string, number> = {}
+  for (const res of receitaResults) {
+    for (const r of res.results) {
+      if (planSet.has(r.id_assessor)) {
+        recMap[r.id_assessor] = (recMap[r.id_assessor] ?? 0) + r.receita
+      }
+    }
+  }
+
+  // Latest MDS per assessor (rows already ordered DESC)
+  const mdsMap: Record<string, number> = {}
+  for (const r of mdsRows.results) {
+    if (planSet.has(r.id_assessor) && !(r.id_assessor in mdsMap)) {
+      mdsMap[r.id_assessor] = r.indice_modelo_servir
+    }
+  }
+
+  const assessores = planRows.results
+    .map((p) => {
+      const t       = TRIGGERS[p.classe] ?? TRIGGERS.Pleno!
+      const cap_mtd = capMap[p.id_assessor] ?? 0
+      const rec_mtd = recMap[p.id_assessor] ?? 0
+      const mds     = mdsMap[p.id_assessor] ?? 0
+      return {
+        id_assessor: p.id_assessor,
+        nome:        p.nome_assessor,
+        equipe:      p.equipe,
+        classe:      p.classe,
+        cap_mtd,
+        cap_trigger: t.cap,
+        cap_pct:     cap_mtd / t.cap,
+        rec_mtd,
+        rec_trigger: t.rec,
+        rec_pct:     rec_mtd / t.rec,
+        mds,
+        mds_trigger: t.mds,
+        mds_pct:     mds / t.mds,
+      }
+    })
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+
+  return c.json({ data: { mesISO, assessores } })
+})
+
 export default app
