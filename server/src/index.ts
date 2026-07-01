@@ -8,6 +8,7 @@ import tickerRouter, { TICKER_KV_KEY } from './routes/ticker'
 import performanceRouter from './routes/performance'
 import pnlRouter from './routes/pnl'
 import adminRouter from './routes/admin'
+import qualidadeRouter from './routes/qualidade'
 import { fetchAllNews } from './lib/rss'
 import { fetchAllTickers } from './lib/ticker'
 
@@ -42,6 +43,7 @@ app.route('/ticker', tickerRouter)
 app.route('/performance', performanceRouter)
 app.route('/pnl', pnlRouter)
 app.route('/admin', adminRouter)
+app.route('/qualidade', qualidadeRouter)
 
 // ---------------------------------------------------------------------------
 // 404 catch-all

@@ -18,7 +18,9 @@ const C = {
 }
 
 /* ─── Navigation config ───────────────────────────────────────────────────── */
-type NavGroup = { section: string; adminOnly?: boolean; items: { href: string; label: string; icon: React.ReactNode; badge?: number }[] }
+type Role = SessionPayload['role']
+type NavItem = { href: string; label: string; icon: React.ReactNode; badge?: number; roles?: Role[] }
+type NavGroup = { section: string; adminOnly?: boolean; items: NavItem[] }
 const NAV: NavGroup[] = [
   {
     section: 'Principal',
@@ -38,6 +40,24 @@ const NAV: NavGroup[] = [
             <rect x="14" y="3" width="7" height="7" rx="1" />
             <rect x="3" y="14" width="7" height="7" rx="1" />
             <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+        ),
+      },
+      {
+        href: '/pj1',
+        label: 'PJ1',
+        roles: ['admin', 'master', 'lider_pj'],
+        icon: (
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
+            <path d="M3 21h18" />
+            <path d="M6 21V10l6-4 6 4v11" />
+            <path d="M10 21v-6h4v6" />
           </svg>
         ),
       },
@@ -147,6 +167,15 @@ const NAV: NavGroup[] = [
           <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M3 17l4-8 4 4 4-6 4 10" />
             <path d="M3 21h18" />
+          </svg>
+        ),
+      },
+      {
+        href: '/qualidade',
+        label: 'Qualidade',
+        icon: (
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
           </svg>
         ),
       },
@@ -316,7 +345,14 @@ export function Sidebar({ session }: Props) {
 
       {/* ── Nav ─────────────────────────────────────────────── */}
       <nav style={{ flex: 1, padding: '8px 12px', overflowY: 'auto', overflowX: 'hidden' }}>
-        {NAV.filter((group) => !group.adminOnly || session.role === 'admin' || session.role === 'master').map((group, gi) => (
+        {NAV
+          .filter((group) => !group.adminOnly || session.role === 'admin' || session.role === 'master')
+          .map((group) => ({
+            ...group,
+            items: group.items.filter((item) => !item.roles || item.roles.includes(session.role)),
+          }))
+          .filter((group) => group.items.length > 0)
+          .map((group, gi) => (
           <div key={group.section}>
             {!collapsed && (
               <p
