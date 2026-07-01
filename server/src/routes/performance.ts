@@ -1,4 +1,4 @@
-import { Hono } from 'hono'
+import { Hono, type Context } from 'hono'
 import type { Env, Variables } from '../types'
 import metasJson from '../data/metas.json'
 import { diasUteisDoMes } from '../lib/dias-uteis'
@@ -8,6 +8,9 @@ const app = new Hono<{ Bindings: Env; Variables: Variables }>()
 /* ─── Filtro por role ────────────────────────────────────────────────────────
    admin/master → acesso total (sem filtro)
    lider        → filtro por equipe (subquery em assessores)
+   lider_pj     → líder sem equipe. Default: filtra pelo id_assessor da session.
+                  Rotas de Carteiras/Clientes chamam com { scopeForLiderPj: 'all' }
+                  para forçar visão geral.
    assessor     → filtro por id_assessor (lookup por email)
    denied       → acesso negado
  ─────────────────────────────────────────────────────────────────────────── */
@@ -17,13 +20,17 @@ type FilterResult =
   | { type: 'equipe'; equipe: string }
   | { type: 'denied' }
 
+type ResolveOpts = { scopeForLiderPj?: 'all' }
+
 async function resolveFilter(
   db: D1Database,
   role: string | undefined,
   email: string | undefined,
   equipe: string | undefined,
+  idAssessor: string | undefined,
   filterType?: string | undefined,
   filterValue?: string | undefined,
+  opts?: ResolveOpts,
 ): Promise<FilterResult> {
   if (role === 'admin' || role === 'master') {
     // Suporte a filtro de drill-down para admin/master
@@ -36,6 +43,15 @@ async function resolveFilter(
     if (filterType === 'assessor' && filterValue) return { type: 'assessor', id: filterValue }
     return { type: 'equipe', equipe }
   }
+  if (role === 'lider_pj') {
+    if (opts?.scopeForLiderPj === 'all') {
+      if (filterType === 'equipe' && filterValue) return { type: 'equipe', equipe: filterValue }
+      if (filterType === 'assessor' && filterValue) return { type: 'assessor', id: filterValue }
+      return { type: 'all' }
+    }
+    if (!idAssessor) return { type: 'denied' }
+    return { type: 'assessor', id: idAssessor }
+  }
   // assessor (e legacy 'member')
   if (!email) return { type: 'denied' }
   const row = await db
@@ -43,6 +59,32 @@ async function resolveFilter(
     .bind(email)
     .first<{ id_assessor: string }>()
   return row ? { type: 'assessor', id: row.id_assessor } : { type: 'denied' }
+}
+
+/** Rotas em que `lider_pj` vê a base inteira (visão geral). Ajustar aqui ao criar rota nova de Carteiras/Clientes/PJ1.
+ *  Os paths precisam incluir o prefixo `/performance` porque o router é montado em `app.route('/performance', ...)`
+ *  e `c.req.path` retorna o path completo da requisição. */
+const LIDER_PJ_ALL_PATHS = ['/performance/carteiras', '/performance/clientes', '/performance/pj1']
+
+/** Boilerplate helper — lê os headers X-User-* do contexto e chama resolveFilter. */
+async function resolveFilterFromCtx(
+  c: Context<{ Bindings: Env; Variables: Variables }>,
+  opts?: ResolveOpts,
+): Promise<FilterResult> {
+  const path = c.req.path
+  const inferredScope = LIDER_PJ_ALL_PATHS.some((p) => path === p || path.startsWith(`${p}/`))
+    ? 'all'
+    : undefined
+  return resolveFilter(
+    c.env.PERF_DB,
+    c.req.header('X-User-Role'),
+    c.req.header('X-User-Email'),
+    c.req.header('X-User-Equipe'),
+    c.req.header('X-User-Id-Assessor'),
+    c.req.header('X-Filter-Type'),
+    c.req.header('X-Filter-Value'),
+    { scopeForLiderPj: opts?.scopeForLiderPj ?? inferredScope },
+  )
 }
 
 function buildWhereFilter(f: FilterResult, col = 'id_assessor'): string {
@@ -90,14 +132,7 @@ app.use('*', async (c, next) => {
 app.get('/kpis', async (c) => {
   const db = c.env.PERF_DB
 
-  const filter = await resolveFilter(
-    db,
-    c.req.header('X-User-Role'),
-    c.req.header('X-User-Email'),
-    c.req.header('X-User-Equipe'),
-    c.req.header('X-Filter-Type'),
-    c.req.header('X-Filter-Value'),
-  )
+  const filter = await resolveFilterFromCtx(c)
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
   const w  = buildWhereFilter(filter)
@@ -161,14 +196,7 @@ app.get('/kpis', async (c) => {
 app.get('/historico', async (c) => {
   const db = c.env.PERF_DB
 
-  const filter = await resolveFilter(
-    db,
-    c.req.header('X-User-Role'),
-    c.req.header('X-User-Email'),
-    c.req.header('X-User-Equipe'),
-    c.req.header('X-Filter-Type'),
-    c.req.header('X-Filter-Value'),
-  )
+  const filter = await resolveFilterFromCtx(c)
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
   const f = buildAndFilter(filter)
@@ -246,14 +274,7 @@ app.get('/historico', async (c) => {
 app.get('/onepage', async (c) => {
   const db = c.env.PERF_DB
 
-  const filter = await resolveFilter(
-    db,
-    c.req.header('X-User-Role'),
-    c.req.header('X-User-Email'),
-    c.req.header('X-User-Equipe'),
-    c.req.header('X-Filter-Type'),
-    c.req.header('X-Filter-Value'),
-  )
+  const filter = await resolveFilterFromCtx(c)
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
   const f = buildAndFilter(filter)
@@ -375,14 +396,7 @@ app.get('/metas', async (c) => {
   const db    = c.env.PERF_DB
   const role  = c.req.header('X-User-Role')
 
-  const filter = await resolveFilter(
-    db,
-    role,
-    c.req.header('X-User-Email'),
-    c.req.header('X-User-Equipe'),
-    c.req.header('X-Filter-Type'),
-    c.req.header('X-Filter-Value'),
-  )
+  const filter = await resolveFilterFromCtx(c)
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
   const agora = new Date()
@@ -470,14 +484,7 @@ app.get('/metas', async (c) => {
 app.get('/deepdive/captacao', async (c) => {
   const db = c.env.PERF_DB
 
-  const filter = await resolveFilter(
-    db,
-    c.req.header('X-User-Role'),
-    c.req.header('X-User-Email'),
-    c.req.header('X-User-Equipe'),
-    c.req.header('X-Filter-Type'),
-    c.req.header('X-Filter-Value'),
-  )
+  const filter = await resolveFilterFromCtx(c)
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
   const f = buildAndFilter(filter, 'c.id_assessor')
@@ -549,14 +556,7 @@ app.get('/deepdive/receita/:produto', async (c) => {
   const info = PRODUTO_MAP[produto]
   if (!info) return c.json({ error: 'produto inválido' }, 400)
 
-  const filter = await resolveFilter(
-    db,
-    c.req.header('X-User-Role'),
-    c.req.header('X-User-Email'),
-    c.req.header('X-User-Equipe'),
-    c.req.header('X-Filter-Type'),
-    c.req.header('X-Filter-Value'),
-  )
+  const filter = await resolveFilterFromCtx(c)
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
   type ClienteRow = { id_cliente: string | number; nome_cliente: string | null; nome_assessor: string | null; valor: number }
@@ -605,7 +605,7 @@ app.get('/deepdive/receita/:produto', async (c) => {
 app.get('/assessores', async (c) => {
   const role = c.req.header('X-User-Role')
   const equipeHeader = c.req.header('X-User-Equipe')
-  if (role !== 'admin' && role !== 'master' && role !== 'lider') return c.json({ error: 'Forbidden' }, 403)
+  if (role !== 'admin' && role !== 'master' && role !== 'lider' && role !== 'lider_pj') return c.json({ error: 'Forbidden' }, 403)
 
   const db = c.env.PERF_DB
   const rows = role === 'lider' && equipeHeader
@@ -664,14 +664,7 @@ app.get('/carteiras/cliente', async (c) => {
 app.get('/carteiras', async (c) => {
   const db = c.env.PERF_DB
 
-  const filter = await resolveFilter(
-    db,
-    c.req.header('X-User-Role'),
-    c.req.header('X-User-Email'),
-    c.req.header('X-User-Equipe'),
-    c.req.header('X-Filter-Type'),
-    c.req.header('X-Filter-Value'),
-  )
+  const filter = await resolveFilterFromCtx(c)
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
   const fw = buildDivFilter(filter)
@@ -709,12 +702,7 @@ app.get('/carteiras/ativos/busca', async (c) => {
 
   const db = c.env.PERF_DB
 
-  const filter = await resolveFilter(
-    db,
-    c.req.header('X-User-Role'),
-    c.req.header('X-User-Email'),
-    c.req.header('X-User-Equipe'),
-  )
+  const filter = await resolveFilterFromCtx(c)
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
   const waRV  = buildAndFilter(filter)                   // analitico_rv tem id_assessor direto
@@ -771,12 +759,7 @@ app.get('/carteiras/drill/rv', async (c) => {
 
   const db = c.env.PERF_DB
 
-  const filter = await resolveFilter(
-    db,
-    c.req.header('X-User-Role'),
-    c.req.header('X-User-Email'),
-    c.req.header('X-User-Equipe'),
-  )
+  const filter = await resolveFilterFromCtx(c)
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
   const wa = buildAndFilter(filter)
@@ -826,14 +809,7 @@ app.get('/carteiras/drill/rv', async (c) => {
 app.get('/carteiras/rf/ativos', async (c) => {
   const db = c.env.PERF_DB
 
-  const filter = await resolveFilter(
-    db,
-    c.req.header('X-User-Role'),
-    c.req.header('X-User-Email'),
-    c.req.header('X-User-Equipe'),
-    c.req.header('X-Filter-Type'),
-    c.req.header('X-Filter-Value'),
-  )
+  const filter = await resolveFilterFromCtx(c)
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
   const wa = buildAndFilter(filter, 'p.id_assessor')
@@ -866,12 +842,7 @@ app.get('/carteiras/drill', async (c) => {
 
   const db = c.env.PERF_DB
 
-  const filter = await resolveFilter(
-    db,
-    c.req.header('X-User-Role'),
-    c.req.header('X-User-Email'),
-    c.req.header('X-User-Equipe'),
-  )
+  const filter = await resolveFilterFromCtx(c)
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
   const wa = buildAndFilter(filter, 'p.id_assessor')
@@ -934,12 +905,7 @@ app.get('/carteiras/drill/export', async (c) => {
 
   const db = c.env.PERF_DB
 
-  const filter = await resolveFilter(
-    db,
-    c.req.header('X-User-Role'),
-    c.req.header('X-User-Email'),
-    c.req.header('X-User-Equipe'),
-  )
+  const filter = await resolveFilterFromCtx(c)
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
   const wa = buildAndFilter(filter, 'p.id_assessor')
@@ -1002,12 +968,7 @@ app.post('/carteiras/drill/setor', async (c) => {
 
   const db = c.env.PERF_DB
 
-  const filter = await resolveFilter(
-    db,
-    c.req.header('X-User-Role'),
-    c.req.header('X-User-Email'),
-    c.req.header('X-User-Equipe'),
-  )
+  const filter = await resolveFilterFromCtx(c)
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
   const wa     = buildAndFilter(filter)                       // analitico_rv (sem alias)
@@ -1097,12 +1058,7 @@ app.get('/carteiras/drill/janela', async (c) => {
 
   const db = c.env.PERF_DB
 
-  const filter = await resolveFilter(
-    db,
-    c.req.header('X-User-Role'),
-    c.req.header('X-User-Email'),
-    c.req.header('X-User-Equipe'),
-  )
+  const filter = await resolveFilterFromCtx(c)
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
   const wa       = buildAndFilter(filter)                      // analitico_rf (sem alias)
@@ -1168,12 +1124,7 @@ app.get('/carteiras/drill/janela', async (c) => {
 app.get('/clientes', async (c) => {
   const db = c.env.PERF_DB
 
-  const filter = await resolveFilter(
-    db,
-    c.req.header('X-User-Role'),
-    c.req.header('X-User-Email'),
-    c.req.header('X-User-Equipe'),
-  )
+  const filter = await resolveFilterFromCtx(c)
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
   const where = filter.type === 'all'
@@ -1243,14 +1194,7 @@ app.get('/clientes', async (c) => {
 app.get('/carteiras/visao', async (c) => {
   const db = c.env.PERF_DB
 
-  const filter = await resolveFilter(
-    db,
-    c.req.header('X-User-Role'),
-    c.req.header('X-User-Email'),
-    c.req.header('X-User-Equipe'),
-    c.req.header('X-Filter-Type'),
-    c.req.header('X-Filter-Value'),
-  )
+  const filter = await resolveFilterFromCtx(c)
   if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
 
   const wa  = buildAndFilter(filter)
@@ -1363,6 +1307,131 @@ app.get('/carteiras/visao', async (c) => {
         })),
       },
       liquidez: { porIndexador: ldRows.results },
+    },
+  })
+})
+
+/* ─── PJ1 — linhas de produto lideradas pelo lider_pj ─────────────────────── */
+app.get('/pj1/receitas', async (c) => {
+  const db = c.env.PERF_DB
+
+  const filter = await resolveFilterFromCtx(c)
+  if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
+
+  const w = buildWhereFilter(filter)
+
+  const [rvRow, rfRow, coeRow, cambioRow, ofFundosRow, fundosRow, prevRow] = await Promise.all([
+    db.prepare(`SELECT COALESCE(SUM(receita), 0) AS v FROM receita_rv${w}`).first<{ v: number }>(),
+    db.prepare(`SELECT COALESCE(SUM(receita), 0) AS v FROM receita_rf${w}`).first<{ v: number }>(),
+    db.prepare(`SELECT COALESCE(SUM(receita), 0) AS v FROM receita_coe${w}`).first<{ v: number }>(),
+    db.prepare(`SELECT COALESCE(SUM(receita), 0) AS v FROM receita_cambio${w}`).first<{ v: number }>(),
+    db.prepare(`SELECT COALESCE(SUM(receita), 0) AS v FROM receita_oferta_fundos${w}`).first<{ v: number }>(),
+    db.prepare(`SELECT COALESCE(SUM(receita), 0) AS v FROM receita_fundos${w}`).first<{ v: number }>(),
+    db.prepare(`SELECT COALESCE(SUM(receita), 0) AS v FROM receita_prev${w}`).first<{ v: number }>(),
+  ])
+
+  const categorias = [
+    { slug: 'rv',            label: 'Renda Variável',   receita: rvRow?.v ?? 0 },
+    { slug: 'rf',            label: 'Renda Fixa',       receita: rfRow?.v ?? 0 },
+    { slug: 'coe',           label: 'COE',              receita: coeRow?.v ?? 0 },
+    { slug: 'cambio',        label: 'Câmbio',           receita: cambioRow?.v ?? 0 },
+    { slug: 'oferta_fundos', label: 'Oferta de Fundos', receita: ofFundosRow?.v ?? 0 },
+    { slug: 'fundos',        label: 'Fundos',           receita: fundosRow?.v ?? 0 },
+    { slug: 'previdencia',   label: 'Previdência',      receita: prevRow?.v ?? 0 },
+  ]
+  const total = categorias.reduce((s, c) => s + c.receita, 0)
+
+  const mesLabel = new Date()
+    .toLocaleDateString('pt-BR', { month: 'long', timeZone: 'America/Sao_Paulo' })
+    .replace(/^\w/, (ch) => ch.toUpperCase())
+
+  return c.json({
+    data: {
+      mesLabel,
+      categorias,
+      total,
+    },
+  })
+})
+
+app.get('/pj1/drill', async (c) => {
+  const db = c.env.PERF_DB
+  const categoria = c.req.query('categoria') ?? ''
+
+  const TABELAS: Record<string, { tabela: string; label: string }> = {
+    rv:            { tabela: 'receita_rv',            label: 'Renda Variável'   },
+    rf:            { tabela: 'receita_rf',            label: 'Renda Fixa'       },
+    coe:           { tabela: 'receita_coe',           label: 'COE'              },
+    cambio:        { tabela: 'receita_cambio',        label: 'Câmbio'           },
+    oferta_fundos: { tabela: 'receita_oferta_fundos', label: 'Oferta de Fundos' },
+  }
+  const meta = TABELAS[categoria]
+  if (!meta) return c.json({ error: 'categoria inválida' }, 400)
+
+  const filter = await resolveFilterFromCtx(c)
+  if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
+
+  const wa = buildAndFilter(filter, 'r.id_assessor')
+
+  const rows = await db.prepare(`
+    SELECT
+      COALESCE(a.equipe, 'SEM EQUIPE') AS equipe,
+      r.id_assessor,
+      COALESCE(a.nome_assessor, r.id_assessor) AS nome_assessor,
+      r.id_cliente,
+      bc.nome_cliente,
+      SUM(r.receita) AS receita
+    FROM ${meta.tabela} r
+    LEFT JOIN assessores a ON r.id_assessor = a.id_assessor
+    LEFT JOIN base_clientes bc ON r.id_cliente = bc.id_cliente
+    WHERE 1=1${wa}
+    GROUP BY COALESCE(a.equipe, 'SEM EQUIPE'), r.id_assessor, r.id_cliente
+    HAVING SUM(r.receita) > 0
+    ORDER BY receita DESC
+  `).all<{ equipe: string; id_assessor: string; nome_assessor: string; id_cliente: string | number | null; nome_cliente: string | null; receita: number }>()
+
+  type Cliente = { id: string | number; nome: string | null; receita: number }
+  type Assessor = { id: string; nome: string; receita: number; clientes: Cliente[] }
+  type Equipe = { equipe: string; total: number; assessores: Assessor[] }
+
+  const equipesMap = new Map<string, { entry: Equipe; assessoresMap: Map<string, Assessor> }>()
+  for (const row of rows.results) {
+    if (!equipesMap.has(row.equipe)) {
+      equipesMap.set(row.equipe, {
+        entry: { equipe: row.equipe, total: 0, assessores: [] },
+        assessoresMap: new Map(),
+      })
+    }
+    const eq = equipesMap.get(row.equipe)!
+    eq.entry.total += row.receita
+
+    if (!eq.assessoresMap.has(row.id_assessor)) {
+      const assessor: Assessor = { id: row.id_assessor, nome: row.nome_assessor, receita: 0, clientes: [] }
+      eq.assessoresMap.set(row.id_assessor, assessor)
+      eq.entry.assessores.push(assessor)
+    }
+    const asr = eq.assessoresMap.get(row.id_assessor)!
+    asr.receita += row.receita
+    if (row.id_cliente != null) {
+      asr.clientes.push({ id: row.id_cliente, nome: row.nome_cliente, receita: row.receita })
+    }
+  }
+  // Ordenação: equipes por total desc; assessores dentro da equipe por receita desc; clientes idem.
+  const equipes: Equipe[] = Array.from(equipesMap.values())
+    .map((eq) => {
+      eq.entry.assessores.sort((a, b) => b.receita - a.receita)
+      eq.entry.assessores.forEach((a) => a.clientes.sort((x, y) => y.receita - x.receita))
+      return eq.entry
+    })
+    .sort((a, b) => b.total - a.total)
+  const total = equipes.reduce((s, e) => s + e.total, 0)
+
+  return c.json({
+    data: {
+      categoria,
+      label: meta.label,
+      total,
+      equipes,
     },
   })
 })

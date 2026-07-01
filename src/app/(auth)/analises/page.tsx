@@ -146,6 +146,7 @@ function perfHeaders(
   email: string,
   role: string,
   equipe: string | undefined,
+  idAssessor: string | undefined,
   filterType?: string,
   filterValue?: string,
 ) {
@@ -153,6 +154,7 @@ function perfHeaders(
     'X-User-Email': email,
     'X-User-Role': role,
     'X-User-Equipe': equipe ?? '',
+    ...(idAssessor ? { 'X-User-Id-Assessor': idAssessor } : {}),
     ...(filterType ? { 'X-Filter-Type': filterType } : {}),
     ...(filterValue ? { 'X-Filter-Value': filterValue } : {}),
   }
@@ -162,6 +164,7 @@ type FetchOpts = {
   email: string
   role: string
   equipe: string | undefined
+  idAssessor: string | undefined
   filterType?: string
   filterValue?: string
 }
@@ -181,6 +184,7 @@ async function getOnepage(opts: FetchOpts): Promise<OnepagePayload | null> {
         opts.email,
         opts.role,
         opts.equipe,
+        opts.idAssessor,
         opts.filterType,
         opts.filterValue,
       ),
@@ -207,6 +211,7 @@ async function getMetas(opts: FetchOpts): Promise<MetasPayload | null> {
         opts.email,
         opts.role,
         opts.equipe,
+        opts.idAssessor,
         opts.filterType,
         opts.filterValue,
       ),
@@ -234,6 +239,7 @@ async function getHistorico(opts: FetchOpts): Promise<HistoricoPayload | null> {
         opts.email,
         opts.role,
         opts.equipe,
+        opts.idAssessor,
         opts.filterType,
         opts.filterValue,
       ),
@@ -251,8 +257,8 @@ type AssessoresPayload = {
   assessores: { id_assessor: string; nome_assessor: string | null; equipe: string }[]
 }
 
-async function getAssessores(role: string, email: string, equipe?: string): Promise<AssessoresPayload | null> {
-  if (role !== 'admin' && role !== 'master' && role !== 'lider') return null
+async function getAssessores(role: string, email: string, equipe?: string, idAssessor?: string): Promise<AssessoresPayload | null> {
+  if (role !== 'admin' && role !== 'master' && role !== 'lider' && role !== 'lider_pj') return null
   try {
     const res = await apiFetch(`/performance/assessores`, {
       cache: 'no-store',
@@ -260,6 +266,7 @@ async function getAssessores(role: string, email: string, equipe?: string): Prom
         'X-User-Role': role,
         'X-User-Email': email,
         ...(equipe ? { 'X-User-Equipe': equipe } : {}),
+        ...(idAssessor ? { 'X-User-Id-Assessor': idAssessor } : {}),
       },
     })
     if (!res.ok) return null
@@ -769,6 +776,7 @@ export default async function AnalisesPage({
     email: session.email,
     role: session.role,
     equipe: session.equipe,
+    idAssessor: session.idAssessor,
     ...(canFilter && filterType ? { filterType } : {}),
     ...(canFilter && filterValue ? { filterValue } : {}),
   }
@@ -777,7 +785,7 @@ export default async function AnalisesPage({
     getOnepage(opts),
     getMetas(opts),
     getHistorico(opts),
-    getAssessores(session.role, session.email, session.equipe),
+    getAssessores(session.role, session.email, session.equipe, session.idAssessor),
   ])
   const firstName = session.name.split(' ')[0]
   const isLider = session.role === 'lider'

@@ -30,6 +30,7 @@ async function getClientes(
   email: string,
   role: string,
   equipe?: string,
+  idAssessor?: string,
 ): Promise<ClientesPayload | null> {
   try {
     const res = await apiFetch(`/performance/clientes`, {
@@ -38,6 +39,7 @@ async function getClientes(
         'X-User-Email': email,
         'X-User-Role': role,
         'X-User-Equipe': equipe ?? '',
+        ...(idAssessor ? { 'X-User-Id-Assessor': idAssessor } : {}),
       },
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -52,7 +54,7 @@ async function getClientes(
 
 export default async function ClientesPage() {
   const session = await requireSession()
-  const data = await getClientes(session.email, session.role, session.equipe)
+  const data = await getClientes(session.email, session.role, session.equipe, session.idAssessor)
 
   const stats = data?.stats ?? { total: 0, ativos: 0, inativos: 0, aum_total: 0 }
   const clientes = data?.clientes ?? []

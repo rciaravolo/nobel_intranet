@@ -64,6 +64,7 @@ async function getKpis(
   email: string,
   role: string,
   equipe: string | undefined,
+  idAssessor: string | undefined,
 ): Promise<KpisPayload | null> {
   try {
     const res = await apiFetch(`/performance/kpis`, {
@@ -72,6 +73,7 @@ async function getKpis(
         'X-User-Email': email,
         'X-User-Role': role,
         'X-User-Equipe': equipe ?? '',
+        ...(idAssessor ? { 'X-User-Id-Assessor': idAssessor } : {}),
       },
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -163,7 +165,7 @@ export default async function DashboardPage() {
   const session = await requireSession()
   const [{ noticias, atualizadoEm }, kpis] = await Promise.all([
     getNoticias(),
-    getKpis(session.email, session.role, session.equipe),
+    getKpis(session.email, session.role, session.equipe, session.idAssessor),
   ])
 
   const firstName = session.name.split(' ')[0]

@@ -118,6 +118,7 @@ type FilterOpts = {
   email: string
   role: string
   equipe?: string
+  idAssessor?: string
   filterType?: string
   filterValue?: string
 }
@@ -135,6 +136,7 @@ async function getVisao(opts: FilterOpts): Promise<VisaoPayload | null> {
         'X-User-Email': opts.email,
         'X-User-Role': opts.role,
         'X-User-Equipe': opts.equipe ?? '',
+        ...(opts.idAssessor ? { 'X-User-Id-Assessor': opts.idAssessor } : {}),
         ...(opts.filterType  ? { 'X-Filter-Type':  opts.filterType  } : {}),
         ...(opts.filterValue ? { 'X-Filter-Value': opts.filterValue } : {}),
       },
@@ -155,6 +157,7 @@ async function getRfAtivos(opts: FilterOpts): Promise<RFAtivo[]> {
         'X-User-Email': opts.email,
         'X-User-Role': opts.role,
         'X-User-Equipe': opts.equipe ?? '',
+        ...(opts.idAssessor ? { 'X-User-Id-Assessor': opts.idAssessor } : {}),
         ...(opts.filterType  ? { 'X-Filter-Type':  opts.filterType  } : {}),
         ...(opts.filterValue ? { 'X-Filter-Value': opts.filterValue } : {}),
       },
@@ -175,6 +178,7 @@ async function getDistribuicao(opts: FilterOpts): Promise<DistribuicaoPayload | 
         'X-User-Email': opts.email,
         'X-User-Role': opts.role,
         'X-User-Equipe': opts.equipe ?? '',
+        ...(opts.idAssessor ? { 'X-User-Id-Assessor': opts.idAssessor } : {}),
         ...(opts.filterType  ? { 'X-Filter-Type':  opts.filterType  } : {}),
         ...(opts.filterValue ? { 'X-Filter-Value': opts.filterValue } : {}),
       },
@@ -187,8 +191,8 @@ async function getDistribuicao(opts: FilterOpts): Promise<DistribuicaoPayload | 
   }
 }
 
-async function getAssessores(role: string, email: string, equipe?: string): Promise<AssessoresPayload | null> {
-  if (role !== 'admin' && role !== 'master' && role !== 'lider') return null
+async function getAssessores(role: string, email: string, equipe?: string, idAssessor?: string): Promise<AssessoresPayload | null> {
+  if (role !== 'admin' && role !== 'master' && role !== 'lider' && role !== 'lider_pj') return null
   try {
     const res = await apiFetch('/performance/assessores', {
       cache: 'no-store',
@@ -196,6 +200,7 @@ async function getAssessores(role: string, email: string, equipe?: string): Prom
         'X-User-Role': role,
         'X-User-Email': email,
         ...(equipe ? { 'X-User-Equipe': equipe } : {}),
+        ...(idAssessor ? { 'X-User-Id-Assessor': idAssessor } : {}),
       },
     })
     if (!res.ok) return null
@@ -377,6 +382,7 @@ export default async function CarteirasPage({
     email: session.email,
     role: session.role,
     ...(session.equipe ? { equipe: session.equipe } : {}),
+    ...(session.idAssessor ? { idAssessor: session.idAssessor } : {}),
     ...(filterType  ? { filterType  } : {}),
     ...(filterValue ? { filterValue } : {}),
   }
@@ -384,7 +390,7 @@ export default async function CarteirasPage({
   const [d, rfAtivos, assessoresData, distribuicao] = await Promise.all([
     getVisao(opts),
     getRfAtivos(opts),
-    getAssessores(session.role, session.email, session.equipe),
+    getAssessores(session.role, session.email, session.equipe, session.idAssessor),
     getDistribuicao(opts),
   ])
 

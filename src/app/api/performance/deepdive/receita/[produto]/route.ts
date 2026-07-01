@@ -1,4 +1,5 @@
 import { apiFetch } from '@/lib/api/fetch'
+import { authHeaders } from '@/lib/auth/api-headers'
 import { getSession } from '@/lib/auth/session'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -17,20 +18,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prod
     return NextResponse.json({ error: 'produto inválido' }, { status: 400 })
   }
 
-
   const sp = req.nextUrl.searchParams
   const filterType = sp.get('filter_type')
   const filterValue = sp.get('filter_value')
 
   const res = await apiFetch(`/performance/deepdive/receita/${encodeURIComponent(produto)}`, {
     cache: 'no-store',
-    headers: {
-      'X-User-Email': session.email,
-      'X-User-Role': session.role,
-      'X-User-Equipe': session.equipe ?? '',
+    headers: authHeaders(session, {
       ...(filterType ? { 'X-Filter-Type': filterType } : {}),
       ...(filterValue ? { 'X-Filter-Value': filterValue } : {}),
-    },
+    }),
   })
 
   const json = await res.json()

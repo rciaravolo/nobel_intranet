@@ -14,8 +14,10 @@ export interface SessionPayload {
   userId: string
   username: string
   name: string
-  role: 'admin' | 'master' | 'lider' | 'assessor'
+  role: 'admin' | 'master' | 'lider' | 'lider_pj' | 'assessor'
   equipe?: string
+  /** Preenchido apenas para role `lider_pj` — id_assessor usado no filtro do OnePage. */
+  idAssessor?: string
   email: string
   exp: number
 }

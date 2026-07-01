@@ -12,8 +12,10 @@ export interface User {
   passwordHash: string
   name: string
   email: string
-  role: 'admin' | 'master' | 'lider' | 'assessor'
+  role: 'admin' | 'master' | 'lider' | 'lider_pj' | 'assessor'
   equipe?: string
+  /** Preenchido apenas para role `lider_pj` — id_assessor usado no filtro do OnePage. */
+  idAssessor?: string
   department: string
   avatarInitials: string
 }
@@ -157,6 +159,19 @@ const SEED_USERS: User[] = [
     equipe: 'SMART',
     department: 'Assessoria — SMART',
     avatarInitials: 'MP',
+  },
+  {
+    id: 'usr_lider_pj_001',
+    username: 'luis.vieira',
+    // scrypt hash de "nobel2026"
+    passwordHash:
+      '1b004cd5a7122e4406cfc4bc9eb976b07b940405817897622fad6a1663dc59b14a0d41a5136b64b7b575b779565ae0be35d8840bba6db27385386b5297bad099.1b9d74db5f48f4c898fc07600fef2119',
+    name: 'Luis Vieira',
+    email: 'luis.vieira@nobelcapital.com.br',
+    role: 'lider_pj',
+    idAssessor: 'A25771',
+    department: 'PJ1',
+    avatarInitials: 'LV',
   },
 ]
 

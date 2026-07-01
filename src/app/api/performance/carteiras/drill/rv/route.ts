@@ -1,4 +1,5 @@
 import { apiFetch } from '@/lib/api/fetch'
+import { authHeaders } from '@/lib/auth/api-headers'
 import { getSession } from '@/lib/auth/session'
 import { type NextRequest, NextResponse } from 'next/server'
 
@@ -11,13 +12,7 @@ export async function GET(req: NextRequest) {
 
   const res = await apiFetch(
     `/performance/carteiras/drill/rv?ativo=${encodeURIComponent(ativo)}`,
-    {
-      headers: {
-        'X-User-Email': session.email,
-        'X-User-Role': session.role,
-        'X-User-Equipe': session.equipe ?? '',
-      },
-    },
+    { headers: authHeaders(session) },
   )
 
   const json = await res.json()
