@@ -1354,6 +1354,63 @@ app.get('/pj1/receitas', async (c) => {
   })
 })
 
+/* ─── PJ1 — receita agregada por equipe (drill: equipe → assessor) ────────── */
+app.get('/pj1/receita-por-equipe', async (c) => {
+  const db = c.env.PERF_DB
+
+  const filter = await resolveFilterFromCtx(c)
+  if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
+
+  const wa = buildAndFilter(filter, 'r.id_assessor')
+
+  const TABLES = [
+    'receita_rv',
+    'receita_rf',
+    'receita_coe',
+    'receita_cambio',
+    'receita_oferta_fundos',
+    'receita_fundos',
+    'receita_prev',
+  ]
+  const unionSql = TABLES.map((t) => `SELECT id_assessor, receita FROM ${t}`).join(' UNION ALL ')
+
+  const rows = await db.prepare(`
+    SELECT
+      COALESCE(a.equipe, 'SEM EQUIPE') AS equipe,
+      r.id_assessor AS id_assessor,
+      COALESCE(a.nome_assessor, r.id_assessor) AS nome_assessor,
+      SUM(r.receita) AS receita
+    FROM (${unionSql}) r
+    LEFT JOIN assessores a ON r.id_assessor = a.id_assessor
+    WHERE 1=1${wa}
+    GROUP BY COALESCE(a.equipe, 'SEM EQUIPE'), r.id_assessor
+    HAVING SUM(r.receita) > 0
+    ORDER BY receita DESC
+  `).all<{ equipe: string; id_assessor: string; nome_assessor: string; receita: number }>()
+
+  type Assessor = { id: string; nome: string; receita: number }
+  type Equipe = { equipe: string; total: number; assessores: Assessor[] }
+
+  const equipesMap = new Map<string, Equipe>()
+  for (const row of rows.results) {
+    if (!equipesMap.has(row.equipe)) {
+      equipesMap.set(row.equipe, { equipe: row.equipe, total: 0, assessores: [] })
+    }
+    const eq = equipesMap.get(row.equipe)!
+    eq.total += row.receita
+    eq.assessores.push({ id: row.id_assessor, nome: row.nome_assessor, receita: row.receita })
+  }
+  const equipes: Equipe[] = Array.from(equipesMap.values())
+    .map((eq) => {
+      eq.assessores.sort((a, b) => b.receita - a.receita)
+      return eq
+    })
+    .sort((a, b) => b.total - a.total)
+  const total = equipes.reduce((s, e) => s + e.total, 0)
+
+  return c.json({ data: { total, equipes } })
+})
+
 app.get('/pj1/drill', async (c) => {
   const db = c.env.PERF_DB
   const categoria = c.req.query('categoria') ?? ''

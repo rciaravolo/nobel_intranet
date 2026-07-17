@@ -4,6 +4,7 @@ import { requireSession } from '@/lib/auth/session'
 import { redirect } from 'next/navigation'
 import { PageGreeting } from '../_components/PageGreeting'
 import { type Categoria, PJ1Client } from './_components/PJ1Client'
+import { type ReceitaEquipe, ReceitaPorEquipe } from './_components/ReceitaPorEquipe'
 
 /* ─── Tipos ──────────────────────────────────────────────────────────────── */
 
@@ -13,9 +14,16 @@ type PJ1Payload = {
   total: number
 }
 
+type PJ1EquipePayload = {
+  total: number
+  equipes: ReceitaEquipe[]
+}
+
 /* ─── Fetch ──────────────────────────────────────────────────────────────── */
 
-async function getPJ1Receitas(session: Awaited<ReturnType<typeof requireSession>>): Promise<PJ1Payload | null> {
+async function getPJ1Receitas(
+  session: Awaited<ReturnType<typeof requireSession>>,
+): Promise<PJ1Payload | null> {
   try {
     const res = await apiFetch('/performance/pj1/receitas', {
       cache: 'no-store',
@@ -23,6 +31,22 @@ async function getPJ1Receitas(session: Awaited<ReturnType<typeof requireSession>
     })
     if (!res.ok) return null
     const json = (await res.json()) as { data: PJ1Payload }
+    return json.data
+  } catch {
+    return null
+  }
+}
+
+async function getPJ1PorEquipe(
+  session: Awaited<ReturnType<typeof requireSession>>,
+): Promise<PJ1EquipePayload | null> {
+  try {
+    const res = await apiFetch('/performance/pj1/receita-por-equipe', {
+      cache: 'no-store',
+      headers: authHeaders(session),
+    })
+    if (!res.ok) return null
+    const json = (await res.json()) as { data: PJ1EquipePayload }
     return json.data
   } catch {
     return null
@@ -38,7 +62,7 @@ export default async function PJ1Page() {
     redirect('/dashboard')
   }
 
-  const data = await getPJ1Receitas(session)
+  const [data, porEquipe] = await Promise.all([getPJ1Receitas(session), getPJ1PorEquipe(session)])
   const categorias = data?.categorias ?? []
   const total = data?.total ?? 0
   const mesLabel = data?.mesLabel ?? ''
@@ -48,6 +72,10 @@ export default async function PJ1Page() {
       <PageGreeting name={session.name} label={`PJ1 · Receitas ${mesLabel}`} />
 
       <PJ1Client categorias={categorias} total={total} mesLabel={mesLabel} />
+
+      {porEquipe && porEquipe.equipes.length > 0 && (
+        <ReceitaPorEquipe equipes={porEquipe.equipes} total={porEquipe.total} />
+      )}
 
       {!data && (
         <div
