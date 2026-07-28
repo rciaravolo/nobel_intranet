@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-const PUBLIC = ['/login', '/api/auth/login', '/api/auth/logout', '/api/auth/demo', '/api/mock', '/demo', '/_next', '/favicon']
+const PUBLIC = ['/login', '/esqueci-senha', '/nova-senha', '/api/auth/login', '/api/auth/logout', '/api/auth/forgot', '/api/auth/reset', '/api/auth/demo', '/api/mock', '/demo', '/_next', '/favicon']
 const ASSET_RE = /\.(png|jpg|jpeg|svg|ico|webp|woff2?|css|js|map)$/
 const MOBILE_UA = /Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i
 

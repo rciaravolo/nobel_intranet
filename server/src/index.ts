@@ -9,6 +9,7 @@ import performanceRouter from './routes/performance'
 import pnlRouter from './routes/pnl'
 import adminRouter from './routes/admin'
 import qualidadeRouter from './routes/qualidade'
+import authRouter from './routes/auth'
 import { fetchAllNews } from './lib/rss'
 import { fetchAllTickers } from './lib/ticker'
 
@@ -44,6 +45,7 @@ app.route('/performance', performanceRouter)
 app.route('/pnl', pnlRouter)
 app.route('/admin', adminRouter)
 app.route('/qualidade', qualidadeRouter)
+app.route('/auth', authRouter)
 
 // ---------------------------------------------------------------------------
 // 404 catch-all

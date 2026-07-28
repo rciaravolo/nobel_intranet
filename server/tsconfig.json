@@ -6,7 +6,7 @@
     "moduleResolution": "bundler",
     "strict": true,
     "noUncheckedIndexedAccess": true,
-    "types": ["@cloudflare/workers-types"],
+    "types": ["@cloudflare/workers-types", "node"],
     "resolveJsonModule": true
   },
   "include": ["src/**/*.ts", "src/**/*.json"]

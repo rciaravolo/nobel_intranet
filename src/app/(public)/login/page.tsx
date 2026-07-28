@@ -151,7 +151,11 @@ export default function LoginPage() {
               </span>
             </button>
 
-            <button type="button" className="btn-forgot">
+            <button
+              type="button"
+              className="btn-forgot"
+              onClick={() => router.push('/esqueci-senha')}
+            >
               Esqueci minha senha
             </button>
           </form>
