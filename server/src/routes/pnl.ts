@@ -168,7 +168,7 @@ app.get('/receita-equipes', async (c) => {
     'receita_rv', 'receita_rf', 'receita_coe', 'receita_cambio',
     'receita_feefixo', 'receita_seguros', 'receita_consorcio', 'receita_dominion',
     'receita_oferta_fundos', 'receita_parceiros', 'receita_precas',
-    'receita_fundos', 'receita_prev',
+    'receita_fundos', 'receita_prev', 'receita_financiamento',
   ]
 
   const [metaRows, allSnapRows, ...receitaResults] = await Promise.all([
@@ -314,7 +314,7 @@ const TABELAS_RECEITA = [
   'receita_rv', 'receita_rf', 'receita_coe', 'receita_cambio',
   'receita_feefixo', 'receita_seguros', 'receita_consorcio', 'receita_dominion',
   'receita_oferta_fundos', 'receita_parceiros', 'receita_precas',
-  'receita_fundos', 'receita_prev',
+  'receita_fundos', 'receita_prev', 'receita_financiamento',
 ] as const
 
 /* ─── GET /pnl/indicadores/kpis ─────────────────────────────────────────── */
