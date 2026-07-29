@@ -552,6 +552,7 @@ app.get('/deepdive/receita/:produto', async (c) => {
     fundos:        { tabela: 'receita_fundos',        label: 'Fundos'           },
     previdencia:   { tabela: 'receita_prev',          label: 'Previdência'      },
     precas:        { tabela: 'receita_precas',        label: 'Precatórios'      },
+    financiamento: { tabela: 'receita_financiamento', label: 'Financiamento'    },
   }
 
   const info = PRODUTO_MAP[produto]
@@ -564,7 +565,20 @@ app.get('/deepdive/receita/:produto', async (c) => {
 
   let clientes: ClienteRow[]
 
-  if (produto === 'dominion') {
+  if (produto === 'financiamento') {
+    const r = await db.prepare(`
+      SELECT r.nome_cliente AS id_cliente,
+             r.nome_cliente,
+             r.nome_assessor,
+             SUM(r.receita) AS valor
+      FROM   receita_financiamento r
+      ${buildWhereFilter(filter, 'r.id_assessor')}
+      GROUP  BY r.nome_cliente
+      ORDER  BY valor DESC
+      LIMIT  20
+    `).all<ClienteRow>()
+    clientes = r.results
+  } else if (produto === 'dominion') {
     const r = await db.prepare(`
       SELECT r.conta        AS id_cliente,
              r.consultor    AS nome_cliente,

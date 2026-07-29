@@ -32,6 +32,7 @@ const PRODUTO_SLUG: Record<string, string> = {
   Fundos: 'fundos',
   Previdência: 'previdencia',
   Precatórios: 'precas',
+  Financiamento: 'financiamento',
 }
 
 const RECEITA_COLOR: Record<string, string> = {
@@ -47,6 +48,7 @@ const RECEITA_COLOR: Record<string, string> = {
   Fundos: '#0EA5E9',
   Previdência: '#84CC16',
   Precatórios: '#A78BFA',
+  Financiamento: '#F43F5E',
 }
 
 function fBRL(val: number): string {
