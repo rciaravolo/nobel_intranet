@@ -5,6 +5,7 @@ import { AnalisesFilters } from './_components/AnalisesFilters'
 import { BlocoCaptacao } from './_components/BlocoCaptacao'
 import { BlocoMetas } from './_components/BlocoMetas'
 import { BlocoReceita } from './_components/BlocoReceita'
+import { ExportOnepageButton } from './_components/ExportOnepageButton'
 import { GraficosHistorico } from './_components/GraficosHistorico'
 
 /* ─── Tipos ──────────────────────────────────────────────────────────────── */
@@ -297,6 +298,7 @@ const label: React.CSSProperties = {
   color: 'var(--fg-faint)',
   textTransform: 'uppercase',
   letterSpacing: '0.10em',
+  textAlign: 'center',
 }
 
 const valor: React.CSSProperties = {
@@ -307,11 +309,13 @@ const valor: React.CSSProperties = {
   marginBottom: 10,
   lineHeight: 1,
   letterSpacing: '-.02em',
+  textAlign: 'center',
 }
 
 const pill = (up?: boolean): React.CSSProperties => ({
   display: 'inline-flex',
   alignItems: 'center',
+  justifyContent: 'center',
   gap: 4,
   fontFamily: 'var(--f-mono)',
   fontSize: 11,
@@ -816,11 +820,21 @@ export default async function AnalisesPage({
   })()
 
   return (
-    <div style={{ maxWidth: 1340 }}>
+    <div id="onepage-export-area" style={{ maxWidth: 1340 }}>
       {/* ── Header ── */}
       <PageGreeting
         name={session.name}
         label={`Posição em ${fDataRef(data?.dataRef ?? null)}`}
+        {...(session.role === 'assessor'
+          ? {
+              right: (
+                <ExportOnepageButton
+                  assessorName={session.name}
+                  dataRef={data?.dataRef ?? null}
+                />
+              ),
+            }
+          : {})}
       />
 
       {/* ── Filtros (admin / master / lider) ── */}
@@ -836,110 +850,73 @@ export default async function AnalisesPage({
       {/* ── Bloco 1: KPI cards — full width ── */}
       <div className="grid-kpi" style={{ marginBottom: 20 }}>
         {/* AuM */}
-        <div style={{ ...card, position: 'relative' }}>
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 2,
-              background: 'linear-gradient(90deg, var(--c-gold), #D4AF6A)',
-            }}
-          />
-          <div style={cardPad}>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: 14,
-              }}
-            >
-              <span style={label}>Custódia (AuM)</span>
-              <div style={iconBox('var(--c-gold)')}>
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--c-gold)"
-                  strokeWidth="1.5"
-                  width="15"
-                  height="15"
-                  aria-hidden="true"
-                >
-                  <line x1="12" y1="1" x2="12" y2="23" />
-                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
-              </div>
+        <div style={card}>
+          <div style={{ ...cardPad, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+            <div style={iconBox('var(--c-gold)')}>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--c-gold)"
+                strokeWidth="1.5"
+                width="15"
+                height="15"
+                aria-hidden="true"
+              >
+                <line x1="12" y1="1" x2="12" y2="23" />
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
             </div>
-            <p style={valor}>{fBRL(aum)}</p>
+            <span style={label}>Custódia (AuM)</span>
+            <p style={{ ...valor, marginBottom: 0 }}>{fBRL(aum)}</p>
             <span style={pill()}>posição {fDataRef(data?.dataRef ?? null)}</span>
           </div>
         </div>
 
         {/* Clientes Ativos */}
         <div style={card}>
-          <div style={cardPad}>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: 14,
-              }}
-            >
-              <span style={label}>Clientes Ativos</span>
-              <div style={iconBox('var(--color-b-500)')}>
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--color-b-500)"
-                  strokeWidth="1.5"
-                  width="15"
-                  height="15"
-                  aria-hidden="true"
-                >
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-              </div>
+          <div style={{ ...cardPad, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+            <div style={iconBox('var(--color-b-500)')}>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--color-b-500)"
+                strokeWidth="1.5"
+                width="15"
+                height="15"
+                aria-hidden="true"
+              >
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
             </div>
-            <p style={valor}>{fNum(clientes.ativos)}</p>
+            <span style={label}>Clientes Ativos</span>
+            <p style={{ ...valor, marginBottom: 0 }}>{fNum(clientes.ativos)}</p>
             <span style={pill(true)}>↑ base ativa XP</span>
           </div>
         </div>
 
         {/* Clientes Inativos */}
         <div style={card}>
-          <div style={cardPad}>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: 14,
-              }}
-            >
-              <span style={label}>Clientes Inativos</span>
-              <div style={iconBox('var(--color-negative)')}>
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--color-negative)"
-                  strokeWidth="1.5"
-                  width="15"
-                  height="15"
-                  aria-hidden="true"
-                >
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <line x1="22" y1="11" x2="16" y2="11" />
-                </svg>
-              </div>
+          <div style={{ ...cardPad, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+            <div style={iconBox('var(--color-negative)')}>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--color-negative)"
+                strokeWidth="1.5"
+                width="15"
+                height="15"
+                aria-hidden="true"
+              >
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <line x1="22" y1="11" x2="16" y2="11" />
+              </svg>
             </div>
-            <p style={valor}>{fNum(clientes.inativos)}</p>
+            <span style={label}>Clientes Inativos</span>
+            <p style={{ ...valor, marginBottom: 0 }}>{fNum(clientes.inativos)}</p>
             <span style={pill(false)}>
               ↓ {fPct(clientes.inativos, clientes.ativos + clientes.inativos)} da base total
             </span>
@@ -948,33 +925,24 @@ export default async function AnalisesPage({
 
         {/* Receita Total */}
         <div style={card}>
-          <div style={cardPad}>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: 14,
-              }}
-            >
-              <span style={label}>Receita Total</span>
-              <div style={iconBox('var(--color-b-500)')}>
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--color-b-500)"
-                  strokeWidth="1.5"
-                  width="15"
-                  height="15"
-                  aria-hidden="true"
-                >
-                  <line x1="18" y1="20" x2="18" y2="10" />
-                  <line x1="12" y1="20" x2="12" y2="4" />
-                  <line x1="6" y1="20" x2="6" y2="14" />
-                </svg>
-              </div>
+          <div style={{ ...cardPad, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+            <div style={iconBox('var(--color-b-500)')}>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="var(--color-b-500)"
+                strokeWidth="1.5"
+                width="15"
+                height="15"
+                aria-hidden="true"
+              >
+                <line x1="18" y1="20" x2="18" y2="10" />
+                <line x1="12" y1="20" x2="12" y2="4" />
+                <line x1="6" y1="20" x2="6" y2="14" />
+              </svg>
             </div>
-            <p style={valor}>{fBRLFull(receita.total)}</p>
+            <span style={label}>Receita Total</span>
+            <p style={{ ...valor, marginBottom: 0 }}>{fBRLFull(receita.total)}</p>
             <span style={pill()}>todos os produtos</span>
           </div>
         </div>
