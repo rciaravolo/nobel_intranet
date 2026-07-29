@@ -315,6 +315,7 @@ app.get('/onepage', async (c) => {
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_fundos${buildWhereFilter(filter)}`).first<{ v: number }>(),
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_prev${buildWhereFilter(filter)}`).first<{ v: number }>(),
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_precas${buildWhereFilter(filter)}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_financiamento${buildWhereFilter(filter)}`).first<{ v: number }>(),
     ]),
     db.prepare(`
       SELECT
@@ -338,7 +339,7 @@ app.get('/onepage', async (c) => {
   const LABELS = [
     'Renda Variável', 'Renda Fixa', 'COE', 'Câmbio', 'Fee Fixo',
     'Seguros', 'Consórcio', 'Dominion', 'Oferta de Fundos',
-    'Fundos', 'Previdência', 'Precatórios',
+    'Fundos', 'Previdência', 'Precatórios', 'Financiamento',
   ]
   const porProduto = receitaRows
     .map((r, i) => ({ produto: LABELS[i]!, receita: r?.v ?? 0 }))
