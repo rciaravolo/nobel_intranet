@@ -3,7 +3,7 @@ node_modules/
 .pnp
 .pnp.js
 
-# Environment — NUNCA commitar
+# Environment — NUNCA commitar (contém secrets como CLOUDFLARE_API_TOKEN)
 .env
 .env.*
 !.env.example
@@ -13,6 +13,8 @@ node_modules/
 out/
 
 # Cloudflare / Wrangler
+# CLOUDFLARE_API_TOKEN nunca vai em arquivo do repo — usar env var do sistema
+# (Windows: User Environment Variables; Unix: ~/.bashrc/export)
 .wrangler/
 .dev.vars
 

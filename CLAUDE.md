@@ -238,20 +238,35 @@ Linha forte:         --line-strong → var(--color-n-200) → #D4CEC1
 
 ```bash
 # .env.local (desenvolvimento — NUNCA commitar)
-CLOUDFLARE_ACCOUNT_ID=
-CLOUDFLARE_API_TOKEN=
-DATABASE_URL=
+# Apenas variáveis do Next.js/app. Wrangler CLI NÃO lê este arquivo.
+API_URL=https://intra-api.nobelcapital.workers.dev
+INTERNAL_API_SECRET=
 NEXT_PUBLIC_API_URL=
-CF_ACCESS_AUD=
-CF_ACCESS_TEAM_DOMAIN=
 
-# GitHub Secrets (CI/CD)
+# Variáveis de ambiente do SISTEMA (Windows User Env Vars) — para wrangler CLI local
+# NUNCA salvar em arquivo do repo. Setar via Painel → Editar variáveis do usuário.
+CLOUDFLARE_ACCOUNT_ID=eed296214f8b8aa38533e38843f88aff  # conta corporativa Nobel (bi@nobelcapital.com.br)
+CLOUDFLARE_API_TOKEN=  # gerar em dash.cloudflare.com/profile/api-tokens (template "Edit Cloudflare Workers")
+
+# GitHub Secrets (CI/CD — configurados em github.com/rciaravolo/nobel_intranet/settings/secrets)
 CLOUDFLARE_API_TOKEN
 CLOUDFLARE_ACCOUNT_ID
 NEXT_PUBLIC_API_URL
 TELEGRAM_BOT_TOKEN
 TELEGRAM_CHAT_ID
 ```
+
+### Cloudflare Account
+
+Toda a infra roda na conta corporativa **Nobel Capital**:
+- Account: `bi@nobelcapital.com.br`
+- Account ID: `eed296214f8b8aa38533e38843f88aff`
+- Workers em produção:
+  - Frontend: `https://intra.nobelcapital.workers.dev` (Worker `intra`, definido em `wrangler.toml` raiz)
+  - API: `https://intra-api.nobelcapital.workers.dev` (Worker `intra-api`, definido em `server/wrangler.toml`)
+- Access team: `nobelcapital.cloudflareaccess.com`
+
+> Migração da conta pessoal `rafaelciaravolo@gmail.com` para a corporativa foi concluída em 2026-08-05. Todos os IDs de D1/KV foram mantidos.
 
 ## Fluxo de PR
 
