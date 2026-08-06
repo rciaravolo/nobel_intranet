@@ -9,6 +9,30 @@ type Props = {
   targetId?: string
 }
 
+/* ── Constantes de layout do PDF ─────────────────────────────────────────────
+ * Página única, largura padrão de slide 16:9, altura calculada do conteúdo.
+ */
+const PAGE_W_MM = 338.67 // 13.333" — largura padrão de slide widescreen
+const MARGIN_X_MM = 8
+const MARGIN_TOP_MM = 8
+const FOOTER_H_MM = 12
+const CONTENT_W_MM = PAGE_W_MM - MARGIN_X_MM * 2
+
+// Paleta Nobel operacional (para impressão)
+const COLOR_PAPER = '#FAFAF7'
+const COLOR_MUTED = '#5C5A4F'
+const COLOR_DARK = '#25241F'
+const COLOR_GOLD = '#C9A961'
+
+function rgb(hex: string): [number, number, number] {
+  const h = hex.replace('#', '')
+  return [
+    Number.parseInt(h.slice(0, 2), 16),
+    Number.parseInt(h.slice(2, 4), 16),
+    Number.parseInt(h.slice(4, 6), 16),
+  ]
+}
+
 function slugify(s: string): string {
   return s
     .normalize('NFD')
@@ -26,6 +50,69 @@ function dateStamp(iso: string | null): string {
   return new Date().toISOString().slice(0, 10)
 }
 
+function fmtDateBR(iso: string | null): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    timeZone: 'America/Sao_Paulo',
+  })
+}
+
+type FooterInfo = {
+  assessorName: string
+  dateRef: string
+  pageH: number
+}
+
+type PdfLike = {
+  setDrawColor: (r: number, g: number, b: number) => void
+  setFillColor: (r: number, g: number, b: number) => void
+  setLineWidth: (w: number) => void
+  line: (x1: number, y1: number, x2: number, y2: number) => void
+  setFont: (family: string, style?: string) => void
+  setFontSize: (size: number) => void
+  setTextColor: (r: number, g: number, b: number) => void
+  getTextWidth: (t: string) => number
+  text: (t: string, x: number, y: number) => void
+  rect: (x: number, y: number, w: number, h: number, style?: string) => void
+}
+
+function drawFooter(pdf: PdfLike, info: FooterInfo) {
+  const yLine = info.pageH - FOOTER_H_MM + 2
+  const yText = info.pageH - 4
+
+  // Hairline dourado (regra Nobel: ouro entra 1× por bloco, aqui é o rodapé)
+  const [gr, gg, gb] = rgb(COLOR_GOLD)
+  pdf.setDrawColor(gr, gg, gb)
+  pdf.setLineWidth(0.3)
+  pdf.line(MARGIN_X_MM, yLine, PAGE_W_MM - MARGIN_X_MM, yLine)
+
+  pdf.setFont('helvetica', 'normal')
+  pdf.setFontSize(8)
+
+  // Esquerda: NOBEL CAPITAL (muted, uppercase) · assessor (dark, bold)
+  const [mr, mg, mb] = rgb(COLOR_MUTED)
+  pdf.setTextColor(mr, mg, mb)
+  pdf.text('NOBEL CAPITAL', MARGIN_X_MM, yText)
+  const lockupW = pdf.getTextWidth('NOBEL CAPITAL')
+  const [dr, dg, db] = rgb(COLOR_DARK)
+  pdf.setTextColor(dr, dg, db)
+  pdf.setFont('helvetica', 'bold')
+  pdf.text(`  ·  ${info.assessorName}`, MARGIN_X_MM + lockupW, yText)
+
+  // Direita: data de referência em dourado
+  if (info.dateRef) {
+    pdf.setFont('helvetica', 'normal')
+    pdf.setTextColor(gr, gg, gb)
+    const dateW = pdf.getTextWidth(info.dateRef)
+    pdf.text(info.dateRef, PAGE_W_MM - MARGIN_X_MM - dateW, yText)
+  }
+}
+
 export function ExportOnepageButton({
   assessorName,
   dataRef,
@@ -40,12 +127,28 @@ export function ExportOnepageButton({
 
     setDownloading(true)
 
-    // Esconde qualquer elemento marcado com data-noprint durante a captura
+    // Esconde [data-noprint] durante a captura
     const hidden: { node: HTMLElement; prev: string }[] = []
     for (const node of Array.from(el.querySelectorAll<HTMLElement>('[data-noprint]'))) {
       hidden.push({ node, prev: node.style.visibility })
       node.style.visibility = 'hidden'
     }
+
+    // Força tema light temporariamente (evita PDF escuro se assessor tá em dark)
+    const html = document.documentElement
+    const hadDark = html.classList.contains('dark')
+    if (hadDark) html.classList.remove('dark')
+
+    // Achata sombras dos cards e força fundo paper-white — rasterizam melhor
+    const printStyle = document.createElement('style')
+    const safeTarget = targetId.replace(/[^\w-]/g, '')
+    printStyle.textContent = `
+      #${safeTarget} *, #${safeTarget} *::before, #${safeTarget} *::after {
+        box-shadow: none !important;
+      }
+      #${safeTarget} { background: ${COLOR_PAPER} !important; }
+    `
+    document.head.appendChild(printStyle)
 
     try {
       const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
@@ -53,94 +156,50 @@ export function ExportOnepageButton({
         import('jspdf'),
       ])
 
-      // Coleta breakpoints seguros ANTES da captura (posições em CSS px
-      // relativas ao topo do elemento onde é seguro quebrar página).
-      const elTop = el.getBoundingClientRect().top
-      const rawBreakpoints = new Set<number>()
-      const collect = (node: Element) => {
-        const r = node.getBoundingClientRect()
-        rawBreakpoints.add(Math.round(r.bottom - elTop))
-      }
-      for (const child of Array.from(el.children)) {
-        collect(child)
-        for (const gc of Array.from(child.children)) {
-          collect(gc)
-          for (const ggc of Array.from(gc.children)) {
-            collect(ggc)
-          }
-        }
-      }
-      const breakpointsCssPx = Array.from(rawBreakpoints)
-        .filter((v) => v > 0)
-        .sort((a, b) => a - b)
-
-      // Renderiza com buffer na largura para evitar corte lateral.
-      const captureWidth = Math.max(el.scrollWidth, window.innerWidth) + 24
+      // Captura em alta resolução — usa a largura REAL do conteúdo (não da
+      // janela), senão sobra espaço vazio à direita quando a viewport é wide.
+      const captureWidth = el.scrollWidth + 24
       const canvas = await html2canvas(el, {
-        scale: 2,
+        scale: 3,
         useCORS: true,
-        backgroundColor: '#ffffff',
+        backgroundColor: COLOR_PAPER,
         windowWidth: captureWidth,
         width: captureWidth,
         logging: false,
       })
 
-      const canvasScale = canvas.width / captureWidth // canvas px por CSS px
-      const breakpointsPx = breakpointsCssPx.map((v) => Math.round(v * canvasScale))
+      // Página única: altura calculada da altura do canvas.
+      const pxPerMm = canvas.width / CONTENT_W_MM
+      const contentH_mm = canvas.height / pxPerMm
+      const pageH_mm = MARGIN_TOP_MM + contentH_mm + FOOTER_H_MM
 
-      // A4 landscape com margens estreitas
-      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'landscape' })
-      const pageW = pdf.internal.pageSize.getWidth() // 297
-      const pageH = pdf.internal.pageSize.getHeight() // 210
-      const margin = 6
-      const contentW = pageW - margin * 2
-      const contentH = pageH - margin * 2
+      const pdf = new jsPDF({
+        unit: 'mm',
+        format: [PAGE_W_MM, pageH_mm],
+        orientation: 'portrait',
+      })
 
-      const pxPerMm = canvas.width / contentW
-      const pageHpx = contentH * pxPerMm
+      // Pinta fundo paper-white
+      const [pr, pg, pb] = rgb(COLOR_PAPER)
+      pdf.setFillColor(pr, pg, pb)
+      pdf.rect(0, 0, PAGE_W_MM, pageH_mm, 'F')
 
-      // Fatia inteligentemente: para cada página, encontra o maior
-      // breakpoint <= startPx + pageHpx (e > startPx + pageHpx * 0.55),
-      // caindo pra corte reto quando não há breakpoint bom.
-      // Se o remanescente após o corte for pequeno (< 15% de página),
-      // absorve tudo na página atual pra evitar página final quase vazia.
-      let startPx = 0
-      let firstPage = true
-      while (startPx < canvas.height) {
-        const idealEndPx = startPx + pageHpx
-        let endPx: number
-        if (idealEndPx >= canvas.height) {
-          endPx = canvas.height
-        } else {
-          const min = startPx + pageHpx * 0.55
-          const valid = breakpointsPx.filter((bp) => bp > min && bp <= idealEndPx)
-          endPx = valid.length > 0 ? Math.max(...valid) : Math.floor(idealEndPx)
-          if (canvas.height - endPx < pageHpx * 0.15) {
-            endPx = canvas.height
-          }
-        }
-        const sliceHpx = endPx - startPx
-        if (sliceHpx <= 0) break
-        const sliceCanvas = document.createElement('canvas')
-        sliceCanvas.width = canvas.width
-        sliceCanvas.height = sliceHpx
-        const ctx = sliceCanvas.getContext('2d')
-        if (!ctx) break
-        ctx.fillStyle = '#ffffff'
-        ctx.fillRect(0, 0, canvas.width, sliceHpx)
-        ctx.drawImage(canvas, 0, startPx, canvas.width, sliceHpx, 0, 0, canvas.width, sliceHpx)
-        const imgData = sliceCanvas.toDataURL('image/jpeg', 0.94)
-        const drawH = sliceHpx / pxPerMm
-        if (!firstPage) pdf.addPage()
-        pdf.addImage(imgData, 'JPEG', margin, margin, contentW, drawH)
-        firstPage = false
-        startPx = endPx
-      }
+      // Snapshot inteiro como uma imagem só
+      const imgData = canvas.toDataURL('image/jpeg', 0.98)
+      pdf.addImage(imgData, 'JPEG', MARGIN_X_MM, MARGIN_TOP_MM, CONTENT_W_MM, contentH_mm)
+
+      drawFooter(pdf as unknown as PdfLike, {
+        assessorName,
+        dateRef: fmtDateBR(dataRef),
+        pageH: pageH_mm,
+      })
 
       const nome = slugify(assessorName) || 'assessor'
       const dt = dateStamp(dataRef)
       pdf.save(`onepage_${nome}_${dt}.pdf`)
     } finally {
+      document.head.removeChild(printStyle)
+      if (hadDark) html.classList.add('dark')
       for (const { node, prev } of hidden) {
         node.style.visibility = prev
       }
