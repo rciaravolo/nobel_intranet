@@ -26,6 +26,7 @@ async function verifyViaWorker(username: string, password: string): Promise<Veri
         role: SessionPayload['role']
         equipe?: string
         idAssessor?: string
+        mustChangePassword?: boolean
       }
     }
     const u = data.user
@@ -37,6 +38,7 @@ async function verifyViaWorker(username: string, password: string): Promise<Veri
       email: u.email,
       ...(u.equipe ? { equipe: u.equipe } : {}),
       ...(u.idAssessor ? { idAssessor: u.idAssessor } : {}),
+      ...(u.mustChangePassword ? { mustChangePassword: true } : {}),
     }
   } catch {
     return null

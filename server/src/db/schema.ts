@@ -43,6 +43,9 @@ export const users = sqliteTable('users', {
   department: text('department').notNull(),
   avatarInitials: text('avatar_initials').notNull(),
   ativo: integer('ativo', { mode: 'boolean' }).notNull().default(true),
+  mustChangePassword: integer('must_change_password', { mode: 'boolean' })
+    .notNull()
+    .default(false),
   criadoEm: text('criado_em').notNull().default(sql`(datetime('now'))`),
   atualizadoEm: text('atualizado_em').notNull().default(sql`(datetime('now'))`),
 })

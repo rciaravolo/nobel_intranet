@@ -71,8 +71,63 @@ app.post('/verify', async (c) => {
       idAssessor: user.idAssessor ?? undefined,
       department: user.department,
       avatarInitials: user.avatarInitials,
+      mustChangePassword: user.mustChangePassword,
     },
   })
+})
+
+// ---------------------------------------------------------------------------
+// POST /auth/change-password
+// Body: { userId: string, currentPassword: string, newPassword: string }
+// Valida senha atual, salva a nova, zera must_change_password.
+// Usado tanto no fluxo de primeiro acesso quanto em troca voluntária.
+// ---------------------------------------------------------------------------
+app.post('/change-password', async (c) => {
+  let body: { userId?: unknown; currentPassword?: unknown; newPassword?: unknown }
+  try {
+    body = await c.req.json()
+  } catch {
+    return c.json({ error: 'Body inválido' }, 400)
+  }
+
+  const userId = typeof body.userId === 'string' ? body.userId : ''
+  const currentPassword = typeof body.currentPassword === 'string' ? body.currentPassword : ''
+  const newPassword = typeof body.newPassword === 'string' ? body.newPassword : ''
+
+  if (!userId || !currentPassword) {
+    return c.json({ error: 'Dados inválidos' }, 400)
+  }
+  if (newPassword.length < 8) {
+    return c.json({ error: 'A nova senha precisa ter no mínimo 8 caracteres' }, 400)
+  }
+  if (newPassword === currentPassword) {
+    return c.json({ error: 'A nova senha precisa ser diferente da atual' }, 400)
+  }
+
+  const db = createDb(c.env.DB)
+  const rows = await db.select().from(users).where(eq(users.id, userId)).limit(1)
+  const user = rows[0]
+
+  // Sempre roda scrypt (mesmo se user inexistente) pra não vazar existência via timing
+  const isValid = verifyPassword(currentPassword, user?.passwordHash ?? DUMMY_HASH)
+  if (!user || !user.ativo || !isValid) {
+    return c.json({ error: 'Senha atual incorreta' }, 401)
+  }
+
+  const salt = randomBytes(16).toString('hex')
+  const newHash = hashPassword(newPassword, salt)
+  const nowIso = new Date().toISOString()
+
+  await db
+    .update(users)
+    .set({
+      passwordHash: newHash,
+      mustChangePassword: false,
+      atualizadoEm: nowIso,
+    })
+    .where(eq(users.id, userId))
+
+  return c.json({ ok: true })
 })
 
 // ---------------------------------------------------------------------------

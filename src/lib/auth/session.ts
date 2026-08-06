@@ -19,6 +19,8 @@ export interface SessionPayload {
   /** Preenchido apenas para role `lider_pj` — id_assessor usado no filtro do OnePage. */
   idAssessor?: string
   email: string
+  /** true → user precisa trocar a senha antes de navegar (fluxo primeiro acesso). */
+  mustChangePassword?: boolean
   exp: number
 }
 

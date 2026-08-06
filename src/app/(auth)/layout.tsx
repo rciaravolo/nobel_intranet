@@ -5,12 +5,13 @@ type TickerPayload = {
 }
 import { logDailyAccess } from '@/lib/api/admin'
 import { requireSession } from '@/lib/auth/session'
+import { FirstAccessModal } from './_components/FirstAccessModal'
 import { Sidebar } from './_components/Sidebar'
 import { TickerBar } from './_components/TickerBar'
 
 async function getTicker() {
   try {
-    const res = await apiFetch(`/ticker`, { next: { revalidate: 3600 } })
+    const res = await apiFetch('/ticker', { next: { revalidate: 3600 } })
     if (!res.ok) return []
     const json = (await res.json()) as { data: TickerPayload }
     return json.data.tickers ?? []
@@ -30,6 +31,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
         <TickerBar tickers={tickers} />
         <main className="main-content">{children}</main>
       </div>
+      {session.mustChangePassword && <FirstAccessModal userName={session.name} />}
     </div>
   )
 }
