@@ -1,6 +1,7 @@
 import { PageGreeting } from '../_components/PageGreeting'
 import { apiFetch } from '@/lib/api/fetch'
 import { requireSession } from '@/lib/auth/session'
+import { NpsTable } from './_components/NpsTable'
 
 /* ─── Tipos ──────────────────────────────────────────────────────────────── */
 
@@ -176,21 +177,13 @@ export default async function NpsPage() {
         </a>
       </div>
 
-      {/* ── Tabela — placeholder até Task 6 ───────────────────────────── */}
-      {data === null && (
+      {/* ── Tabela ────────────────────────────────────────────────────── */}
+      {data === null ? (
         <div style={{ padding: 24, color: 'var(--fg-faint)', fontFamily: 'var(--f-text)' }}>
           Não foi possível carregar dados de NPS.
         </div>
-      )}
-      {data && data.envios.length === 0 && (
-        <div style={{ padding: 24, color: 'var(--fg-faint)', fontFamily: 'var(--f-text)' }}>
-          Sem envios de NPS no período.
-        </div>
-      )}
-      {data && data.envios.length > 0 && (
-        <div style={{ padding: 24, color: 'var(--fg-mute)', fontFamily: 'var(--f-text)' }}>
-          {data.envios.length} envios carregados (tabela vem na Task 6).
-        </div>
+      ) : (
+        <NpsTable envios={data.envios} />
       )}
     </div>
   )
