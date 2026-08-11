@@ -110,6 +110,22 @@ const NAV: NavGroup[] = [
         ),
       },
       {
+        href: '/nps',
+        label: 'NPS',
+        icon: (
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+            <polygon points="12 7 13.2 9.5 16 9.9 14 11.9 14.5 14.5 12 13.3 9.5 14.5 10 11.9 8 9.9 10.8 9.5" />
+          </svg>
+        ),
+      },
+      {
         href: '/relatorios',
         label: 'Relatórios',
         icon: (

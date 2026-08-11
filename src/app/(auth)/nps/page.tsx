@@ -1,6 +1,6 @@
-import { PageGreeting } from '../_components/PageGreeting'
 import { apiFetch } from '@/lib/api/fetch'
 import { requireSession } from '@/lib/auth/session'
+import { PageGreeting } from '../_components/PageGreeting'
 import { NpsTable } from './_components/NpsTable'
 
 /* ─── Tipos ──────────────────────────────────────────────────────────────── */
@@ -81,20 +81,33 @@ export default async function NpsPage() {
     overflow: 'hidden',
   }
   const kpiLabel: React.CSSProperties = {
-    fontFamily: 'var(--f-mono)', fontSize: 11, fontWeight: 500,
-    color: 'var(--fg-faint)', textTransform: 'uppercase',
-    letterSpacing: '.10em', marginBottom: 14,
+    fontFamily: 'var(--f-mono)',
+    fontSize: 11,
+    fontWeight: 500,
+    color: 'var(--fg-faint)',
+    textTransform: 'uppercase',
+    letterSpacing: '.10em',
+    marginBottom: 14,
   }
   const kpiValue: React.CSSProperties = {
-    fontFamily: 'var(--f-text)', fontSize: 34, fontWeight: 700,
-    color: 'var(--fg)', lineHeight: 1,
-    letterSpacing: '-.02em', marginBottom: 12,
+    fontFamily: 'var(--f-text)',
+    fontSize: 34,
+    fontWeight: 700,
+    color: 'var(--fg)',
+    lineHeight: 1,
+    letterSpacing: '-.02em',
+    marginBottom: 12,
   }
   const kpiPill: React.CSSProperties = {
-    display: 'inline-flex', alignItems: 'center',
-    fontFamily: 'var(--f-mono)', fontSize: 11, fontWeight: 500,
-    padding: '3px 10px', borderRadius: 'var(--r-pill)',
-    background: 'var(--bg-deep)', color: 'var(--fg-mute)',
+    display: 'inline-flex',
+    alignItems: 'center',
+    fontFamily: 'var(--f-mono)',
+    fontSize: 11,
+    fontWeight: 500,
+    padding: '3px 10px',
+    borderRadius: 'var(--r-pill)',
+    background: 'var(--bg-deep)',
+    color: 'var(--fg-mute)',
   }
 
   return (
@@ -114,7 +127,11 @@ export default async function NpsPage() {
         <div style={{ ...card, position: 'relative' }}>
           <div
             style={{
-              position: 'absolute', top: 0, left: 0, right: 0, height: 2,
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 2,
               background: 'linear-gradient(90deg, var(--c-gold), #D4AF6A)',
             }}
           />
@@ -165,12 +182,17 @@ export default async function NpsPage() {
           href="/api/nps/pendentes.csv"
           download
           style={{
-            display: 'inline-flex', alignItems: 'center', gap: 8,
-            padding: '10px 16px', borderRadius: 10,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '10px 16px',
+            borderRadius: 10,
             border: '1px solid var(--line-strong)',
             background: 'var(--bg-elev)',
-            color: 'var(--fg)', fontFamily: 'var(--f-mono)',
-            fontSize: 12, textDecoration: 'none',
+            color: 'var(--fg)',
+            fontFamily: 'var(--f-mono)',
+            fontSize: 12,
+            textDecoration: 'none',
           }}
         >
           ↓ Baixar clientes pendentes (CSV)

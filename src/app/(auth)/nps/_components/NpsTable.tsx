@@ -28,7 +28,7 @@ function Badge({ ok }: { ok: boolean }) {
     fontSize: 10,
     fontWeight: 500,
     background: ok ? 'var(--pos-bg)' : 'var(--neg-bg)',
-    color:      ok ? 'var(--pos-fg)' : 'var(--neg-fg)',
+    color: ok ? 'var(--pos-fg)' : 'var(--neg-fg)',
     borderColor: 'transparent',
   }
   return <span style={style}>{ok ? 'Sim' : 'Não'}</span>
@@ -152,11 +152,13 @@ export function NpsTable({ envios }: { envios: Envio[] }) {
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0}
               style={{
-                padding: '6px 12px', borderRadius: 8,
+                padding: '6px 12px',
+                borderRadius: 8,
                 border: '1px solid var(--line-strong)',
                 background: 'var(--bg-elev)',
                 color: page === 0 ? 'var(--fg-faint)' : 'var(--fg)',
-                fontFamily: 'var(--f-mono)', fontSize: 11,
+                fontFamily: 'var(--f-mono)',
+                fontSize: 11,
                 cursor: page === 0 ? 'not-allowed' : 'pointer',
               }}
             >
@@ -167,11 +169,13 @@ export function NpsTable({ envios }: { envios: Envio[] }) {
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
               style={{
-                padding: '6px 12px', borderRadius: 8,
+                padding: '6px 12px',
+                borderRadius: 8,
                 border: '1px solid var(--line-strong)',
                 background: 'var(--bg-elev)',
                 color: page >= totalPages - 1 ? 'var(--fg-faint)' : 'var(--fg)',
-                fontFamily: 'var(--f-mono)', fontSize: 11,
+                fontFamily: 'var(--f-mono)',
+                fontSize: 11,
                 cursor: page >= totalPages - 1 ? 'not-allowed' : 'pointer',
               }}
             >
