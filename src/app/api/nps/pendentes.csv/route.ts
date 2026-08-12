@@ -2,9 +2,15 @@ import { apiFetch } from '@/lib/api/fetch'
 import { getSession } from '@/lib/auth/session'
 import { NextResponse } from 'next/server'
 
-export async function GET() {
+export async function GET(req: Request) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const url = new URL(req.url)
+  const filterType = url.searchParams.get('filter_type')
+  const filterValue = url.searchParams.get('filter_value')
+  const canFilter =
+    session.role === 'admin' || session.role === 'master' || session.role === 'lider'
 
   const res = await apiFetch('/nps/pendentes.csv', {
     headers: {
@@ -12,6 +18,8 @@ export async function GET() {
       'X-User-Role': session.role,
       'X-User-Equipe': session.equipe ?? '',
       ...(session.idAssessor ? { 'X-User-Id-Assessor': session.idAssessor } : {}),
+      ...(canFilter && filterType ? { 'X-Filter-Type': filterType } : {}),
+      ...(canFilter && filterValue ? { 'X-Filter-Value': filterValue } : {}),
     },
   })
 

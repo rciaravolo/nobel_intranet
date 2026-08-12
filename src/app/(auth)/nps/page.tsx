@@ -1,6 +1,7 @@
 import { apiFetch } from '@/lib/api/fetch'
 import { requireSession } from '@/lib/auth/session'
 import { PageGreeting } from '../_components/PageGreeting'
+import { AnalisesFilters } from '../analises/_components/AnalisesFilters'
 import { NpsTable } from './_components/NpsTable'
 
 /* ─── Tipos ──────────────────────────────────────────────────────────────── */
@@ -22,6 +23,11 @@ type NpsPayload = {
   envios: Envio[]
 }
 
+type AssessoresPayload = {
+  equipes: string[]
+  assessores: { id_assessor: string; nome_assessor: string | null; equipe: string }[]
+}
+
 /* ─── Formatters ─────────────────────────────────────────────────────────── */
 
 function fInt(n: number): string {
@@ -40,20 +46,26 @@ function fNota(n: number | null): string {
 
 /* ─── Fetch ──────────────────────────────────────────────────────────────── */
 
-async function getNps(
-  email: string,
-  role: string,
-  equipe?: string,
-  idAssessor?: string,
-): Promise<NpsPayload | null> {
+type NpsFetchOpts = {
+  email: string
+  role: string
+  equipe?: string | undefined
+  idAssessor?: string | undefined
+  filterType?: string | undefined
+  filterValue?: string | undefined
+}
+
+async function getNps(opts: NpsFetchOpts): Promise<NpsPayload | null> {
   try {
     const res = await apiFetch('/nps', {
       cache: 'no-store',
       headers: {
-        'X-User-Email': email,
-        'X-User-Role': role,
-        'X-User-Equipe': equipe ?? '',
-        ...(idAssessor ? { 'X-User-Id-Assessor': idAssessor } : {}),
+        'X-User-Email': opts.email,
+        'X-User-Role': opts.role,
+        'X-User-Equipe': opts.equipe ?? '',
+        ...(opts.idAssessor ? { 'X-User-Id-Assessor': opts.idAssessor } : {}),
+        ...(opts.filterType ? { 'X-Filter-Type': opts.filterType } : {}),
+        ...(opts.filterValue ? { 'X-Filter-Value': opts.filterValue } : {}),
       },
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -64,13 +76,68 @@ async function getNps(
   }
 }
 
+async function getAssessores(
+  role: string,
+  email: string,
+  equipe?: string,
+  idAssessor?: string,
+): Promise<AssessoresPayload | null> {
+  if (role !== 'admin' && role !== 'master' && role !== 'lider' && role !== 'lider_pj') return null
+  try {
+    const res = await apiFetch('/performance/assessores', {
+      cache: 'no-store',
+      headers: {
+        'X-User-Role': role,
+        'X-User-Email': email,
+        ...(equipe ? { 'X-User-Equipe': equipe } : {}),
+        ...(idAssessor ? { 'X-User-Id-Assessor': idAssessor } : {}),
+      },
+    })
+    if (!res.ok) return null
+    const json = (await res.json()) as { data: AssessoresPayload }
+    return json.data
+  } catch {
+    return null
+  }
+}
+
 /* ─── Page ───────────────────────────────────────────────────────────────── */
 
-export default async function NpsPage() {
+export default async function NpsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
   const session = await requireSession()
-  const data = await getNps(session.email, session.role, session.equipe, session.idAssessor)
+  const sp = await searchParams
+  const filterType = typeof sp.filter_type === 'string' ? sp.filter_type : undefined
+  const filterValue = typeof sp.filter_value === 'string' ? sp.filter_value : undefined
+
+  const canFilter =
+    session.role === 'admin' || session.role === 'master' || session.role === 'lider'
+
+  const [data, assessoresData] = await Promise.all([
+    getNps({
+      email: session.email,
+      role: session.role,
+      equipe: session.equipe,
+      idAssessor: session.idAssessor,
+      ...(canFilter && filterType ? { filterType } : {}),
+      ...(canFilter && filterValue ? { filterValue } : {}),
+    }),
+    canFilter
+      ? getAssessores(session.role, session.email, session.equipe, session.idAssessor)
+      : Promise.resolve(null),
+  ])
 
   const kpis = data?.kpis ?? { envios: 0, aberturas: 0, respostas: 0, mediaNota: null }
+
+  // CSV mantém o filtro ativo (admin/master/lider); pra outras roles ignora.
+  const csvHref = (() => {
+    if (!canFilter || !filterType || !filterValue) return '/api/nps/pendentes.csv'
+    const qs = new URLSearchParams({ filter_type: filterType, filter_value: filterValue })
+    return `/api/nps/pendentes.csv?${qs.toString()}`
+  })()
 
   /* ─── Estilos — padrão canônico de card (copiado de clientes/page.tsx) ── */
   const card: React.CSSProperties = {
@@ -113,6 +180,26 @@ export default async function NpsPage() {
   return (
     <div style={{ maxWidth: 1400 }}>
       <PageGreeting name={session.name} label="Pesquisa NPS" />
+
+      {/* ── Filtro (admin / master / lider) ─────────────────────────────── */}
+      {canFilter && (
+        <AnalisesFilters
+          basePath="/nps"
+          equipes={
+            session.role === 'lider'
+              ? []
+              : (assessoresData?.equipes ?? []).slice().sort((a, b) => a.localeCompare(b, 'pt-BR'))
+          }
+          assessores={(assessoresData?.assessores ?? [])
+            .slice()
+            .sort((a, b) =>
+              (a.nome_assessor ?? a.id_assessor).localeCompare(
+                b.nome_assessor ?? b.id_assessor,
+                'pt-BR',
+              ),
+            )}
+        />
+      )}
 
       {/* ── KPI Cards ─────────────────────────────────────────────────── */}
       <div
@@ -169,7 +256,7 @@ export default async function NpsPage() {
       {/* ── Botão CSV ─────────────────────────────────────────────────── */}
       <div style={{ marginBottom: 'var(--s-4)', display: 'flex', justifyContent: 'flex-end' }}>
         <a
-          href="/api/nps/pendentes.csv"
+          href={csvHref}
           download
           style={{
             display: 'inline-flex',
