@@ -408,7 +408,12 @@ export function Sidebar({ session }: Props) {
         )
           .map((group) => ({
             ...group,
-            items: group.items.filter((item) => !item.roles || item.roles.includes(session.role)),
+            items: group.items.filter((item) => {
+              if (item.roles) return item.roles.includes(session.role)
+              // Em sections adminOnly, itens sem roles explícitos só aparecem para admin/master.
+              if (group.adminOnly) return session.role === 'admin' || session.role === 'master'
+              return true
+            }),
           }))
           .filter((group) => group.items.length > 0)
           .map((group, gi) => (
