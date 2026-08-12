@@ -123,19 +123,9 @@ export default async function NpsPage() {
           marginBottom: 'var(--s-4)',
         }}
       >
-        {/* Envios (com accent bar dourada) */}
-        <div style={{ ...card, position: 'relative' }}>
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: 2,
-              background: 'linear-gradient(90deg, var(--c-gold), #D4AF6A)',
-            }}
-          />
-          <div style={{ padding: '22px 24px' }}>
+        {/* Envios */}
+        <div style={card}>
+          <div style={{ padding: '22px 24px', textAlign: 'center' }}>
             <p style={kpiLabel}>Envios</p>
             <p style={kpiValue}>{fInt(kpis.envios)}</p>
             <span style={kpiPill}>base completa</span>
@@ -144,7 +134,7 @@ export default async function NpsPage() {
 
         {/* Aberturas */}
         <div style={card}>
-          <div style={{ padding: '22px 24px' }}>
+          <div style={{ padding: '22px 24px', textAlign: 'center' }}>
             <p style={kpiLabel}>Aberturas</p>
             <p style={kpiValue}>{fInt(kpis.aberturas)}</p>
             <span style={{ ...kpiPill, background: 'var(--pos-bg)', color: 'var(--pos-fg)' }}>
@@ -155,7 +145,7 @@ export default async function NpsPage() {
 
         {/* Respostas */}
         <div style={card}>
-          <div style={{ padding: '22px 24px' }}>
+          <div style={{ padding: '22px 24px', textAlign: 'center' }}>
             <p style={kpiLabel}>Respostas</p>
             <p style={kpiValue}>{fInt(kpis.respostas)}</p>
             <span style={{ ...kpiPill, background: 'var(--pos-bg)', color: 'var(--pos-fg)' }}>
@@ -166,7 +156,7 @@ export default async function NpsPage() {
 
         {/* Média Nota */}
         <div style={card}>
-          <div style={{ padding: '22px 24px' }}>
+          <div style={{ padding: '22px 24px', textAlign: 'center' }}>
             <p style={kpiLabel}>Média Nota</p>
             <p style={kpiValue}>{fNota(kpis.mediaNota)}</p>
             <span style={kpiPill}>
@@ -177,7 +167,7 @@ export default async function NpsPage() {
       </div>
 
       {/* ── Botão CSV ─────────────────────────────────────────────────── */}
-      <div style={{ marginBottom: 'var(--s-4)' }}>
+      <div style={{ marginBottom: 'var(--s-4)', display: 'flex', justifyContent: 'flex-end' }}>
         <a
           href="/api/nps/pendentes.csv"
           download
