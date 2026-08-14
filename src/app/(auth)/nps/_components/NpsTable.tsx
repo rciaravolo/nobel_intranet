@@ -27,8 +27,8 @@ function Badge({ ok }: { ok: boolean }) {
     fontFamily: 'var(--f-mono)',
     fontSize: 10,
     fontWeight: 500,
-    background: ok ? 'var(--pos-bg)' : 'var(--neg-bg)',
-    color: ok ? 'var(--pos-fg)' : 'var(--neg-fg)',
+    background: ok ? 'var(--color-positive-bg)' : 'var(--color-negative-bg)',
+    color: ok ? 'var(--color-positive)' : 'var(--color-negative)',
     borderColor: 'transparent',
   }
   return <span style={style}>{ok ? 'Sim' : 'Não'}</span>
