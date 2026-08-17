@@ -19,7 +19,13 @@ const C = {
 
 /* ─── Navigation config ───────────────────────────────────────────────────── */
 type Role = SessionPayload['role']
-type NavItem = { href: string; label: string; icon: React.ReactNode; badge?: number; roles?: Role[] }
+type NavItem = {
+  href: string
+  label: string
+  icon: React.ReactNode
+  badge?: number
+  roles?: Role[]
+}
 type NavGroup = { section: string; adminOnly?: boolean; items: NavItem[] }
 const NAV: NavGroup[] = [
   {
@@ -40,24 +46,6 @@ const NAV: NavGroup[] = [
             <rect x="14" y="3" width="7" height="7" rx="1" />
             <rect x="3" y="14" width="7" height="7" rx="1" />
             <rect x="14" y="14" width="7" height="7" rx="1" />
-          </svg>
-        ),
-      },
-      {
-        href: '/pj1',
-        label: 'PJ1',
-        roles: ['admin', 'master', 'lider_pj'],
-        icon: (
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          >
-            <path d="M3 21h18" />
-            <path d="M6 21V10l6-4 6 4v11" />
-            <path d="M10 21v-6h4v6" />
           </svg>
         ),
       },
@@ -110,6 +98,39 @@ const NAV: NavGroup[] = [
         ),
       },
       {
+        href: '/nps',
+        label: 'NPS',
+        icon: (
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+            <polygon points="12 7 13.2 9.5 16 9.9 14 11.9 14.5 14.5 12 13.3 9.5 14.5 10 11.9 8 9.9 10.8 9.5" />
+          </svg>
+        ),
+      },
+      {
+        href: '/missoes',
+        label: 'Missões',
+        roles: ['admin', 'master', 'lider', 'assessor'],
+        icon: (
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
+            <circle cx="12" cy="8" r="6" />
+            <path d="M8.21 13.89L7 22l5-3 5 3-1.21-8.12" />
+          </svg>
+        ),
+      },
+      {
         href: '/relatorios',
         label: 'Relatórios',
         icon: (
@@ -131,6 +152,24 @@ const NAV: NavGroup[] = [
     adminOnly: true,
     items: [
       {
+        href: '/pj1',
+        label: 'PJ1',
+        roles: ['admin', 'master', 'lider_pj'],
+        icon: (
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
+            <path d="M3 21h18" />
+            <path d="M6 21V10l6-4 6 4v11" />
+            <path d="M10 21v-6h4v6" />
+          </svg>
+        ),
+      },
+      {
         href: '/pnl',
         label: 'PnL',
         icon: (
@@ -150,7 +189,13 @@ const NAV: NavGroup[] = [
         href: '/indicadores',
         label: 'Indicadores',
         icon: (
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
             <circle cx="12" cy="12" r="9" />
             <circle cx="12" cy="12" r="3" />
             <line x1="12" y1="3" x2="12" y2="7" />
@@ -164,7 +209,13 @@ const NAV: NavGroup[] = [
         href: '/plano-carreira',
         label: 'Plano de Carreira',
         icon: (
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
             <path d="M3 17l4-8 4 4 4-6 4 10" />
             <path d="M3 21h18" />
           </svg>
@@ -174,7 +225,13 @@ const NAV: NavGroup[] = [
         href: '/qualidade',
         label: 'Qualidade',
         icon: (
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
           </svg>
         ),
@@ -298,7 +355,9 @@ export function Sidebar({ session }: Props) {
           </button>
         ) : (
           <>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            <div
+              style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/logo-lockup-ivory.png"
@@ -322,10 +381,22 @@ export function Sidebar({ session }: Props) {
                   marginTop: 4,
                   transition: 'color .15s',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = C.white }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = C.textFaint }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = C.white
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = C.textFaint
+                }}
               >
-                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="16" height="16">
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  width="16"
+                  height="16"
+                >
                   <polyline points="15 18 9 12 15 6" />
                 </svg>
               </button>
@@ -345,120 +416,130 @@ export function Sidebar({ session }: Props) {
 
       {/* ── Nav ─────────────────────────────────────────────── */}
       <nav style={{ flex: 1, padding: '8px 12px', overflowY: 'auto', overflowX: 'hidden' }}>
-        {NAV
-          .filter((group) => !group.adminOnly || session.role === 'admin' || session.role === 'master')
+        {NAV.filter(
+          (group) =>
+            !group.adminOnly ||
+            session.role === 'admin' ||
+            session.role === 'master' ||
+            group.items.some((item) => item.roles?.includes(session.role)),
+        )
           .map((group) => ({
             ...group,
-            items: group.items.filter((item) => !item.roles || item.roles.includes(session.role)),
+            items: group.items.filter((item) => {
+              if (item.roles) return item.roles.includes(session.role)
+              // Em sections adminOnly, itens sem roles explícitos só aparecem para admin/master.
+              if (group.adminOnly) return session.role === 'admin' || session.role === 'master'
+              return true
+            }),
           }))
           .filter((group) => group.items.length > 0)
           .map((group, gi) => (
-          <div key={group.section}>
-            {!collapsed && (
-              <p
-                style={{
-                  fontSize: 9,
-                  letterSpacing: '0.18em',
-                  color: C.textFaint,
-                  textTransform: 'uppercase',
-                  padding: gi === 0 ? '8px 0 8px' : '16px 0 8px',
-                  fontWeight: 500,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {group.section}
-              </p>
-            )}
-
-            {group.items.map((item) => {
-              const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  title={collapsed ? item.label : undefined}
+            <div key={group.section}>
+              {!collapsed && (
+                <p
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    padding: collapsed ? '9px 0' : '9px 12px',
-                    borderRadius: 8,
-                    textDecoration: 'none',
-                    marginBottom: 2,
-                    position: 'relative',
-                    background: active ? C.goldDim : 'transparent',
-                    borderLeft:
-                      active && !collapsed ? `2px solid ${C.gold}` : '2px solid transparent',
-                    transition: 'background .15s',
-                    justifyContent: collapsed ? 'center' : 'flex-start',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!active) e.currentTarget.style.background = C.hover
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!active) e.currentTarget.style.background = 'transparent'
+                    fontSize: 9,
+                    letterSpacing: '0.18em',
+                    color: C.textFaint,
+                    textTransform: 'uppercase',
+                    padding: gi === 0 ? '8px 0 8px' : '16px 0 8px',
+                    fontWeight: 500,
+                    whiteSpace: 'nowrap',
                   }}
                 >
-                  {/* Icon */}
-                  <div
+                  {group.section}
+                </p>
+              )}
+
+              {group.items.map((item) => {
+                const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    title={collapsed ? item.label : undefined}
                     style={{
-                      width: 16,
-                      height: 16,
-                      flexShrink: 0,
-                      color: active ? C.gold : C.textMute,
-                      opacity: active ? 1 : 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      padding: collapsed ? '9px 0' : '9px 12px',
+                      borderRadius: 8,
+                      textDecoration: 'none',
+                      marginBottom: 2,
+                      position: 'relative',
+                      background: active ? C.goldDim : 'transparent',
+                      borderLeft:
+                        active && !collapsed ? `2px solid ${C.gold}` : '2px solid transparent',
+                      transition: 'background .15s',
+                      justifyContent: collapsed ? 'center' : 'flex-start',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!active) e.currentTarget.style.background = C.hover
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!active) e.currentTarget.style.background = 'transparent'
                     }}
                   >
-                    {item.icon}
-                  </div>
+                    {/* Icon */}
+                    <div
+                      style={{
+                        width: 16,
+                        height: 16,
+                        flexShrink: 0,
+                        color: active ? C.gold : C.textMute,
+                        opacity: active ? 1 : 1,
+                      }}
+                    >
+                      {item.icon}
+                    </div>
 
-                  {/* Label + Badge (expanded only) */}
-                  {!collapsed && (
-                    <>
-                      <span
-                        style={{
-                          fontSize: 13,
-                          color: active ? C.white : C.textMute,
-                          fontWeight: active ? 500 : 400,
-                          whiteSpace: 'nowrap',
-                          flex: 1,
-                          letterSpacing: '0.01em',
-                        }}
-                      >
-                        {item.label}
-                      </span>
-                      {'badge' in item && typeof item.badge === 'number' && item.badge > 0 ? (
+                    {/* Label + Badge (expanded only) */}
+                    {!collapsed && (
+                      <>
                         <span
                           style={{
-                            background: C.gold,
-                            color: '#0A0A0A',
-                            fontSize: 10,
-                            fontWeight: 600,
-                            padding: '2px 7px',
-                            borderRadius: 20,
-                            letterSpacing: '0.02em',
+                            fontSize: 13,
+                            color: active ? C.white : C.textMute,
+                            fontWeight: active ? 500 : 400,
+                            whiteSpace: 'nowrap',
+                            flex: 1,
+                            letterSpacing: '0.01em',
                           }}
                         >
-                          {item.badge as number}
+                          {item.label}
                         </span>
-                      ) : null}
-                    </>
-                  )}
-                </Link>
-              )
-            })}
+                        {'badge' in item && typeof item.badge === 'number' && item.badge > 0 ? (
+                          <span
+                            style={{
+                              background: C.gold,
+                              color: '#0A0A0A',
+                              fontSize: 10,
+                              fontWeight: 600,
+                              padding: '2px 7px',
+                              borderRadius: 20,
+                              letterSpacing: '0.02em',
+                            }}
+                          >
+                            {item.badge as number}
+                          </span>
+                        ) : null}
+                      </>
+                    )}
+                  </Link>
+                )
+              })}
 
-            {/* Gold gradient section divider */}
-            <div
-              style={{
-                height: 1,
-                background: `linear-gradient(90deg, ${C.gold} 0%, transparent 100%)`,
-                margin: collapsed ? '10px 4px' : '8px 0 2px',
-                opacity: 0.3,
-              }}
-            />
-          </div>
-        ))}
+              {/* Gold gradient section divider */}
+              <div
+                style={{
+                  height: 1,
+                  background: `linear-gradient(90deg, ${C.gold} 0%, transparent 100%)`,
+                  margin: collapsed ? '10px 4px' : '8px 0 2px',
+                  opacity: 0.3,
+                }}
+              />
+            </div>
+          ))}
       </nav>
 
       {/* ── User footer ─────────────────────────────────────── */}
