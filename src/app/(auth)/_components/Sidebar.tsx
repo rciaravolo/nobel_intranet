@@ -114,6 +114,23 @@ const NAV: NavGroup[] = [
         ),
       },
       {
+        href: '/missoes',
+        label: 'Missões',
+        roles: ['admin', 'master', 'lider', 'assessor'],
+        icon: (
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
+            <circle cx="12" cy="8" r="6" />
+            <path d="M8.21 13.89L7 22l5-3 5 3-1.21-8.12" />
+          </svg>
+        ),
+      },
+      {
         href: '/relatorios',
         label: 'Relatórios',
         icon: (

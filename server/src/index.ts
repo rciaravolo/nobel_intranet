@@ -11,6 +11,7 @@ import adminRouter from './routes/admin'
 import qualidadeRouter from './routes/qualidade'
 import authRouter from './routes/auth'
 import npsRouter from './routes/nps'
+import missoesRouter from './routes/missoes'
 import { fetchAllNews } from './lib/rss'
 import { fetchAllTickers } from './lib/ticker'
 
@@ -48,6 +49,7 @@ app.route('/admin', adminRouter)
 app.route('/qualidade', qualidadeRouter)
 app.route('/auth', authRouter)
 app.route('/nps', npsRouter)
+app.route('/missoes', missoesRouter)
 
 // ---------------------------------------------------------------------------
 // 404 catch-all
