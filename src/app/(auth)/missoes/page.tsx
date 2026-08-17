@@ -188,10 +188,7 @@ export default async function MissoesPage({
 
   return (
     <div style={{ maxWidth: 1400 }}>
-      <PageGreeting
-        name={session.name}
-        label={`Missões — ${periodoLabel}`}
-      />
+      <PageGreeting name={session.name} label={`Missões — ${periodoLabel}`} />
 
       {/* ── Filtro (admin / master / lider) ─────────────────────────────── */}
       {canFilter && (
