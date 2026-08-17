@@ -8,8 +8,6 @@ jobs:
   quality:
     name: Quality Gate
     runs-on: ubuntu-latest
-    outputs:
-      preview_url: ${{ steps.deploy-preview.outputs.deployment-url }}
 
     steps:
       - name: Checkout
@@ -33,57 +31,7 @@ jobs:
       - name: Unit tests
         run: npm run test
 
-      - name: Build for Cloudflare Pages
+      - name: Build for Cloudflare
         run: npm run pages:build
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
-
-      - name: Deploy Preview (Cloudflare Pages)
-        id: deploy-preview
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy --project-name=intra --branch=pr-${{ github.event.pull_request.number }}
-
-  notify-success:
-    name: Notify Telegram
-    needs: quality
-    runs-on: ubuntu-latest
-    if: success()
-
-    steps:
-      - name: Send preview link via Telegram
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          format: markdown
-          message: |
-            ✅ *CI passou\!*
-
-            PR \#${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}
-
-            🔗 [Abrir Preview](${{ needs.quality.outputs.preview_url }})
-
-            👆 Teste no celular e faça o merge se estiver tudo certo\!
-
-  notify-failure:
-    name: Notify Failure
-    needs: quality
-    runs-on: ubuntu-latest
-    if: failure()
-
-    steps:
-      - name: Notify CI failure
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.TELEGRAM_CHAT_ID }}
-          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          format: markdown
-          message: |
-            ❌ *CI falhou\!*
-
-            PR \#${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}
-
-            🔍 [Ver logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
