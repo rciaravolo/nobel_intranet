@@ -6,10 +6,10 @@ const MES_COLS = [
   'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
 ] as const
 
-const EQUIPES = ['SMART', 'PRIVATE', 'RIO PRETO', 'BRAVO'] as const
+const EQUIPES = ['SMART', 'PRIVATE', 'BRAVO'] as const
 type Equipe = (typeof EQUIPES)[number]
 
-const EQUIPES_SQL = `('SMART','PRIVATE','RIO PRETO','BRAVO')`
+const EQUIPES_SQL = `('SMART','PRIVATE','BRAVO')`
 
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>()
