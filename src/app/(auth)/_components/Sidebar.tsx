@@ -98,6 +98,26 @@ const NAV: NavGroup[] = [
         ),
       },
       {
+        href: '/relatorios',
+        label: 'Relatórios',
+        icon: (
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
+            <path d="M3 3h18v18H3z M3 9h18 M9 3v18" />
+          </svg>
+        ),
+      },
+    ],
+  },
+  {
+    section: 'Qualidade',
+    items: [
+      {
         href: '/nps',
         label: 'NPS',
         icon: (
@@ -131,8 +151,9 @@ const NAV: NavGroup[] = [
         ),
       },
       {
-        href: '/relatorios',
-        label: 'Relatórios',
+        href: '/ruptura',
+        label: 'Ruptura',
+        roles: ['admin', 'master', 'lider', 'assessor'],
         icon: (
           <svg
             aria-hidden="true"
@@ -141,7 +162,41 @@ const NAV: NavGroup[] = [
             stroke="currentColor"
             strokeWidth="1.5"
           >
-            <path d="M3 3h18v18H3z M3 9h18 M9 3v18" />
+            <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" />
+          </svg>
+        ),
+      },
+      {
+        href: '/saude-cliente',
+        label: 'Saúde do Cliente',
+        roles: ['admin', 'master', 'lider', 'assessor'],
+        icon: (
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
+            <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+          </svg>
+        ),
+      },
+      {
+        href: '/financial-planning',
+        label: 'Financial Planning',
+        roles: ['admin', 'master', 'lider', 'assessor'],
+        icon: (
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+          >
+            <rect x="4" y="4" width="16" height="16" rx="2" />
+            <line x1="4" y1="10" x2="20" y2="10" />
+            <line x1="10" y1="4" x2="10" y2="20" />
           </svg>
         ),
       },
