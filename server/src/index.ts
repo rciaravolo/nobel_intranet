@@ -12,6 +12,7 @@ import qualidadeRouter from './routes/qualidade'
 import authRouter from './routes/auth'
 import npsRouter from './routes/nps'
 import missoesRouter from './routes/missoes'
+import rupturaRouter from './routes/ruptura'
 import { fetchAllNews } from './lib/rss'
 import { fetchAllTickers } from './lib/ticker'
 
@@ -50,6 +51,7 @@ app.route('/qualidade', qualidadeRouter)
 app.route('/auth', authRouter)
 app.route('/nps', npsRouter)
 app.route('/missoes', missoesRouter)
+app.route('/ruptura', rupturaRouter)
 
 // ---------------------------------------------------------------------------
 // 404 catch-all
