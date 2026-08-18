@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 const SANS = 'var(--font-sans, "Garet", "Helvetica Neue", sans-serif)'
 const COLOR_ACTIVE = '#C9A961'
 const COLOR_INACTIVE = '#6b7588'
+const ACTIVE_CHIP_BG = 'rgba(201, 169, 97, 0.16)'
 
 interface TabDef {
   id: string
@@ -30,18 +31,20 @@ export function BottomTabs({ role }: { role: string }) {
     <nav
       style={{
         position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
+        left: 16,
+        right: 16,
+        bottom: 'max(env(safe-area-inset-bottom), 16px)',
         zIndex: 30,
         display: 'flex',
         gap: 4,
-        padding: '8px 16px',
-        paddingBottom: 'max(env(safe-area-inset-bottom), 8px)',
-        background: 'rgba(0,0,0,0.92)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderTop: '1px solid rgba(255,255,255,0.07)',
+        padding: 6,
+        background: 'rgba(20, 22, 26, 0.82)',
+        backdropFilter: 'blur(24px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: 28,
+        boxShadow:
+          '0 8px 32px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.04)',
       }}
     >
       {tabs.map(({ id, label, icon: Icon, href }) => {
@@ -57,8 +60,8 @@ export function BottomTabs({ role }: { role: string }) {
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: 2,
-              padding: '6px 0',
+              gap: 3,
+              padding: '8px 4px 6px',
               background: 'none',
               border: 'none',
               cursor: 'pointer',
@@ -68,10 +71,23 @@ export function BottomTabs({ role }: { role: string }) {
               letterSpacing: '0.04em',
               color,
               WebkitTapHighlightColor: 'transparent',
+              transition: 'color 0.18s ease',
             }}
             aria-pressed={isActive}
           >
-            <Icon size={22} strokeWidth={isActive ? 2 : 1.6} color={color} />
+            <span
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '5px 14px',
+                borderRadius: 18,
+                background: isActive ? ACTIVE_CHIP_BG : 'transparent',
+                transition: 'background 0.2s ease',
+              }}
+            >
+              <Icon size={20} strokeWidth={isActive ? 2.2 : 1.7} color={color} />
+            </span>
             <span>{label}</span>
           </button>
         )
