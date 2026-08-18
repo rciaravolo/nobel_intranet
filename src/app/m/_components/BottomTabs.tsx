@@ -38,7 +38,7 @@ export function BottomTabs({ role }: { role: string }) {
         display: 'flex',
         gap: 4,
         padding: 6,
-        background: 'rgba(20, 22, 26, 0.82)',
+        background: 'rgba(20, 22, 26, 0.68)',
         backdropFilter: 'blur(24px) saturate(180%)',
         WebkitBackdropFilter: 'blur(24px) saturate(180%)',
         border: '1px solid rgba(255, 255, 255, 0.08)',
