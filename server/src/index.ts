@@ -13,6 +13,7 @@ import authRouter from './routes/auth'
 import npsRouter from './routes/nps'
 import missoesRouter from './routes/missoes'
 import rupturaRouter from './routes/ruptura'
+import financialPlanningRouter from './routes/financial-planning'
 import { fetchAllNews } from './lib/rss'
 import { fetchAllTickers } from './lib/ticker'
 
@@ -52,6 +53,7 @@ app.route('/auth', authRouter)
 app.route('/nps', npsRouter)
 app.route('/missoes', missoesRouter)
 app.route('/ruptura', rupturaRouter)
+app.route('/financial-planning', financialPlanningRouter)
 
 // ---------------------------------------------------------------------------
 // 404 catch-all

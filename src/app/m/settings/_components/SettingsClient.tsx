@@ -57,7 +57,7 @@ export function SettingsClient({ user }: Props) {
         position: 'relative',
         background: T.bg,
         color: T.text,
-        paddingBottom: 60,
+        paddingBottom: 110,
       }}
     >
       <ScreenHeader
