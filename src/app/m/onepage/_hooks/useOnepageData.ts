@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { PLACEHOLDER_DATA } from '../../_lib/placeholders'
 import { rankColor } from '../../_lib/chartColor'
+import { PLACEHOLDER_DATA } from '../../_lib/placeholders'
 import type { CaptacaoMes, FaixaNet, MobileUser, OnePageData, Produto } from '../../_lib/types'
 
 interface OnepageResponse {
@@ -27,8 +27,20 @@ interface HistoricoResponse {
   }
 }
 
-
-const MES_LABELS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+const MES_LABELS = [
+  'Jan',
+  'Fev',
+  'Mar',
+  'Abr',
+  'Mai',
+  'Jun',
+  'Jul',
+  'Ago',
+  'Set',
+  'Out',
+  'Nov',
+  'Dez',
+]
 
 function buildSparkline(monthlyValues: number[], targetPoints: number): number[] {
   if (monthlyValues.length === 0) return Array(targetPoints).fill(0)
@@ -87,7 +99,7 @@ export function useOnepageData(user: MobileUser): OnePageData {
 
         const deltaMes =
           custPoints.length >= 2
-            ? (custPoints[custPoints.length - 1]! / custPoints[custPoints.length - 2]!) - 1
+            ? custPoints[custPoints.length - 1]! / custPoints[custPoints.length - 2]! - 1
             : 0
 
         // Monta entradas cronológicas (ano+mês) para capturar a fronteira de ano corretamente
@@ -96,8 +108,10 @@ export function useOnepageData(user: MobileUser): OnePageData {
 
         const capEntries: Array<{ key: number; mes: number; value: number }> = []
         for (const row of h) {
-          if (row.captacao.v26 != null) capEntries.push({ key: 202600 + row.mes, mes: row.mes, value: row.captacao.v26 })
-          if (row.captacao.v25 != null) capEntries.push({ key: 202500 + row.mes, mes: row.mes, value: row.captacao.v25 })
+          if (row.captacao.v26 != null)
+            capEntries.push({ key: 202600 + row.mes, mes: row.mes, value: row.captacao.v26 })
+          if (row.captacao.v25 != null)
+            capEntries.push({ key: 202500 + row.mes, mes: row.mes, value: row.captacao.v25 })
         }
         capEntries.sort((a, b) => a.key - b.key)
 

@@ -30,10 +30,19 @@ function faixaNet(v: number): string {
 }
 
 const FAIXA_STYLE: Record<string, React.CSSProperties> = {
-  '0 – 300K':   { background: 'color-mix(in oklch, var(--color-b-500) 12%, var(--bg-elev))', color: 'var(--color-b-500)' },
-  '300K – 1MM': { background: 'color-mix(in oklch, var(--c-gold) 15%, var(--bg-elev))',      color: 'var(--c-gold)' },
-  '1MM – 10MM': { background: 'color-mix(in oklch, #10B981 12%, var(--bg-elev))',             color: '#10B981' },
-  '> 10MM':     { background: 'color-mix(in oklch, #8B5CF6 12%, var(--bg-elev))',             color: '#8B5CF6' },
+  '0 – 300K': {
+    background: 'color-mix(in oklch, var(--color-b-500) 12%, var(--bg-elev))',
+    color: 'var(--color-b-500)',
+  },
+  '300K – 1MM': {
+    background: 'color-mix(in oklch, var(--c-gold) 15%, var(--bg-elev))',
+    color: 'var(--c-gold)',
+  },
+  '1MM – 10MM': {
+    background: 'color-mix(in oklch, #10B981 12%, var(--bg-elev))',
+    color: '#10B981',
+  },
+  '> 10MM': { background: 'color-mix(in oklch, #8B5CF6 12%, var(--bg-elev))', color: '#8B5CF6' },
 }
 
 function fBRL(v: number): string {
@@ -204,7 +213,15 @@ export function ClientesTable({ clientes, isAdmin }: Props) {
     { key: 'pj', label: 'PJ' },
   ]
 
-  const COLS = ['Cliente', 'Tipo', 'Status', 'AUM', 'Faixa NET', 'Suitability', ...(isAdmin ? ['Assessor'] : [])]
+  const COLS = [
+    'Cliente',
+    'Tipo',
+    'Status',
+    'AUM',
+    'Faixa NET',
+    'Suitability',
+    ...(isAdmin ? ['Assessor'] : []),
+  ]
 
   return (
     <div

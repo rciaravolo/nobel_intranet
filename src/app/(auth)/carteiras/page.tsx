@@ -1,13 +1,13 @@
-import { Suspense } from 'react'
-import { PageGreeting } from '../_components/PageGreeting'
-import { CarteirasNav } from './_components/CarteirasNav'
-import { RFAtivos, type RFAtivo } from './_components/RFAtivos'
-import { WallOfMaturities } from './_components/WallOfMaturities'
-import { RVSetorial } from './_components/RVSetorial'
-import { BuscaAtivo } from './_components/BuscaAtivo'
-import { AnalisesFilters } from '../analises/_components/AnalisesFilters'
 import { apiFetch } from '@/lib/api/fetch'
 import { requireSession } from '@/lib/auth/session'
+import { Suspense } from 'react'
+import { PageGreeting } from '../_components/PageGreeting'
+import { AnalisesFilters } from '../analises/_components/AnalisesFilters'
+import { BuscaAtivo } from './_components/BuscaAtivo'
+import { CarteirasNav } from './_components/CarteirasNav'
+import { type RFAtivo, RFAtivos } from './_components/RFAtivos'
+import { RVSetorial } from './_components/RVSetorial'
+import { WallOfMaturities } from './_components/WallOfMaturities'
 
 /* ─── Tipos ──────────────────────────────────────────────────────────────── */
 
@@ -56,14 +56,14 @@ type VisaoPayload = {
 /* ─── Paleta ─────────────────────────────────────────────────────────────── */
 
 const DIV_COLOR: Record<string, string> = {
-  'Renda Fixa':      '#2D5FA0',
-  'Renda Variável':  '#C29404',
-  'COE':             '#D94141',
-  'Liquidez':        '#248A47',
+  'Renda Fixa': '#2D5FA0',
+  'Renda Variável': '#C29404',
+  COE: '#D94141',
+  Liquidez: '#248A47',
   'Liquidez Diária': '#248A47',
-  'Previdência':     '#8B5CF6',
-  'Fundos':          '#0EA5E9',
-  'Internacional':   '#6366F1',
+  Previdência: '#8B5CF6',
+  Fundos: '#0EA5E9',
+  Internacional: '#6366F1',
 }
 const divColor = (p: string) => DIV_COLOR[p] ?? '#8C8B87'
 
@@ -83,8 +83,6 @@ const IDX_COLOR: Record<string, string> = {
   Selic: '#5F5E5B',
   IGPM: '#8C8B87',
 }
-
-
 
 const COE_COLOR: Record<string, string> = {
   BOND: '#2D5FA0',
@@ -137,7 +135,7 @@ async function getVisao(opts: FilterOpts): Promise<VisaoPayload | null> {
         'X-User-Role': opts.role,
         'X-User-Equipe': opts.equipe ?? '',
         ...(opts.idAssessor ? { 'X-User-Id-Assessor': opts.idAssessor } : {}),
-        ...(opts.filterType  ? { 'X-Filter-Type':  opts.filterType  } : {}),
+        ...(opts.filterType ? { 'X-Filter-Type': opts.filterType } : {}),
         ...(opts.filterValue ? { 'X-Filter-Value': opts.filterValue } : {}),
       },
     })
@@ -158,7 +156,7 @@ async function getRfAtivos(opts: FilterOpts): Promise<RFAtivo[]> {
         'X-User-Role': opts.role,
         'X-User-Equipe': opts.equipe ?? '',
         ...(opts.idAssessor ? { 'X-User-Id-Assessor': opts.idAssessor } : {}),
-        ...(opts.filterType  ? { 'X-Filter-Type':  opts.filterType  } : {}),
+        ...(opts.filterType ? { 'X-Filter-Type': opts.filterType } : {}),
         ...(opts.filterValue ? { 'X-Filter-Value': opts.filterValue } : {}),
       },
     })
@@ -179,7 +177,7 @@ async function getDistribuicao(opts: FilterOpts): Promise<DistribuicaoPayload | 
         'X-User-Role': opts.role,
         'X-User-Equipe': opts.equipe ?? '',
         ...(opts.idAssessor ? { 'X-User-Id-Assessor': opts.idAssessor } : {}),
-        ...(opts.filterType  ? { 'X-Filter-Type':  opts.filterType  } : {}),
+        ...(opts.filterType ? { 'X-Filter-Type': opts.filterType } : {}),
         ...(opts.filterValue ? { 'X-Filter-Value': opts.filterValue } : {}),
       },
     })
@@ -191,7 +189,12 @@ async function getDistribuicao(opts: FilterOpts): Promise<DistribuicaoPayload | 
   }
 }
 
-async function getAssessores(role: string, email: string, equipe?: string, idAssessor?: string): Promise<AssessoresPayload | null> {
+async function getAssessores(
+  role: string,
+  email: string,
+  equipe?: string,
+  idAssessor?: string,
+): Promise<AssessoresPayload | null> {
   if (role !== 'admin' && role !== 'master' && role !== 'lider' && role !== 'lider_pj') return null
   try {
     const res = await apiFetch('/performance/assessores', {
@@ -374,8 +377,9 @@ export default async function CarteirasPage({
   const tab = sp.tab ?? 'geral'
   const session = await requireSession()
 
-  const canFilter = session.role === 'admin' || session.role === 'master' || session.role === 'lider'
-  const filterType  = canFilter ? sp.filter_type  : undefined
+  const canFilter =
+    session.role === 'admin' || session.role === 'master' || session.role === 'lider'
+  const filterType = canFilter ? sp.filter_type : undefined
   const filterValue = canFilter ? sp.filter_value : undefined
 
   const opts: FilterOpts = {
@@ -383,7 +387,7 @@ export default async function CarteirasPage({
     role: session.role,
     ...(session.equipe ? { equipe: session.equipe } : {}),
     ...(session.idAssessor ? { idAssessor: session.idAssessor } : {}),
-    ...(filterType  ? { filterType  } : {}),
+    ...(filterType ? { filterType } : {}),
     ...(filterValue ? { filterValue } : {}),
   }
 
@@ -448,10 +452,19 @@ export default async function CarteirasPage({
       {canFilter && (
         <AnalisesFilters
           basePath="/carteiras"
-          equipes={session.role === 'lider' ? [] : (assessoresData?.equipes ?? []).slice().sort((a, b) => a.localeCompare(b, 'pt-BR'))}
-          assessores={(assessoresData?.assessores ?? []).slice().sort((a, b) =>
-            (a.nome_assessor ?? a.id_assessor).localeCompare(b.nome_assessor ?? b.id_assessor, 'pt-BR'),
-          )}
+          equipes={
+            session.role === 'lider'
+              ? []
+              : (assessoresData?.equipes ?? []).slice().sort((a, b) => a.localeCompare(b, 'pt-BR'))
+          }
+          assessores={(assessoresData?.assessores ?? [])
+            .slice()
+            .sort((a, b) =>
+              (a.nome_assessor ?? a.id_assessor).localeCompare(
+                b.nome_assessor ?? b.id_assessor,
+                'pt-BR',
+              ),
+            )}
         />
       )}
 
@@ -462,7 +475,6 @@ export default async function CarteirasPage({
 
       {/* ── Busca por Ativo ─────────────────────────────────────────────── */}
       <BuscaAtivo />
-
 
       {/* ── 4 KPI Cards ────────────────────────────────────────────────── */}
       <div
@@ -544,40 +556,109 @@ export default async function CarteirasPage({
       {/* ── Distribuição por Produto (tb_diversificador) ────────────────── */}
       {tab === 'geral' && distribuicao && distribuicao.alocacao.length > 0 && (
         <div style={{ ...cardStyle, boxShadow: 'var(--e-float)', marginBottom: 'var(--s-4)' }}>
-          <SectionHeader title="Distribuição por Produto" sub={`${fBRL(distribuicao.aum)} · visão completa da custódia`} />
+          <SectionHeader
+            title="Distribuição por Produto"
+            sub={`${fBRL(distribuicao.aum)} · visão completa da custódia`}
+          />
           <div style={{ display: 'flex', alignItems: 'center', gap: 32, padding: '20px 24px' }}>
             <Donut
               size={148}
-              segments={distribuicao.alocacao.map(a => ({
+              segments={distribuicao.alocacao.map((a) => ({
                 label: a.produto,
                 value: a.total,
                 color: divColor(a.produto),
               }))}
             />
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {distribuicao.alocacao.map(a => {
+              {distribuicao.alocacao.map((a) => {
                 const pct = distribuicao.aum > 0 ? (a.total / distribuicao.aum) * 100 : 0
                 const color = divColor(a.produto)
                 return (
-                  <div key={a.produto} style={{ display: 'grid', gridTemplateColumns: '160px 1fr 80px 60px', alignItems: 'center', gap: 12 }}>
+                  <div
+                    key={a.produto}
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '160px 1fr 80px 60px',
+                      alignItems: 'center',
+                      gap: 12,
+                    }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ width: 8, height: 8, borderRadius: 2, background: color, flexShrink: 0 }} />
-                      <span style={{ fontFamily: 'var(--f-text)', fontSize: 12, fontWeight: 500, color: 'var(--fg)' }}>{a.produto}</span>
+                      <div
+                        style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: 2,
+                          background: color,
+                          flexShrink: 0,
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontFamily: 'var(--f-text)',
+                          fontSize: 12,
+                          fontWeight: 500,
+                          color: 'var(--fg)',
+                        }}
+                      >
+                        {a.produto}
+                      </span>
                     </div>
-                    <div style={{ height: 5, background: 'var(--bg-deep)', borderRadius: 2, overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${pct}%`, background: color, borderRadius: 2, opacity: 0.8 }} />
+                    <div
+                      style={{
+                        height: 5,
+                        background: 'var(--bg-deep)',
+                        borderRadius: 2,
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <div
+                        style={{
+                          height: '100%',
+                          width: `${pct}%`,
+                          background: color,
+                          borderRadius: 2,
+                          opacity: 0.8,
+                        }}
+                      />
                     </div>
-                    <span style={{ fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 600, color, textAlign: 'right', fontFeatureSettings: '"tnum"' }}>
+                    <span
+                      style={{
+                        fontFamily: 'var(--f-mono)',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color,
+                        textAlign: 'right',
+                        fontFeatureSettings: '"tnum"',
+                      }}
+                    >
                       {pct.toFixed(1).replace('.', ',')}%
                     </span>
-                    <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--fg-faint)', textAlign: 'right', fontFeatureSettings: '"tnum"' }}>
+                    <span
+                      style={{
+                        fontFamily: 'var(--f-mono)',
+                        fontSize: 11,
+                        color: 'var(--fg-faint)',
+                        textAlign: 'right',
+                        fontFeatureSettings: '"tnum"',
+                      }}
+                    >
                       {fBRL(a.total)}
                     </span>
                   </div>
                 )
               })}
-              <p style={{ margin: '8px 0 0', fontFamily: 'var(--f-text)', fontSize: 11, color: 'var(--fg-faint)', lineHeight: 1.4 }}>
-                Consolidado geral de todos os produtos. Os tabs RF e RV aprofundam cada classe individualmente.
+              <p
+                style={{
+                  margin: '8px 0 0',
+                  fontFamily: 'var(--f-text)',
+                  fontSize: 11,
+                  color: 'var(--fg-faint)',
+                  lineHeight: 1.4,
+                }}
+              >
+                Consolidado geral de todos os produtos. Os tabs RF e RV aprofundam cada classe
+                individualmente.
               </p>
             </div>
           </div>
@@ -585,470 +666,64 @@ export default async function CarteirasPage({
       )}
 
       {/* ── Row: Macro Donut + RF Marcação ─────────────────────────────── */}
-      {tab !== 'rv' && <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: tab === 'rf' ? '1fr' : '1fr 1fr',
-          gap: 'var(--s-4)',
-          marginBottom: 'var(--s-4)',
-        }}
-      >
-        {/* Macro Allocation — oculto no tab RF (foco só em RF Marcação) */}
-        {tab !== 'rf' && <div style={{ ...cardStyle, boxShadow: 'var(--e-float)' }}>
-          <SectionHeader title="Alocação por Classe" sub={fBRL(totais.total)} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '20px 24px' }}>
-            <Donut
-              size={140}
-              segments={[
-                { label: 'Renda Fixa', value: totais.rf, color: MACRO_COLOR.rf ?? '#2D5FA0' },
-                { label: 'Renda Variável', value: totais.rv, color: MACRO_COLOR.rv ?? '#C29404' },
-                { label: 'COE', value: totais.coe, color: MACRO_COLOR.coe ?? '#D94141' },
-                {
-                  label: 'Liquidez Diária',
-                  value: totais.liquidez,
-                  color: MACRO_COLOR.liquidez ?? '#248A47',
-                },
-              ]}
-            />
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {[
-                { label: 'Renda Fixa', value: totais.rf, color: MACRO_COLOR.rf },
-                { label: 'Renda Variável', value: totais.rv, color: MACRO_COLOR.rv },
-                { label: 'COE', value: totais.coe, color: MACRO_COLOR.coe },
-                { label: 'Liquidez Diária', value: totais.liquidez, color: MACRO_COLOR.liquidez },
-              ].map(({ label, value, color }) => (
-                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: 2,
-                      background: color,
-                      flexShrink: 0,
-                    }}
-                  />
-                  <span
-                    style={{
-                      fontFamily: 'var(--f-text)',
-                      fontSize: 12,
-                      color: 'var(--fg)',
-                      flex: 1,
-                    }}
-                  >
-                    {label}
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: 'var(--f-mono)',
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color,
-                      fontFeatureSettings: '"tnum"',
-                    }}
-                  >
-                    {totais.total > 0 ? fPct((value / totais.total) * 100) : '—'}
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: 'var(--f-mono)',
-                      fontSize: 11,
-                      color: 'var(--fg-faint)',
-                      width: 72,
-                      textAlign: 'right',
-                      fontFeatureSettings: '"tnum"',
-                    }}
-                  >
-                    {fBRL(value)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>}
-
-        {/* RF Marcação */}
-        <div style={{ ...cardStyle, boxShadow: 'var(--e-float)' }}>
-          <SectionHeader title="RF — Marcação a Mercado vs Curva" />
-          {rfMarc.length > 0 ? (
-            (() => {
-              const marcTotal = rfMarc.reduce((s, m) => s + m.total, 0)
-              const mercado = rfMarc.find((m) => m.flag_marcacao === 'Mercado')
-              const curva = rfMarc.find((m) => m.flag_marcacao === 'Curva')
-              return (
-                <div
-                  style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '20px 24px' }}
-                >
-                  <Donut
-                    size={140}
-                    segments={[
-                      { label: 'Mercado', value: mercado?.total ?? 0, color: '#2D5FA0' },
-                      { label: 'Curva', value: curva?.total ?? 0, color: '#8C8B87' },
-                    ]}
-                  />
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    {[
-                      {
-                        label: 'Marcado a Mercado',
-                        data: mercado,
-                        color: '#2D5FA0',
-                        desc: 'P&L visível, sofre MTM',
-                      },
-                      {
-                        label: 'Marcado na Curva',
-                        data: curva,
-                        color: '#8C8B87',
-                        desc: 'Travado até vencimento',
-                      },
-                    ].map(({ label, data, color, desc }) => (
-                      <div key={label}>
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'baseline',
-                            gap: 8,
-                            marginBottom: 4,
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: 8,
-                              height: 8,
-                              borderRadius: 2,
-                              background: color,
-                              flexShrink: 0,
-                              marginBottom: 1,
-                            }}
-                          />
-                          <span
-                            style={{
-                              fontFamily: 'var(--f-text)',
-                              fontSize: 12,
-                              color: 'var(--fg)',
-                              fontWeight: 500,
-                            }}
-                          >
-                            {label}
-                          </span>
-                          <span
-                            style={{
-                              fontFamily: 'var(--f-mono)',
-                              fontSize: 14,
-                              fontWeight: 700,
-                              color,
-                              marginLeft: 'auto',
-                              fontFeatureSettings: '"tnum"',
-                            }}
-                          >
-                            {marcTotal > 0 ? fPct(((data?.total ?? 0) / marcTotal) * 100) : '—'}
-                          </span>
-                        </div>
-                        <div style={{ paddingLeft: 16 }}>
-                          <p
-                            style={{
-                              fontFamily: 'var(--f-mono)',
-                              fontSize: 12,
-                              color: 'var(--fg)',
-                              fontWeight: 500,
-                              fontFeatureSettings: '"tnum"',
-                            }}
-                          >
-                            {fBRL(data?.total ?? 0)}
-                          </p>
-                          <p
-                            style={{
-                              fontFamily: 'var(--f-mono)',
-                              fontSize: 9,
-                              color: 'var(--fg-faint)',
-                              letterSpacing: '.18em',
-                              textTransform: 'uppercase',
-                              marginTop: 2,
-                            }}
-                          >
-                            {data?.posicoes.toLocaleString('pt-BR') ?? '0'} posições · {desc}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )
-            })()
-          ) : (
-            <div style={{ padding: 24, color: 'var(--fg-faint)', fontSize: 13 }}>Sem dados</div>
-          )}
-        </div>
-      </div>}
-
-      {/* ── RF: Indexadores ────────────────────────────────────────────── */}
-      {tab !== 'rv' && <div style={{ ...cardStyle, marginBottom: 'var(--s-4)' }}>
-        <SectionHeader
-          title="Renda Fixa — Exposição por Indexador"
-          sub={`${rfIdx.length} indexadores`}
-        />
-        <div style={{ padding: '8px 0' }}>
-          {rfIdx
-            .filter((r) => r.indexador)
-            .map((r, i) => (
-              <div
-                key={r.indexador}
-                style={{ borderBottom: i < rfIdx.length - 1 ? '1px solid var(--line)' : 'none' }}
-              >
-                <HBar
-                  label={r.indexador}
-                  sub={`${r.posicoes.toLocaleString('pt-BR')} posições · ${r.clientes.toLocaleString('pt-BR')} clientes`}
-                  total={r.total}
-                  max={rfIdx[0]?.total ?? 1}
-                  color={IDX_COLOR[r.indexador] ?? '#8C8B87'}
-                />
-              </div>
-            ))}
-        </div>
-      </div>}
-
-      {/* ── RF: Wall of Maturities ─────────────────────────────────────── */}
-      {tab !== 'rv' && <div style={{ ...cardStyle, marginBottom: 'var(--s-4)' }}>
-        <SectionHeader title="Renda Fixa — Vencimentos por Janela" sub="wall of maturities" />
-        <WallOfMaturities maturities={rfMat} />
-      </div>}
-
-      {/* ── RF: Top Ativos (drill-down por cliente) ─────────────────────── */}
-      {tab !== 'rv' && <RFAtivos ativos={rfAtivos} />}
-
-      {/* ── RV: Setorial + Top Ativos ──────────────────────────────────── */}
-      {tab !== 'rf' && <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1.5fr',
-          gap: 'var(--s-4)',
-          marginBottom: 'var(--s-4)',
-        }}
-      >
-        {/* Setorial */}
-        <div style={cardStyle}>
-          <SectionHeader title="Renda Variável — Setorial" sub={`${fBRL(totais.rv)}`} />
-          <RVSetorial setorList={setorList} setorMax={setorMax} />
-        </div>
-
-        {/* Top Ativos */}
-        <div style={cardStyle}>
-          <SectionHeader title="Renda Variável — Top Ativos" sub="retorno vs custo médio" />
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ background: 'var(--bg-deep)' }}>
-                {['Ativo', 'Setor', 'AUC', 'Clientes', 'P&L Médio'].map((h) => (
-                  <th
-                    key={h}
-                    style={{
-                      fontFamily: 'var(--f-mono)',
-                      fontSize: 9,
-                      fontWeight: 500,
-                      color: 'var(--fg-faint)',
-                      letterSpacing: '.18em',
-                      textTransform: 'uppercase',
-                      padding: '8px 16px',
-                      textAlign: h === 'Ativo' || h === 'Setor' ? 'left' : 'right',
-                      borderBottom: '1px solid var(--line)',
-                    }}
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rvTop.map((a, i) => {
-                const up = a.variacao >= 0
-                return (
-                  <tr
-                    key={a.ativo}
-                    style={{
-                      borderBottom: i < rvTop.length - 1 ? '1px solid var(--line)' : 'none',
-                    }}
-                  >
-                    <td style={{ padding: '9px 16px' }}>
-                      <span
-                        style={{
-                          fontFamily: 'var(--f-mono)',
-                          fontSize: 12,
-                          fontWeight: 700,
-                          color: 'var(--fg)',
-                        }}
-                      >
-                        {a.ativo}
-                      </span>
-                      <span
-                        style={{
-                          display: 'block',
-                          fontFamily: 'var(--f-mono)',
-                          fontSize: 9,
-                          color: 'var(--fg-faint)',
-                          textTransform: 'uppercase',
-                          letterSpacing: '.18em',
-                        }}
-                      >
-                        {a.produto}
-                      </span>
-                    </td>
-                    <td style={{ padding: '9px 16px' }}>
-                      <span
-                        style={{
-                          fontFamily: 'var(--f-text)',
-                          fontSize: 11,
-                          color: 'var(--fg-mute)',
-                        }}
-                      >
-                        {a.setor}
-                      </span>
-                    </td>
-                    <td
-                      style={{
-                        padding: '9px 16px',
-                        textAlign: 'right',
-                        fontFamily: 'var(--f-mono)',
-                        fontSize: 12,
-                        fontWeight: 500,
-                        color: 'var(--fg)',
-                        fontFeatureSettings: '"tnum"',
-                      }}
-                    >
-                      {fBRL(a.total)}
-                    </td>
-                    <td
-                      style={{
-                        padding: '9px 16px',
-                        textAlign: 'right',
-                        fontFamily: 'var(--f-mono)',
-                        fontSize: 11,
-                        color: 'var(--fg-faint)',
-                      }}
-                    >
-                      {a.clientes.toLocaleString('pt-BR')}
-                    </td>
-                    <td style={{ padding: '9px 16px', textAlign: 'right' }}>
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          fontFamily: 'var(--f-mono)',
-                          fontSize: 10,
-                          fontWeight: 500,
-                          letterSpacing: '.08em',
-                          fontFeatureSettings: '"tnum"',
-                          color: up ? 'var(--color-positive)' : 'var(--color-negative)',
-                          background: up ? 'var(--color-positive-bg)' : 'var(--color-negative-bg)',
-                          border: '1px solid transparent',
-                          padding: '2px 7px',
-                          borderRadius: 999,
-                        }}
-                      >
-                        {fVar(a.variacao)}
-                      </span>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>}
-
-      {/* ── COE ────────────────────────────────────────────────────────── */}
-      {tab === 'geral' && <div style={{ ...cardStyle, marginBottom: 'var(--s-4)' }}>
-        <SectionHeader
-          title="COE — Posição & Performance"
-          sub={`${coeTypes.reduce((s, t) => s + t.posicoes, 0).toLocaleString('pt-BR')} posições`}
-        />
-
-        {/* Summary strip */}
+      {tab !== 'rv' && (
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            borderBottom: '1px solid var(--line)',
+            gridTemplateColumns: tab === 'rf' ? '1fr' : '1fr 1fr',
+            gap: 'var(--s-4)',
+            marginBottom: 'var(--s-4)',
           }}
         >
-          {[
-            { label: 'Valor Investido', value: coeTotalCompra, color: 'var(--fg-mute)' },
-            { label: 'Posição Atual', value: coeTotalAtual, color: 'var(--fg)' },
-            { label: 'Cupom Recebido', value: coeTotalCupom, color: 'var(--color-positive)' },
-            {
-              label: 'P&L Total',
-              value: coeTotalPL,
-              color: coeTotalPL >= 0 ? 'var(--color-positive)' : 'var(--color-negative)',
-            },
-          ].map(({ label, value, color }) => (
-            <div key={label} style={{ padding: '16px 20px', borderRight: '1px solid var(--line)' }}>
-              <p style={mono10}>{label}</p>
-              <p
-                style={{
-                  fontFamily: 'var(--f-mono)',
-                  fontSize: 20,
-                  fontWeight: 700,
-                  color,
-                  marginTop: 8,
-                  letterSpacing: '-.01em',
-                  fontFeatureSettings: '"tnum"',
-                }}
-              >
-                {fBRL(value)}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        {/* Por tipo */}
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${coeTypes.length}, 1fr)` }}>
-          {coeTypes.map((t, i) => {
-            const color = COE_COLOR[t.tipo] ?? '#8C8B87'
-            const plUp = t.pl >= 0
-            return (
-              <div
-                key={t.tipo}
-                style={{
-                  padding: '16px 20px',
-                  borderRight: i < coeTypes.length - 1 ? '1px solid var(--line)' : 'none',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                  <div style={{ width: 10, height: 10, borderRadius: 3, background: color }} />
-                  <span
-                    style={{
-                      fontFamily: 'var(--f-mono)',
-                      fontSize: 11,
-                      fontWeight: 600,
-                      color: 'var(--fg)',
-                      letterSpacing: '.18em',
-                    }}
-                  >
-                    {t.tipo}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {[
-                    { label: 'Investido', v: fBRL(t.total_compra), color: 'var(--fg-mute)' },
-                    { label: 'Atual', v: fBRL(t.total_atual), color: 'var(--fg)' },
-                    { label: 'Cupom', v: fBRL(t.total_cupom), color: 'var(--color-positive)' },
+          {/* Macro Allocation — oculto no tab RF (foco só em RF Marcação) */}
+          {tab !== 'rf' && (
+            <div style={{ ...cardStyle, boxShadow: 'var(--e-float)' }}>
+              <SectionHeader title="Alocação por Classe" sub={fBRL(totais.total)} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '20px 24px' }}>
+                <Donut
+                  size={140}
+                  segments={[
+                    { label: 'Renda Fixa', value: totais.rf, color: MACRO_COLOR.rf ?? '#2D5FA0' },
                     {
-                      label: 'P&L',
-                      v: fBRL(t.pl),
-                      color: plUp ? 'var(--color-positive)' : 'var(--color-negative)',
+                      label: 'Renda Variável',
+                      value: totais.rv,
+                      color: MACRO_COLOR.rv ?? '#C29404',
                     },
-                  ].map(({ label, v, color: c }) => (
-                    <div
-                      key={label}
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'baseline',
-                      }}
-                    >
+                    { label: 'COE', value: totais.coe, color: MACRO_COLOR.coe ?? '#D94141' },
+                    {
+                      label: 'Liquidez Diária',
+                      value: totais.liquidez,
+                      color: MACRO_COLOR.liquidez ?? '#248A47',
+                    },
+                  ]}
+                />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {[
+                    { label: 'Renda Fixa', value: totais.rf, color: MACRO_COLOR.rf },
+                    { label: 'Renda Variável', value: totais.rv, color: MACRO_COLOR.rv },
+                    { label: 'COE', value: totais.coe, color: MACRO_COLOR.coe },
+                    {
+                      label: 'Liquidez Diária',
+                      value: totais.liquidez,
+                      color: MACRO_COLOR.liquidez,
+                    },
+                  ].map(({ label, value, color }) => (
+                    <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div
+                        style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: 2,
+                          background: color,
+                          flexShrink: 0,
+                        }}
+                      />
                       <span
                         style={{
-                          fontFamily: 'var(--f-mono)',
-                          fontSize: 9,
-                          color: 'var(--fg-faint)',
-                          textTransform: 'uppercase',
-                          letterSpacing: '.18em',
+                          fontFamily: 'var(--f-text)',
+                          fontSize: 12,
+                          color: 'var(--fg)',
+                          flex: 1,
                         }}
                       >
                         {label}
@@ -1058,55 +733,490 @@ export default async function CarteirasPage({
                           fontFamily: 'var(--f-mono)',
                           fontSize: 12,
                           fontWeight: 600,
-                          color: c,
+                          color,
                           fontFeatureSettings: '"tnum"',
                         }}
                       >
-                        {v}
+                        {totais.total > 0 ? fPct((value / totais.total) * 100) : '—'}
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: 'var(--f-mono)',
+                          fontSize: 11,
+                          color: 'var(--fg-faint)',
+                          width: 72,
+                          textAlign: 'right',
+                          fontFeatureSettings: '"tnum"',
+                        }}
+                      >
+                        {fBRL(value)}
                       </span>
                     </div>
                   ))}
                 </div>
-                <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--line)' }}>
-                  <span
-                    style={{
-                      fontFamily: 'var(--f-mono)',
-                      fontSize: 9,
-                      color: 'var(--fg-faint)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '.18em',
-                    }}
-                  >
-                    {t.posicoes.toLocaleString('pt-BR')} pos · {t.clientes.toLocaleString('pt-BR')}{' '}
-                    clientes
-                  </span>
-                </div>
               </div>
-            )
-          })}
+            </div>
+          )}
+
+          {/* RF Marcação */}
+          <div style={{ ...cardStyle, boxShadow: 'var(--e-float)' }}>
+            <SectionHeader title="RF — Marcação a Mercado vs Curva" />
+            {rfMarc.length > 0 ? (
+              (() => {
+                const marcTotal = rfMarc.reduce((s, m) => s + m.total, 0)
+                const mercado = rfMarc.find((m) => m.flag_marcacao === 'Mercado')
+                const curva = rfMarc.find((m) => m.flag_marcacao === 'Curva')
+                return (
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '20px 24px' }}
+                  >
+                    <Donut
+                      size={140}
+                      segments={[
+                        { label: 'Mercado', value: mercado?.total ?? 0, color: '#2D5FA0' },
+                        { label: 'Curva', value: curva?.total ?? 0, color: '#8C8B87' },
+                      ]}
+                    />
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      {[
+                        {
+                          label: 'Marcado a Mercado',
+                          data: mercado,
+                          color: '#2D5FA0',
+                          desc: 'P&L visível, sofre MTM',
+                        },
+                        {
+                          label: 'Marcado na Curva',
+                          data: curva,
+                          color: '#8C8B87',
+                          desc: 'Travado até vencimento',
+                        },
+                      ].map(({ label, data, color, desc }) => (
+                        <div key={label}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'baseline',
+                              gap: 8,
+                              marginBottom: 4,
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: 2,
+                                background: color,
+                                flexShrink: 0,
+                                marginBottom: 1,
+                              }}
+                            />
+                            <span
+                              style={{
+                                fontFamily: 'var(--f-text)',
+                                fontSize: 12,
+                                color: 'var(--fg)',
+                                fontWeight: 500,
+                              }}
+                            >
+                              {label}
+                            </span>
+                            <span
+                              style={{
+                                fontFamily: 'var(--f-mono)',
+                                fontSize: 14,
+                                fontWeight: 700,
+                                color,
+                                marginLeft: 'auto',
+                                fontFeatureSettings: '"tnum"',
+                              }}
+                            >
+                              {marcTotal > 0 ? fPct(((data?.total ?? 0) / marcTotal) * 100) : '—'}
+                            </span>
+                          </div>
+                          <div style={{ paddingLeft: 16 }}>
+                            <p
+                              style={{
+                                fontFamily: 'var(--f-mono)',
+                                fontSize: 12,
+                                color: 'var(--fg)',
+                                fontWeight: 500,
+                                fontFeatureSettings: '"tnum"',
+                              }}
+                            >
+                              {fBRL(data?.total ?? 0)}
+                            </p>
+                            <p
+                              style={{
+                                fontFamily: 'var(--f-mono)',
+                                fontSize: 9,
+                                color: 'var(--fg-faint)',
+                                letterSpacing: '.18em',
+                                textTransform: 'uppercase',
+                                marginTop: 2,
+                              }}
+                            >
+                              {data?.posicoes.toLocaleString('pt-BR') ?? '0'} posições · {desc}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })()
+            ) : (
+              <div style={{ padding: 24, color: 'var(--fg-faint)', fontSize: 13 }}>Sem dados</div>
+            )}
+          </div>
         </div>
-      </div>}
+      )}
+
+      {/* ── RF: Indexadores ────────────────────────────────────────────── */}
+      {tab !== 'rv' && (
+        <div style={{ ...cardStyle, marginBottom: 'var(--s-4)' }}>
+          <SectionHeader
+            title="Renda Fixa — Exposição por Indexador"
+            sub={`${rfIdx.length} indexadores`}
+          />
+          <div style={{ padding: '8px 0' }}>
+            {rfIdx
+              .filter((r) => r.indexador)
+              .map((r, i) => (
+                <div
+                  key={r.indexador}
+                  style={{ borderBottom: i < rfIdx.length - 1 ? '1px solid var(--line)' : 'none' }}
+                >
+                  <HBar
+                    label={r.indexador}
+                    sub={`${r.posicoes.toLocaleString('pt-BR')} posições · ${r.clientes.toLocaleString('pt-BR')} clientes`}
+                    total={r.total}
+                    max={rfIdx[0]?.total ?? 1}
+                    color={IDX_COLOR[r.indexador] ?? '#8C8B87'}
+                  />
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── RF: Wall of Maturities ─────────────────────────────────────── */}
+      {tab !== 'rv' && (
+        <div style={{ ...cardStyle, marginBottom: 'var(--s-4)' }}>
+          <SectionHeader title="Renda Fixa — Vencimentos por Janela" sub="wall of maturities" />
+          <WallOfMaturities maturities={rfMat} />
+        </div>
+      )}
+
+      {/* ── RF: Top Ativos (drill-down por cliente) ─────────────────────── */}
+      {tab !== 'rv' && <RFAtivos ativos={rfAtivos} />}
+
+      {/* ── RV: Setorial + Top Ativos ──────────────────────────────────── */}
+      {tab !== 'rf' && (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1.5fr',
+            gap: 'var(--s-4)',
+            marginBottom: 'var(--s-4)',
+          }}
+        >
+          {/* Setorial */}
+          <div style={cardStyle}>
+            <SectionHeader title="Renda Variável — Setorial" sub={`${fBRL(totais.rv)}`} />
+            <RVSetorial setorList={setorList} setorMax={setorMax} />
+          </div>
+
+          {/* Top Ativos */}
+          <div style={cardStyle}>
+            <SectionHeader title="Renda Variável — Top Ativos" sub="retorno vs custo médio" />
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: 'var(--bg-deep)' }}>
+                  {['Ativo', 'Setor', 'AUC', 'Clientes', 'P&L Médio'].map((h) => (
+                    <th
+                      key={h}
+                      style={{
+                        fontFamily: 'var(--f-mono)',
+                        fontSize: 9,
+                        fontWeight: 500,
+                        color: 'var(--fg-faint)',
+                        letterSpacing: '.18em',
+                        textTransform: 'uppercase',
+                        padding: '8px 16px',
+                        textAlign: h === 'Ativo' || h === 'Setor' ? 'left' : 'right',
+                        borderBottom: '1px solid var(--line)',
+                      }}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rvTop.map((a, i) => {
+                  const up = a.variacao >= 0
+                  return (
+                    <tr
+                      key={a.ativo}
+                      style={{
+                        borderBottom: i < rvTop.length - 1 ? '1px solid var(--line)' : 'none',
+                      }}
+                    >
+                      <td style={{ padding: '9px 16px' }}>
+                        <span
+                          style={{
+                            fontFamily: 'var(--f-mono)',
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: 'var(--fg)',
+                          }}
+                        >
+                          {a.ativo}
+                        </span>
+                        <span
+                          style={{
+                            display: 'block',
+                            fontFamily: 'var(--f-mono)',
+                            fontSize: 9,
+                            color: 'var(--fg-faint)',
+                            textTransform: 'uppercase',
+                            letterSpacing: '.18em',
+                          }}
+                        >
+                          {a.produto}
+                        </span>
+                      </td>
+                      <td style={{ padding: '9px 16px' }}>
+                        <span
+                          style={{
+                            fontFamily: 'var(--f-text)',
+                            fontSize: 11,
+                            color: 'var(--fg-mute)',
+                          }}
+                        >
+                          {a.setor}
+                        </span>
+                      </td>
+                      <td
+                        style={{
+                          padding: '9px 16px',
+                          textAlign: 'right',
+                          fontFamily: 'var(--f-mono)',
+                          fontSize: 12,
+                          fontWeight: 500,
+                          color: 'var(--fg)',
+                          fontFeatureSettings: '"tnum"',
+                        }}
+                      >
+                        {fBRL(a.total)}
+                      </td>
+                      <td
+                        style={{
+                          padding: '9px 16px',
+                          textAlign: 'right',
+                          fontFamily: 'var(--f-mono)',
+                          fontSize: 11,
+                          color: 'var(--fg-faint)',
+                        }}
+                      >
+                        {a.clientes.toLocaleString('pt-BR')}
+                      </td>
+                      <td style={{ padding: '9px 16px', textAlign: 'right' }}>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            fontFamily: 'var(--f-mono)',
+                            fontSize: 10,
+                            fontWeight: 500,
+                            letterSpacing: '.08em',
+                            fontFeatureSettings: '"tnum"',
+                            color: up ? 'var(--color-positive)' : 'var(--color-negative)',
+                            background: up
+                              ? 'var(--color-positive-bg)'
+                              : 'var(--color-negative-bg)',
+                            border: '1px solid transparent',
+                            padding: '2px 7px',
+                            borderRadius: 999,
+                          }}
+                        >
+                          {fVar(a.variacao)}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── COE ────────────────────────────────────────────────────────── */}
+      {tab === 'geral' && (
+        <div style={{ ...cardStyle, marginBottom: 'var(--s-4)' }}>
+          <SectionHeader
+            title="COE — Posição & Performance"
+            sub={`${coeTypes.reduce((s, t) => s + t.posicoes, 0).toLocaleString('pt-BR')} posições`}
+          />
+
+          {/* Summary strip */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4, 1fr)',
+              borderBottom: '1px solid var(--line)',
+            }}
+          >
+            {[
+              { label: 'Valor Investido', value: coeTotalCompra, color: 'var(--fg-mute)' },
+              { label: 'Posição Atual', value: coeTotalAtual, color: 'var(--fg)' },
+              { label: 'Cupom Recebido', value: coeTotalCupom, color: 'var(--color-positive)' },
+              {
+                label: 'P&L Total',
+                value: coeTotalPL,
+                color: coeTotalPL >= 0 ? 'var(--color-positive)' : 'var(--color-negative)',
+              },
+            ].map(({ label, value, color }) => (
+              <div
+                key={label}
+                style={{ padding: '16px 20px', borderRight: '1px solid var(--line)' }}
+              >
+                <p style={mono10}>{label}</p>
+                <p
+                  style={{
+                    fontFamily: 'var(--f-mono)',
+                    fontSize: 20,
+                    fontWeight: 700,
+                    color,
+                    marginTop: 8,
+                    letterSpacing: '-.01em',
+                    fontFeatureSettings: '"tnum"',
+                  }}
+                >
+                  {fBRL(value)}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Por tipo */}
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${coeTypes.length}, 1fr)` }}>
+            {coeTypes.map((t, i) => {
+              const color = COE_COLOR[t.tipo] ?? '#8C8B87'
+              const plUp = t.pl >= 0
+              return (
+                <div
+                  key={t.tipo}
+                  style={{
+                    padding: '16px 20px',
+                    borderRight: i < coeTypes.length - 1 ? '1px solid var(--line)' : 'none',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                    <div style={{ width: 10, height: 10, borderRadius: 3, background: color }} />
+                    <span
+                      style={{
+                        fontFamily: 'var(--f-mono)',
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: 'var(--fg)',
+                        letterSpacing: '.18em',
+                      }}
+                    >
+                      {t.tipo}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {[
+                      { label: 'Investido', v: fBRL(t.total_compra), color: 'var(--fg-mute)' },
+                      { label: 'Atual', v: fBRL(t.total_atual), color: 'var(--fg)' },
+                      { label: 'Cupom', v: fBRL(t.total_cupom), color: 'var(--color-positive)' },
+                      {
+                        label: 'P&L',
+                        v: fBRL(t.pl),
+                        color: plUp ? 'var(--color-positive)' : 'var(--color-negative)',
+                      },
+                    ].map(({ label, v, color: c }) => (
+                      <div
+                        key={label}
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'baseline',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontFamily: 'var(--f-mono)',
+                            fontSize: 9,
+                            color: 'var(--fg-faint)',
+                            textTransform: 'uppercase',
+                            letterSpacing: '.18em',
+                          }}
+                        >
+                          {label}
+                        </span>
+                        <span
+                          style={{
+                            fontFamily: 'var(--f-mono)',
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: c,
+                            fontFeatureSettings: '"tnum"',
+                          }}
+                        >
+                          {v}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div
+                    style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--line)' }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: 'var(--f-mono)',
+                        fontSize: 9,
+                        color: 'var(--fg-faint)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '.18em',
+                      }}
+                    >
+                      {t.posicoes.toLocaleString('pt-BR')} pos ·{' '}
+                      {t.clientes.toLocaleString('pt-BR')} clientes
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ── Liquidez Diária ────────────────────────────────────────────── */}
-      {tab === 'geral' && <div style={cardStyle}>
-        <SectionHeader title="Liquidez Diária — por Indexador" sub={fBRL(totais.liquidez)} />
-        <div style={{ padding: '8px 0' }}>
-          {ldIdx.map((r, i) => (
-            <div
-              key={r.indexador}
-              style={{ borderBottom: i < ldIdx.length - 1 ? '1px solid var(--line)' : 'none' }}
-            >
-              <HBar
-                label={r.indexador}
-                sub={`${r.posicoes.toLocaleString('pt-BR')} posições · ${r.clientes.toLocaleString('pt-BR')} clientes`}
-                total={r.total}
-                max={ldMax}
-                color={IDX_COLOR[r.indexador] ?? '#248A47'}
-              />
-            </div>
-          ))}
+      {tab === 'geral' && (
+        <div style={cardStyle}>
+          <SectionHeader title="Liquidez Diária — por Indexador" sub={fBRL(totais.liquidez)} />
+          <div style={{ padding: '8px 0' }}>
+            {ldIdx.map((r, i) => (
+              <div
+                key={r.indexador}
+                style={{ borderBottom: i < ldIdx.length - 1 ? '1px solid var(--line)' : 'none' }}
+              >
+                <HBar
+                  label={r.indexador}
+                  sub={`${r.posicoes.toLocaleString('pt-BR')} posições · ${r.clientes.toLocaleString('pt-BR')} clientes`}
+                  total={r.total}
+                  max={ldMax}
+                  color={IDX_COLOR[r.indexador] ?? '#248A47'}
+                />
+              </div>
+            ))}
+          </div>
         </div>
-      </div>}
+      )}
     </div>
   )
 }

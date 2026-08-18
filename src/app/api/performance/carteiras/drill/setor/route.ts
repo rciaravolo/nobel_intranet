@@ -13,14 +13,11 @@ export async function POST(req: NextRequest) {
 
   // POST body avoids Cloudflare URL decode que trunca '&' em query strings.
   // Passa setor via JSON body para o Hono handler.
-  const res = await apiFetch(
-    '/performance/carteiras/drill/setor',
-    {
-      method: 'POST',
-      headers: authHeaders(session, { 'Content-Type': 'application/json' }),
-      body: JSON.stringify({ setor }),
-    },
-  )
+  const res = await apiFetch('/performance/carteiras/drill/setor', {
+    method: 'POST',
+    headers: authHeaders(session, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ setor }),
+  })
 
   const json = await res.json()
   return NextResponse.json(json, { status: res.status })

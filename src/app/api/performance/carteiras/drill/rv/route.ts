@@ -10,10 +10,9 @@ export async function GET(req: NextRequest) {
   const ativo = req.nextUrl.searchParams.get('ativo')
   if (!ativo) return NextResponse.json({ error: 'ativo obrigatório' }, { status: 400 })
 
-  const res = await apiFetch(
-    `/performance/carteiras/drill/rv?ativo=${encodeURIComponent(ativo)}`,
-    { headers: authHeaders(session) },
-  )
+  const res = await apiFetch(`/performance/carteiras/drill/rv?ativo=${encodeURIComponent(ativo)}`, {
+    headers: authHeaders(session),
+  })
 
   const json = await res.json()
   return NextResponse.json(json, { status: res.status })

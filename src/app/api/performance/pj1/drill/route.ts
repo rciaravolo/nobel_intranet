@@ -12,10 +12,10 @@ export async function GET(req: NextRequest) {
   const categoria = req.nextUrl.searchParams.get('categoria') ?? ''
   if (!categoria) return NextResponse.json({ error: 'categoria obrigatória' }, { status: 400 })
 
-  const res = await apiFetch(
-    `/performance/pj1/drill?categoria=${encodeURIComponent(categoria)}`,
-    { cache: 'no-store', headers: authHeaders(session) },
-  )
+  const res = await apiFetch(`/performance/pj1/drill?categoria=${encodeURIComponent(categoria)}`, {
+    cache: 'no-store',
+    headers: authHeaders(session),
+  })
   const json = await res.json()
   return NextResponse.json(json, { status: res.status })
 }

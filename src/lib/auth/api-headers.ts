@@ -4,7 +4,10 @@ import type { SessionPayload } from './session'
  * Monta os headers X-User-* padrão para chamadas Next→Worker.
  * Omite campos ausentes na sessão (equipe, idAssessor).
  */
-export function authHeaders(session: SessionPayload, extras?: Record<string, string>): Record<string, string> {
+export function authHeaders(
+  session: SessionPayload,
+  extras?: Record<string, string>,
+): Record<string, string> {
   const h: Record<string, string> = {
     'X-User-Role': session.role,
     'X-User-Email': session.email,

@@ -1,5 +1,5 @@
-import { PageGreeting } from '../_components/PageGreeting'
 import { requireSession } from '@/lib/auth/session'
+import { PageGreeting } from '../_components/PageGreeting'
 
 export default async function AutomacoesPage() {
   const session = await requireSession()

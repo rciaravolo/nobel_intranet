@@ -25,20 +25,20 @@ function fC(v: number | null): string {
 
 /* ─── Constantes de layout ───────────────────────────────────────────────── */
 
-const VW   = 1060
-const VH   = 200
-const P    = { top: 32, right: 12, bottom: 30, left: 12 }
-const iW   = VW - P.left - P.right   // 1036
-const iH   = VH - P.top  - P.bottom  // 138
+const VW = 1060
+const VH = 200
+const P = { top: 32, right: 12, bottom: 30, left: 12 }
+const iW = VW - P.left - P.right // 1036
+const iH = VH - P.top - P.bottom // 138
 const SLOTS = 12
-const SLOT  = iW / SLOTS             // ~86.3
+const SLOT = iW / SLOTS // ~86.3
 
 // Bar geometry (per slot)
-const B25_X  = 4   // v25 bar offset inside slot
-const B26_X  = 46  // v26 bar offset inside slot
-const B_W    = 34  // bar width
-const B25_CX = B25_X + B_W / 2  // center of v25 bar = 21
-const B26_CX = B26_X + B_W / 2  // center of v26 bar = 63
+const B25_X = 4 // v25 bar offset inside slot
+const B26_X = 46 // v26 bar offset inside slot
+const B_W = 34 // bar width
+const B25_CX = B25_X + B_W / 2 // center of v25 bar = 21
+const B26_CX = B26_X + B_W / 2 // center of v26 bar = 63
 
 /* ─── Estilos ────────────────────────────────────────────────────────────── */
 
@@ -134,15 +134,25 @@ function ChartCustodia({ rows, compact }: { rows: MesHistorico[]; compact?: bool
   )
 
   const bTop = (v: number) => P.top + iH - (v / maxVal) * iH
-  const bH   = (v: number) => (v / maxVal) * iH
+  const bH = (v: number) => (v / maxVal) * iH
 
   return (
     <div style={cardStyle}>
       <div style={cardHeaderStyle}>
         <span style={titleStyle}>Custódia</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <YearPill label="2025" color="var(--line-strong)" active={vis.y25} onClick={() => setVis((v) => ({ ...v, y25: !v.y25 }))} />
-          <YearPill label="2026" color="var(--color-b-500)" active={vis.y26} onClick={() => setVis((v) => ({ ...v, y26: !v.y26 }))} />
+          <YearPill
+            label="2025"
+            color="var(--line-strong)"
+            active={vis.y25}
+            onClick={() => setVis((v) => ({ ...v, y25: !v.y25 }))}
+          />
+          <YearPill
+            label="2026"
+            color="var(--color-b-500)"
+            active={vis.y26}
+            onClick={() => setVis((v) => ({ ...v, y26: !v.y26 }))}
+          />
         </div>
       </div>
       <div style={{ padding: '16px 20px' }}>
@@ -153,21 +163,55 @@ function ChartCustodia({ rows, compact }: { rows: MesHistorico[]; compact?: bool
               <g key={r.mes}>
                 {vis.y25 && r.custodia.v25 != null && (
                   <>
-                    <rect x={x0 + B25_X} y={bTop(r.custodia.v25)} width={B_W} height={bH(r.custodia.v25)} rx={3} style={{ fill: 'var(--line-strong)' }} />
-                    <text x={x0 + B25_CX} y={bTop(r.custodia.v25) - 5} textAnchor="middle" fontSize={fSize} fontWeight={500} style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
+                    <rect
+                      x={x0 + B25_X}
+                      y={bTop(r.custodia.v25)}
+                      width={B_W}
+                      height={bH(r.custodia.v25)}
+                      rx={3}
+                      style={{ fill: 'var(--line-strong)' }}
+                    />
+                    <text
+                      x={x0 + B25_CX}
+                      y={bTop(r.custodia.v25) - 5}
+                      textAnchor="middle"
+                      fontSize={fSize}
+                      fontWeight={500}
+                      style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}
+                    >
                       {fC(r.custodia.v25)}
                     </text>
                   </>
                 )}
                 {vis.y26 && r.custodia.v26 != null && (
                   <>
-                    <rect x={x0 + B26_X} y={bTop(r.custodia.v26)} width={B_W} height={bH(r.custodia.v26)} rx={3} style={{ fill: 'var(--color-b-500)' }} />
-                    <text x={x0 + B26_CX} y={bTop(r.custodia.v26) - 5} textAnchor="middle" fontSize={fSize} fontWeight={500} style={{ fill: 'var(--fg-mute)', fontFamily: 'var(--f-mono)' }}>
+                    <rect
+                      x={x0 + B26_X}
+                      y={bTop(r.custodia.v26)}
+                      width={B_W}
+                      height={bH(r.custodia.v26)}
+                      rx={3}
+                      style={{ fill: 'var(--color-b-500)' }}
+                    />
+                    <text
+                      x={x0 + B26_CX}
+                      y={bTop(r.custodia.v26) - 5}
+                      textAnchor="middle"
+                      fontSize={fSize}
+                      fontWeight={500}
+                      style={{ fill: 'var(--fg-mute)', fontFamily: 'var(--f-mono)' }}
+                    >
                       {fC(r.custodia.v26)}
                     </text>
                   </>
                 )}
-                <text x={x0 + SLOT / 2} y={VH - 6} textAnchor="middle" fontSize={fSize} style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
+                <text
+                  x={x0 + SLOT / 2}
+                  y={VH - 6}
+                  textAnchor="middle"
+                  fontSize={fSize}
+                  style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}
+                >
                   {r.label}
                 </text>
               </g>
@@ -191,33 +235,64 @@ function ChartCaptacao({ rows, compact }: { rows: MesHistorico[]; compact?: bool
   ]
   const maxAbs = Math.max(...allVals.map(Math.abs), 1)
   const hasNeg = allVals.some((v) => v < 0)
-  const zeroY  = hasNeg ? P.top + iH / 2 : P.top + iH
-  const range  = hasNeg ? iH / 2 : iH
+  const zeroY = hasNeg ? P.top + iH / 2 : P.top + iH
+  const range = hasNeg ? iH / 2 : iH
 
-  const bTop = (v: number) => v >= 0 ? zeroY - (v / maxAbs) * range : zeroY
-  const bH   = (v: number) => (Math.abs(v) / maxAbs) * range
-  const lblY = (v: number) => v >= 0 ? bTop(v) - 5 : bTop(v) + bH(v) + 13
+  const bTop = (v: number) => (v >= 0 ? zeroY - (v / maxAbs) * range : zeroY)
+  const bH = (v: number) => (Math.abs(v) / maxAbs) * range
+  const lblY = (v: number) => (v >= 0 ? bTop(v) - 5 : bTop(v) + bH(v) + 13)
 
   return (
     <div style={cardStyle}>
       <div style={cardHeaderStyle}>
         <span style={titleStyle}>Captação Líquida</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <YearPill label="2025" color="var(--line-strong)" active={vis.y25} onClick={() => setVis((v) => ({ ...v, y25: !v.y25 }))} />
-          <YearPill label="2026" color="var(--color-b-500)" active={vis.y26} onClick={() => setVis((v) => ({ ...v, y26: !v.y26 }))} />
+          <YearPill
+            label="2025"
+            color="var(--line-strong)"
+            active={vis.y25}
+            onClick={() => setVis((v) => ({ ...v, y25: !v.y25 }))}
+          />
+          <YearPill
+            label="2026"
+            color="var(--color-b-500)"
+            active={vis.y26}
+            onClick={() => setVis((v) => ({ ...v, y26: !v.y26 }))}
+          />
         </div>
       </div>
       <div style={{ padding: '16px 20px' }}>
         <svg viewBox={`0 0 ${VW} ${VH}`} width="100%" height="auto" style={{ display: 'block' }}>
-          <line x1={P.left} y1={zeroY} x2={P.left + iW} y2={zeroY} strokeWidth={1} style={{ stroke: 'var(--line-strong)' }} />
+          <line
+            x1={P.left}
+            y1={zeroY}
+            x2={P.left + iW}
+            y2={zeroY}
+            strokeWidth={1}
+            style={{ stroke: 'var(--line-strong)' }}
+          />
           {rows.map((r, i) => {
             const x0 = P.left + i * SLOT
             return (
               <g key={r.mes}>
                 {vis.y25 && r.captacao.v25 != null && (
                   <>
-                    <rect x={x0 + B25_X} y={bTop(r.captacao.v25)} width={B_W} height={bH(r.captacao.v25)} rx={3} style={{ fill: 'var(--line-strong)' }} />
-                    <text x={x0 + B25_CX} y={lblY(r.captacao.v25)} textAnchor="middle" fontSize={fSize} fontWeight={500} style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
+                    <rect
+                      x={x0 + B25_X}
+                      y={bTop(r.captacao.v25)}
+                      width={B_W}
+                      height={bH(r.captacao.v25)}
+                      rx={3}
+                      style={{ fill: 'var(--line-strong)' }}
+                    />
+                    <text
+                      x={x0 + B25_CX}
+                      y={lblY(r.captacao.v25)}
+                      textAnchor="middle"
+                      fontSize={fSize}
+                      fontWeight={500}
+                      style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}
+                    >
                       {fC(r.captacao.v25)}
                     </text>
                   </>
@@ -230,14 +305,29 @@ function ChartCaptacao({ rows, compact }: { rows: MesHistorico[]; compact?: bool
                       width={B_W}
                       height={bH(r.captacao.v26)}
                       rx={3}
-                      style={{ fill: r.captacao.v26 >= 0 ? 'var(--color-b-500)' : 'var(--color-negative)' }}
+                      style={{
+                        fill: r.captacao.v26 >= 0 ? 'var(--color-b-500)' : 'var(--color-negative)',
+                      }}
                     />
-                    <text x={x0 + B26_CX} y={lblY(r.captacao.v26)} textAnchor="middle" fontSize={fSize} fontWeight={500} style={{ fill: 'var(--fg-mute)', fontFamily: 'var(--f-mono)' }}>
+                    <text
+                      x={x0 + B26_CX}
+                      y={lblY(r.captacao.v26)}
+                      textAnchor="middle"
+                      fontSize={fSize}
+                      fontWeight={500}
+                      style={{ fill: 'var(--fg-mute)', fontFamily: 'var(--f-mono)' }}
+                    >
                       {fC(r.captacao.v26)}
                     </text>
                   </>
                 )}
-                <text x={x0 + SLOT / 2} y={VH - 6} textAnchor="middle" fontSize={fSize} style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
+                <text
+                  x={x0 + SLOT / 2}
+                  y={VH - 6}
+                  textAnchor="middle"
+                  fontSize={fSize}
+                  style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}
+                >
                   {r.label}
                 </text>
               </g>
@@ -262,15 +352,25 @@ function ChartReceita({ rows, compact }: { rows: MesHistorico[]; compact?: boole
   )
 
   const bTop = (v: number) => P.top + iH - (v / maxVal) * iH
-  const bH   = (v: number) => (v / maxVal) * iH
+  const bH = (v: number) => (v / maxVal) * iH
 
   return (
     <div style={cardStyle}>
       <div style={cardHeaderStyle}>
         <span style={titleStyle}>Receita</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <YearPill label="2025" color="var(--line-strong)" active={vis.y25} onClick={() => setVis((v) => ({ ...v, y25: !v.y25 }))} />
-          <YearPill label="2026" color="var(--color-b-500)" active={vis.y26} onClick={() => setVis((v) => ({ ...v, y26: !v.y26 }))} />
+          <YearPill
+            label="2025"
+            color="var(--line-strong)"
+            active={vis.y25}
+            onClick={() => setVis((v) => ({ ...v, y25: !v.y25 }))}
+          />
+          <YearPill
+            label="2026"
+            color="var(--color-b-500)"
+            active={vis.y26}
+            onClick={() => setVis((v) => ({ ...v, y26: !v.y26 }))}
+          />
         </div>
       </div>
       <div style={{ padding: '16px 20px' }}>
@@ -281,21 +381,55 @@ function ChartReceita({ rows, compact }: { rows: MesHistorico[]; compact?: boole
               <g key={r.mes}>
                 {vis.y25 && r.receita.v25 != null && (
                   <>
-                    <rect x={x0 + B25_X} y={bTop(r.receita.v25)} width={B_W} height={bH(r.receita.v25)} rx={3} style={{ fill: 'var(--line-strong)' }} />
-                    <text x={x0 + B25_CX} y={bTop(r.receita.v25) - 5} textAnchor="middle" fontSize={fSize} fontWeight={500} style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
+                    <rect
+                      x={x0 + B25_X}
+                      y={bTop(r.receita.v25)}
+                      width={B_W}
+                      height={bH(r.receita.v25)}
+                      rx={3}
+                      style={{ fill: 'var(--line-strong)' }}
+                    />
+                    <text
+                      x={x0 + B25_CX}
+                      y={bTop(r.receita.v25) - 5}
+                      textAnchor="middle"
+                      fontSize={fSize}
+                      fontWeight={500}
+                      style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}
+                    >
                       {fC(r.receita.v25)}
                     </text>
                   </>
                 )}
                 {vis.y26 && r.receita.v26 != null && (
                   <>
-                    <rect x={x0 + B26_X} y={bTop(r.receita.v26)} width={B_W} height={bH(r.receita.v26)} rx={3} style={{ fill: 'var(--color-b-500)' }} />
-                    <text x={x0 + B26_CX} y={bTop(r.receita.v26) - 5} textAnchor="middle" fontSize={fSize} fontWeight={500} style={{ fill: 'var(--fg-mute)', fontFamily: 'var(--f-mono)' }}>
+                    <rect
+                      x={x0 + B26_X}
+                      y={bTop(r.receita.v26)}
+                      width={B_W}
+                      height={bH(r.receita.v26)}
+                      rx={3}
+                      style={{ fill: 'var(--color-b-500)' }}
+                    />
+                    <text
+                      x={x0 + B26_CX}
+                      y={bTop(r.receita.v26) - 5}
+                      textAnchor="middle"
+                      fontSize={fSize}
+                      fontWeight={500}
+                      style={{ fill: 'var(--fg-mute)', fontFamily: 'var(--f-mono)' }}
+                    >
                       {fC(r.receita.v26)}
                     </text>
                   </>
                 )}
-                <text x={x0 + SLOT / 2} y={VH - 6} textAnchor="middle" fontSize={fSize} style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}>
+                <text
+                  x={x0 + SLOT / 2}
+                  y={VH - 6}
+                  textAnchor="middle"
+                  fontSize={fSize}
+                  style={{ fill: 'var(--fg-faint)', fontFamily: 'var(--f-mono)' }}
+                >
                   {r.label}
                 </text>
               </g>
@@ -316,7 +450,12 @@ type GraficosHistoricoProps = {
   layout?: '1col' | '2col'
 }
 
-export function GraficosHistorico({ histRows, filterLabel, filterType: _filterType, layout = '1col' }: GraficosHistoricoProps) {
+export function GraficosHistorico({
+  histRows,
+  filterLabel,
+  filterType: _filterType,
+  layout = '1col',
+}: GraficosHistoricoProps) {
   return (
     <div style={{ marginBottom: 24 }}>
       <div

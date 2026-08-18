@@ -1,6 +1,6 @@
 'use client'
-import type { FaixaNet } from '../_lib/types'
 import { fmtBR, fmtCur } from '../_lib/format'
+import type { FaixaNet } from '../_lib/types'
 
 const SANS = 'var(--font-sans, "Garet", "Helvetica Neue", sans-serif)'
 const T = {
@@ -74,8 +74,7 @@ export function FaixasNetCard({ faixas, goldIndex = 2 }: FaixasNetCardProps) {
                 style={{
                   width: `${f.pct}%`,
                   height: '100%',
-                  background:
-                    i === goldIndex ? T.gold : 'rgba(236,238,244,0.45)',
+                  background: i === goldIndex ? T.gold : 'rgba(236,238,244,0.45)',
                   borderRadius: 3,
                 }}
               />

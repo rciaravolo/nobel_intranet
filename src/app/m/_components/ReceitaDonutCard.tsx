@@ -13,7 +13,12 @@ const T = {
 }
 
 // ─── Binary-split treemap layout ──────────────────────────────────────────────
-interface Rect { x: number; y: number; w: number; h: number }
+interface Rect {
+  x: number
+  y: number
+  w: number
+  h: number
+}
 
 function binaryLayout(values: number[], x: number, y: number, w: number, h: number): Rect[] {
   const n = values.length
@@ -22,13 +27,16 @@ function binaryLayout(values: number[], x: number, y: number, w: number, h: numb
 
   const total = values.reduce((s, v) => s + v, 0)
   let splitIdx = 1
-  let minDiff = Infinity
+  let minDiff = Number.POSITIVE_INFINITY
   let acc = 0
 
   for (let i = 0; i < n - 1; i++) {
     acc += values[i] ?? 0
     const diff = Math.abs(acc / total - 0.5)
-    if (diff < minDiff) { minDiff = diff; splitIdx = i + 1 }
+    if (diff < minDiff) {
+      minDiff = diff
+      splitIdx = i + 1
+    }
   }
 
   const fracA = values.slice(0, splitIdx).reduce((s, v) => s + v, 0) / total
@@ -60,7 +68,13 @@ const GAP = 3
 
 export function ReceitaDonutCard({ produtos, total, maxRows = 6 }: ReceitaDonutCardProps) {
   const items = produtos.slice(0, maxRows)
-  const rects = binaryLayout(items.map((p) => p.valor), 0, 0, VW, VH)
+  const rects = binaryLayout(
+    items.map((p) => p.valor),
+    0,
+    0,
+    VW,
+    VH,
+  )
 
   return (
     <div
@@ -82,10 +96,28 @@ export function ReceitaDonutCard({ produtos, total, maxRows = 6 }: ReceitaDonutC
           borderBottom: `1px solid ${T.border}`,
         }}
       >
-        <span style={{ fontFamily: SANS, fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.muted }}>
+        <span
+          style={{
+            fontFamily: SANS,
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: '0.18em',
+            textTransform: 'uppercase',
+            color: T.muted,
+          }}
+        >
           Receita por Produto
         </span>
-        <span style={{ fontFamily: MONO, fontSize: 13, fontWeight: 500, color: T.gold, fontVariantNumeric: 'tabular-nums', fontFeatureSettings: '"tnum"' }}>
+        <span
+          style={{
+            fontFamily: MONO,
+            fontSize: 13,
+            fontWeight: 500,
+            color: T.gold,
+            fontVariantNumeric: 'tabular-nums',
+            fontFeatureSettings: '"tnum"',
+          }}
+        >
           {fmtCur(total)}
         </span>
       </div>
@@ -94,7 +126,13 @@ export function ReceitaDonutCard({ produtos, total, maxRows = 6 }: ReceitaDonutC
       <div style={{ padding: '12px 12px 12px' }}>
         <svg
           viewBox={`0 0 ${VW} ${VH}`}
-          style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 8, overflow: 'hidden' }}
+          style={{
+            width: '100%',
+            height: 'auto',
+            display: 'block',
+            borderRadius: 8,
+            overflow: 'hidden',
+          }}
           aria-label="Receita por produto"
         >
           <defs>
@@ -113,7 +151,7 @@ export function ReceitaDonutCard({ produtos, total, maxRows = 6 }: ReceitaDonutC
             const tw = Math.max(r.w - GAP, 0)
             const th = Math.max(r.h - GAP, 0)
 
-            const showName  = tw > 52 && th > 26
+            const showName = tw > 52 && th > 26
             const showValue = tw > 68 && th > 54
             const shortName = tw < 88 && p.nome.length > 9 ? `${p.nome.slice(0, 8)}…` : p.nome
 
@@ -182,7 +220,6 @@ export function ReceitaDonutCard({ produtos, total, maxRows = 6 }: ReceitaDonutC
           })}
         </svg>
       </div>
-
     </div>
   )
 }

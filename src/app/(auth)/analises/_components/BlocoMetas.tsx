@@ -365,7 +365,15 @@ export function BlocoMetas({ dados, compact = false }: Props) {
                       {p.label}
                     </span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                      <span style={{ fontSize: 15, fontWeight: 600, fontFamily: 'var(--f-mono)', letterSpacing: '-.01em', color: cor }}>
+                      <span
+                        style={{
+                          fontSize: 15,
+                          fontWeight: 600,
+                          fontFamily: 'var(--f-mono)',
+                          letterSpacing: '-.01em',
+                          color: cor,
+                        }}
+                      >
                         {fPct(p.pctAtingido)}
                       </span>
                       <span

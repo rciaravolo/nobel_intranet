@@ -9,7 +9,10 @@ export async function GET(_req: NextRequest) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const res = await apiFetch('/performance/onepage', { cache: 'no-store', headers: authHeaders(session) })
+  const res = await apiFetch('/performance/onepage', {
+    cache: 'no-store',
+    headers: authHeaders(session),
+  })
   const json = await res.json()
   return NextResponse.json(json, { status: res.status })
 }

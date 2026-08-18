@@ -4,28 +4,28 @@ import { useState } from 'react'
 import { DrillDrawer } from './DrillDrawer'
 
 const SETOR_COLOR: Record<string, string> = {
-  'Fundo Imobiliário':             '#C29404',
-  Financeiro:                      '#2D5FA0',
+  'Fundo Imobiliário': '#C29404',
+  Financeiro: '#2D5FA0',
   'Energia elétrica & Saneamento': '#248A47',
-  Imobiliário:                     '#8F6B12',
-  'Mineração & Siderurgia':        '#343534',
-  'Petróleo & Gas':                '#D94141',
-  'Transportes & Bens Industriais':'#5F5E5B',
-  Varejo:                          '#8C8B87',
-  Tecnologia:                      '#C29404',
-  'Papel & Celulose':              '#B4B3AE',
-  'Agro, Alimentos & Bebidas':     '#8F6B12',
-  Telecomunicação:                 '#D2D1CC',
-  Shoppings:                       '#343534',
-  Outros:                          '#5F5E5B',
+  Imobiliário: '#8F6B12',
+  'Mineração & Siderurgia': '#343534',
+  'Petróleo & Gas': '#D94141',
+  'Transportes & Bens Industriais': '#5F5E5B',
+  Varejo: '#8C8B87',
+  Tecnologia: '#C29404',
+  'Papel & Celulose': '#B4B3AE',
+  'Agro, Alimentos & Bebidas': '#8F6B12',
+  Telecomunicação: '#D2D1CC',
+  Shoppings: '#343534',
+  Outros: '#5F5E5B',
 }
 
 function fBRL(v: number): string {
   const abs = Math.abs(v)
   const pre = v < 0 ? '-R$ ' : 'R$ '
   if (abs >= 1_000_000_000) return `${pre}${(abs / 1_000_000_000).toFixed(2).replace('.', ',')}B`
-  if (abs >= 1_000_000)     return `${pre}${(abs / 1_000_000).toFixed(1).replace('.', ',')}M`
-  if (abs >= 1_000)         return `${pre}${Math.round(abs / 1_000)}K`
+  if (abs >= 1_000_000) return `${pre}${(abs / 1_000_000).toFixed(1).replace('.', ',')}M`
+  if (abs >= 1_000) return `${pre}${Math.round(abs / 1_000)}K`
   return `${pre}${abs.toFixed(0)}`
 }
 
@@ -94,7 +94,14 @@ export function RVSetorial({ setorList, setorMax }: Props) {
               </div>
 
               {/* Bar */}
-              <div style={{ height: 7, background: 'var(--bg-deep)', borderRadius: 2, overflow: 'hidden' }}>
+              <div
+                style={{
+                  height: 7,
+                  background: 'var(--bg-deep)',
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                }}
+              >
                 <div
                   style={{
                     height: '100%',
@@ -127,10 +134,7 @@ export function RVSetorial({ setorList, setorMax }: Props) {
 
       {/* Drawer */}
       {selectedSetor && (
-        <DrillDrawer
-          setor={selectedSetor}
-          onClose={() => setSelectedSetor(null)}
-        />
+        <DrillDrawer setor={selectedSetor} onClose={() => setSelectedSetor(null)} />
       )}
     </>
   )

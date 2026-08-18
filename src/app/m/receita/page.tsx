@@ -21,18 +21,18 @@ const T = {
 }
 
 const PRODUTO_SLUG: Record<string, string> = {
-  'Renda Variável':  'rv',
-  'Renda Fixa':      'rf',
-  COE:               'coe',
-  Câmbio:            'cambio',
-  'Fee Fixo':        'feefixo',
-  Seguros:           'seguros',
-  Consórcio:         'consorcio',
-  Dominion:          'dominion',
-  'Oferta de Fundos':'oferta_fundos',
-  Fundos:            'fundos',
-  Previdência:       'previdencia',
-  Precatórios:       'precas',
+  'Renda Variável': 'rv',
+  'Renda Fixa': 'rf',
+  COE: 'coe',
+  Câmbio: 'cambio',
+  'Fee Fixo': 'feefixo',
+  Seguros: 'seguros',
+  Consórcio: 'consorcio',
+  Dominion: 'dominion',
+  'Oferta de Fundos': 'oferta_fundos',
+  Fundos: 'fundos',
+  Previdência: 'previdencia',
+  Precatórios: 'precas',
 }
 
 type ClienteReceita = { id_cliente: number | string; nome_cliente: string | null; valor: number }
@@ -42,13 +42,16 @@ export default function ReceitaPage() {
   const router = useRouter()
   const data = useOnepageData({ name: '—', role: 'assessor', initials: '—' })
 
-  const [aberto,  setAberto]  = useState<string | null>(null)
+  const [aberto, setAberto] = useState<string | null>(null)
   const [loading, setLoading] = useState<string | null>(null)
-  const [cache,   setCache]   = useState<Record<string, DeepDive>>({})
-  const [erro,    setErro]    = useState<string | null>(null)
+  const [cache, setCache] = useState<Record<string, DeepDive>>({})
+  const [erro, setErro] = useState<string | null>(null)
 
   async function toggle(nome: string) {
-    if (aberto === nome) { setAberto(null); return }
+    if (aberto === nome) {
+      setAberto(null)
+      return
+    }
     setAberto(nome)
     if (cache[nome]) return
 
@@ -156,12 +159,12 @@ export default function ReceitaPage() {
           }}
         >
           {data.produtos.map((p, i) => {
-            const isOpen    = aberto  === p.nome
+            const isOpen = aberto === p.nome
             const isLoading = loading === p.nome
-            const hasErro   = erro    === p.nome
-            const deepdive  = cache[p.nome]
-            const isLast    = i === data.produtos.length - 1
-            const color     = p.color
+            const hasErro = erro === p.nome
+            const deepdive = cache[p.nome]
+            const isLast = i === data.produtos.length - 1
+            const color = p.color
 
             return (
               <div key={p.nome}>
@@ -340,8 +343,7 @@ export default function ReceitaPage() {
                                 alignItems: 'center',
                                 gap: 10,
                                 padding: '9px 0',
-                                borderTop:
-                                  idx > 0 ? `1px solid rgba(255,255,255,0.05)` : 'none',
+                                borderTop: idx > 0 ? `1px solid rgba(255,255,255,0.05)` : 'none',
                               }}
                             >
                               <span

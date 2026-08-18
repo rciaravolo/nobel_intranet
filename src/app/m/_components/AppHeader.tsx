@@ -58,7 +58,11 @@ export function AppHeader({ user, theme, onToggleTheme, onOpenProfile }: AppHead
           }}
           aria-label="Alternar tema"
         >
-          {theme === 'dark' ? <Sun size={16} color={T.muted} /> : <Moon size={16} color={T.muted} />}
+          {theme === 'dark' ? (
+            <Sun size={16} color={T.muted} />
+          ) : (
+            <Moon size={16} color={T.muted} />
+          )}
         </button>
         <button
           type="button"

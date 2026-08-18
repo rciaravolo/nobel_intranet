@@ -1,5 +1,5 @@
-import { PageGreeting } from '../_components/PageGreeting'
 import { requireSession } from '@/lib/auth/session'
+import { PageGreeting } from '../_components/PageGreeting'
 
 export default async function RelatoriosPage() {
   const session = await requireSession()
@@ -7,7 +7,6 @@ export default async function RelatoriosPage() {
   return (
     <div style={{ maxWidth: 1400 }}>
       <PageGreeting name={session.name} label="Nobel Capital" />
-
 
       <div
         style={{

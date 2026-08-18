@@ -1,7 +1,7 @@
 import { Providers } from '@/components/providers'
 import type { Metadata } from 'next'
-import localFont from 'next/font/local'
 import { JetBrains_Mono } from 'next/font/google'
+import localFont from 'next/font/local'
 import './globals.css'
 
 /* Body / UI — Garet (Nobel branding) */
@@ -18,7 +18,11 @@ const garet = localFont({
 const relicta = localFont({
   src: [
     { path: '../../public/fonts/relicta/Relicta-Light.otf', weight: '300', style: 'normal' },
-    { path: '../../public/fonts/relicta/Relicta-UltraboldItalic.otf', weight: '800', style: 'italic' },
+    {
+      path: '../../public/fonts/relicta/Relicta-UltraboldItalic.otf',
+      weight: '800',
+      style: 'italic',
+    },
   ],
   variable: '--font-display',
   display: 'swap',
@@ -41,9 +45,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body
-        className={`${garet.variable} ${relicta.variable} ${jetbrainsMono.variable}`}
-      >
+      <body className={`${garet.variable} ${relicta.variable} ${jetbrainsMono.variable}`}>
         <Providers>{children}</Providers>
       </body>
     </html>

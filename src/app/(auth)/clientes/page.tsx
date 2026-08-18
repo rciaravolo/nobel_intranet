@@ -1,6 +1,6 @@
-import { PageGreeting } from '../_components/PageGreeting'
 import { apiFetch } from '@/lib/api/fetch'
 import { requireSession } from '@/lib/auth/session'
+import { PageGreeting } from '../_components/PageGreeting'
 import { type Cliente, ClientesTable } from './_components/ClientesTable'
 
 /* ─── Tipos ──────────────────────────────────────────────────────────────── */
@@ -115,7 +115,6 @@ export default async function ClientesPage() {
     <div style={{ maxWidth: 1400 }}>
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <PageGreeting name={session.name} label="Base de clientes" />
-
 
       {/* ── KPI Cards ──────────────────────────────────────────────────── */}
       <div

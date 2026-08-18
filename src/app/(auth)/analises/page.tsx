@@ -176,7 +176,9 @@ async function getOnepage(opts: FetchOpts): Promise<OnepagePayload | null> {
       const res = await fetch('http://localhost:3000/api/mock/performance/onepage')
       const json = (await res.json()) as { data: OnepagePayload }
       return json.data
-    } catch { return null }
+    } catch {
+      return null
+    }
   }
   try {
     const res = await apiFetch(`/performance/onepage`, {
@@ -204,7 +206,9 @@ async function getMetas(opts: FetchOpts): Promise<MetasPayload | null> {
       const res = await fetch('http://localhost:3000/api/mock/performance/metas')
       const json = (await res.json()) as { data: MetasPayload }
       return json.data
-    } catch { return null }
+    } catch {
+      return null
+    }
   }
   try {
     const res = await apiFetch(`/performance/metas`, {
@@ -231,7 +235,9 @@ async function getHistorico(opts: FetchOpts): Promise<HistoricoPayload | null> {
       const res = await fetch('http://localhost:3000/api/mock/performance/historico')
       const json = (await res.json()) as { data: HistoricoPayload }
       return json.data
-    } catch { return null }
+    } catch {
+      return null
+    }
   }
   try {
     const res = await apiFetch(`/performance/historico`, {
@@ -258,7 +264,12 @@ type AssessoresPayload = {
   assessores: { id_assessor: string; nome_assessor: string | null; equipe: string }[]
 }
 
-async function getAssessores(role: string, email: string, equipe?: string, idAssessor?: string): Promise<AssessoresPayload | null> {
+async function getAssessores(
+  role: string,
+  email: string,
+  equipe?: string,
+  idAssessor?: string,
+): Promise<AssessoresPayload | null> {
   if (role !== 'admin' && role !== 'master' && role !== 'lider' && role !== 'lider_pj') return null
   try {
     const res = await apiFetch(`/performance/assessores`, {
@@ -341,8 +352,14 @@ const iconBox = (color: string): React.CSSProperties => ({
 
 /* ─── Componente: Custódia por Faixa NET ─────────────────────────────────── */
 
-function BlocoFaixasNet({ faixas, noMarginBottom }: { faixas: FaixaNet[]; noMarginBottom?: boolean }) {
-  const total = faixas.reduce((acc, f) => ({ clientes: acc.clientes + f.clientes, aum: acc.aum + f.aum }), { clientes: 0, aum: 0 })
+function BlocoFaixasNet({
+  faixas,
+  noMarginBottom,
+}: { faixas: FaixaNet[]; noMarginBottom?: boolean }) {
+  const total = faixas.reduce(
+    (acc, f) => ({ clientes: acc.clientes + f.clientes, aum: acc.aum + f.aum }),
+    { clientes: 0, aum: 0 },
+  )
 
   const thStyle: React.CSSProperties = {
     fontFamily: 'var(--f-mono)',
@@ -369,12 +386,46 @@ function BlocoFaixasNet({ faixas, noMarginBottom }: { faixas: FaixaNet[]; noMarg
   const FAIXA_COLORS = ['var(--color-b-500)', 'var(--c-gold)', '#10B981', '#8B5CF6']
 
   return (
-    <div style={{ background: 'var(--bg-elev)', borderRadius: 12, border: '1px solid var(--line)', boxShadow: 'var(--e-float)', overflow: 'hidden', marginBottom: noMarginBottom ? 0 : 20 }}>
-      <div style={{ padding: '13px 16px', borderBottom: '1px solid var(--line)', background: 'var(--bg-deep)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span style={{ fontFamily: 'var(--f-text)', fontSize: 13, fontWeight: 600, color: 'var(--fg)', letterSpacing: '-.01em' }}>
+    <div
+      style={{
+        background: 'var(--bg-elev)',
+        borderRadius: 12,
+        border: '1px solid var(--line)',
+        boxShadow: 'var(--e-float)',
+        overflow: 'hidden',
+        marginBottom: noMarginBottom ? 0 : 20,
+      }}
+    >
+      <div
+        style={{
+          padding: '13px 16px',
+          borderBottom: '1px solid var(--line)',
+          background: 'var(--bg-deep)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <span
+          style={{
+            fontFamily: 'var(--f-text)',
+            fontSize: 13,
+            fontWeight: 600,
+            color: 'var(--fg)',
+            letterSpacing: '-.01em',
+          }}
+        >
           Custódia por Faixa NET
         </span>
-        <span style={{ fontFamily: 'var(--f-mono)', fontSize: 10, color: 'var(--fg-faint)', letterSpacing: '.08em', textTransform: 'uppercase' }}>
+        <span
+          style={{
+            fontFamily: 'var(--f-mono)',
+            fontSize: 10,
+            color: 'var(--fg-faint)',
+            letterSpacing: '.08em',
+            textTransform: 'uppercase',
+          }}
+        >
           {total.clientes} clientes · {fBRL(total.aum)}
         </span>
       </div>
@@ -393,24 +444,84 @@ function BlocoFaixasNet({ faixas, noMarginBottom }: { faixas: FaixaNet[]; noMarg
             const pct = total.aum > 0 ? (f.aum / total.aum) * 100 : 0
             return (
               <tr key={f.label}>
-                <td style={{ ...tdStyle, borderBottom: isLast ? 'none' : '1px solid var(--line)', textAlign: 'left' }}>
+                <td
+                  style={{
+                    ...tdStyle,
+                    borderBottom: isLast ? 'none' : '1px solid var(--line)',
+                    textAlign: 'left',
+                  }}
+                >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ width: 8, height: 8, borderRadius: 2, background: FAIXA_COLORS[i], flexShrink: 0 }} />
-                    <span style={{ fontFamily: 'var(--f-text)', fontSize: 13, fontWeight: 500 }}>{f.label}</span>
+                    <div
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 2,
+                        background: FAIXA_COLORS[i],
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span style={{ fontFamily: 'var(--f-text)', fontSize: 13, fontWeight: 500 }}>
+                      {f.label}
+                    </span>
                   </div>
                 </td>
-                <td style={{ ...tdStyle, borderBottom: isLast ? 'none' : '1px solid var(--line)', textAlign: 'right', fontWeight: 600 }}>
+                <td
+                  style={{
+                    ...tdStyle,
+                    borderBottom: isLast ? 'none' : '1px solid var(--line)',
+                    textAlign: 'right',
+                    fontWeight: 600,
+                  }}
+                >
                   {f.clientes.toLocaleString('pt-BR')}
                 </td>
-                <td style={{ ...tdStyle, borderBottom: isLast ? 'none' : '1px solid var(--line)', textAlign: 'right', fontWeight: 600 }}>
+                <td
+                  style={{
+                    ...tdStyle,
+                    borderBottom: isLast ? 'none' : '1px solid var(--line)',
+                    textAlign: 'right',
+                    fontWeight: 600,
+                  }}
+                >
                   {fBRL(f.aum)}
                 </td>
-                <td style={{ ...tdStyle, borderBottom: isLast ? 'none' : '1px solid var(--line)', textAlign: 'right' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
-                    <div style={{ width: 60, height: 4, borderRadius: 2, background: 'var(--bg-deep)', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${pct}%`, background: FAIXA_COLORS[i], borderRadius: 2 }} />
+                <td
+                  style={{
+                    ...tdStyle,
+                    borderBottom: isLast ? 'none' : '1px solid var(--line)',
+                    textAlign: 'right',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-end',
+                      gap: 8,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 60,
+                        height: 4,
+                        borderRadius: 2,
+                        background: 'var(--bg-deep)',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <div
+                        style={{
+                          height: '100%',
+                          width: `${pct}%`,
+                          background: FAIXA_COLORS[i],
+                          borderRadius: 2,
+                        }}
+                      />
                     </div>
-                    <span style={{ color: 'var(--fg-mute)', minWidth: 36 }}>{pct.toFixed(1).replace('.', ',')}%</span>
+                    <span style={{ color: 'var(--fg-mute)', minWidth: 36 }}>
+                      {pct.toFixed(1).replace('.', ',')}%
+                    </span>
                   </div>
                 </td>
               </tr>
@@ -775,7 +886,8 @@ export default async function AnalisesPage({
   const filterType = typeof sp.filter_type === 'string' ? sp.filter_type : undefined
   const filterValue = typeof sp.filter_value === 'string' ? sp.filter_value : undefined
 
-  const canFilter = session.role === 'admin' || session.role === 'master' || session.role === 'lider'
+  const canFilter =
+    session.role === 'admin' || session.role === 'master' || session.role === 'lider'
   const opts: FetchOpts = {
     email: session.email,
     role: session.role,
@@ -809,7 +921,10 @@ export default async function AnalisesPage({
     if (canFilter && filterType && filterValue) {
       if (filterType === 'equipe') return filterValue
       if (filterType === 'assessor') {
-        return assessoresData?.assessores.find((a) => a.id_assessor === filterValue)?.nome_assessor ?? filterValue
+        return (
+          assessoresData?.assessores.find((a) => a.id_assessor === filterValue)?.nome_assessor ??
+          filterValue
+        )
       }
     }
     // Lider vê sempre a própria equipe
@@ -828,10 +943,7 @@ export default async function AnalisesPage({
         {...(session.role === 'assessor'
           ? {
               right: (
-                <ExportOnepageButton
-                  assessorName={session.name}
-                  dataRef={data?.dataRef ?? null}
-                />
+                <ExportOnepageButton assessorName={session.name} dataRef={data?.dataRef ?? null} />
               ),
             }
           : {})}
@@ -840,10 +952,19 @@ export default async function AnalisesPage({
       {/* ── Filtros (admin / master / lider) ── */}
       {canFilter && (
         <AnalisesFilters
-          equipes={session.role === 'lider' ? [] : (assessoresData?.equipes ?? []).slice().sort((a, b) => a.localeCompare(b, 'pt-BR'))}
-          assessores={(assessoresData?.assessores ?? []).slice().sort((a, b) =>
-            (a.nome_assessor ?? a.id_assessor).localeCompare(b.nome_assessor ?? b.id_assessor, 'pt-BR'),
-          )}
+          equipes={
+            session.role === 'lider'
+              ? []
+              : (assessoresData?.equipes ?? []).slice().sort((a, b) => a.localeCompare(b, 'pt-BR'))
+          }
+          assessores={(assessoresData?.assessores ?? [])
+            .slice()
+            .sort((a, b) =>
+              (a.nome_assessor ?? a.id_assessor).localeCompare(
+                b.nome_assessor ?? b.id_assessor,
+                'pt-BR',
+              ),
+            )}
         />
       )}
 
@@ -851,7 +972,15 @@ export default async function AnalisesPage({
       <div className="grid-kpi" style={{ marginBottom: 20 }}>
         {/* AuM */}
         <div style={card}>
-          <div style={{ ...cardPad, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+          <div
+            style={{
+              ...cardPad,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 10,
+            }}
+          >
             <div style={iconBox('var(--c-gold)')}>
               <svg
                 viewBox="0 0 24 24"
@@ -874,7 +1003,15 @@ export default async function AnalisesPage({
 
         {/* Clientes Ativos */}
         <div style={card}>
-          <div style={{ ...cardPad, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+          <div
+            style={{
+              ...cardPad,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 10,
+            }}
+          >
             <div style={iconBox('var(--color-b-500)')}>
               <svg
                 viewBox="0 0 24 24"
@@ -899,7 +1036,15 @@ export default async function AnalisesPage({
 
         {/* Clientes Inativos */}
         <div style={card}>
-          <div style={{ ...cardPad, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+          <div
+            style={{
+              ...cardPad,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 10,
+            }}
+          >
             <div style={iconBox('var(--color-negative)')}>
               <svg
                 viewBox="0 0 24 24"
@@ -925,7 +1070,15 @@ export default async function AnalisesPage({
 
         {/* Receita Total */}
         <div style={card}>
-          <div style={{ ...cardPad, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
+          <div
+            style={{
+              ...cardPad,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 10,
+            }}
+          >
             <div style={iconBox('var(--color-b-500)')}>
               <svg
                 viewBox="0 0 24 24"
@@ -952,7 +1105,8 @@ export default async function AnalisesPage({
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: (session.role === 'admin' || session.role === 'master') ? '1fr 380px' : '1fr',
+          gridTemplateColumns:
+            session.role === 'admin' || session.role === 'master' ? '1fr 380px' : '1fr',
           gap: 20,
           alignItems: 'start',
         }}

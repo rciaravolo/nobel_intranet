@@ -5,25 +5,25 @@ import { useState } from 'react'
 /* ─── Tipos ──────────────────────────────────────────────────────────────── */
 
 export type EquipeUnificada = {
-  equipe:   string
-  cap_mtd:  number
+  equipe: string
+  cap_mtd: number
   cap_meta: number
-  cap_pct:  number | null
-  cap_ytd:  number
-  rec_mtd:  number
-  rec_ytd:  number
+  cap_pct: number | null
+  cap_ytd: number
+  rec_mtd: number
+  rec_ytd: number
   rec_meta: number
-  rec_pct:  number | null
+  rec_pct: number | null
 }
 
 type AssessorDrill = {
-  id:       string
-  nome:     string
-  cap_mtd:  number
+  id: string
+  nome: string
+  cap_mtd: number
   cap_meta: number
-  cap_pct:  number | null
-  rec_mtd:  number
-  rec_ytd:  number
+  cap_pct: number | null
+  rec_mtd: number
+  rec_ytd: number
 }
 
 type DrillState =
@@ -34,17 +34,17 @@ type DrillState =
 
 type Props = {
   equipes: EquipeUnificada[]
-  total:   EquipeUnificada
-  mesISO:  string
+  total: EquipeUnificada
+  mesISO: string
 }
 
 /* ─── Cores por equipe ───────────────────────────────────────────────────── */
 
 const EQUIPE_COLORS: Record<string, string> = {
-  'SMART':     'var(--color-b-500)',
-  'PRIVATE':   'var(--c-gold)',
+  SMART: 'var(--color-b-500)',
+  PRIVATE: 'var(--c-gold)',
   'RIO PRETO': '#10B981',
-  'BRAVO':     '#8B5CF6',
+  BRAVO: '#8B5CF6',
 }
 
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
@@ -54,8 +54,8 @@ function fBRL(v: number | null | undefined): string {
   const abs = Math.abs(v)
   const pre = v < 0 ? '-R$ ' : 'R$ '
   if (abs >= 1_000_000_000) return `${pre}${(abs / 1_000_000_000).toFixed(2).replace('.', ',')}B`
-  if (abs >= 1_000_000)     return `${pre}${(abs / 1_000_000).toFixed(1).replace('.', ',')}M`
-  if (abs >= 1_000)         return `${pre}${(abs / 1_000).toFixed(0)}K`
+  if (abs >= 1_000_000) return `${pre}${(abs / 1_000_000).toFixed(1).replace('.', ',')}M`
+  if (abs >= 1_000) return `${pre}${(abs / 1_000).toFixed(0)}K`
   return `${pre}${abs.toFixed(0)}`
 }
 
@@ -67,42 +67,42 @@ function fPct(v: number | null | undefined): string {
 /* ─── Estilos compartilhados ─────────────────────────────────────────────── */
 
 const cardWrap: React.CSSProperties = {
-  background:   'var(--bg-elev)',
+  background: 'var(--bg-elev)',
   borderRadius: 12,
-  border:       '1px solid var(--line)',
-  boxShadow:    'var(--e-float)',
-  overflow:     'hidden',
+  border: '1px solid var(--line)',
+  boxShadow: 'var(--e-float)',
+  overflow: 'hidden',
   marginBottom: 20,
 }
 
 const cardHeader: React.CSSProperties = {
-  display:        'flex',
-  alignItems:     'center',
+  display: 'flex',
+  alignItems: 'center',
   justifyContent: 'space-between',
-  padding:        '13px 20px',
-  borderBottom:   '1px solid var(--line)',
-  background:     'var(--bg-deep)',
+  padding: '13px 20px',
+  borderBottom: '1px solid var(--line)',
+  background: 'var(--bg-deep)',
 }
 
 const thBase: React.CSSProperties = {
-  fontFamily:    'var(--f-mono)',
-  fontSize:      11,
-  fontWeight:    600,
-  color:         'var(--fg-faint)',
+  fontFamily: 'var(--f-mono)',
+  fontSize: 11,
+  fontWeight: 600,
+  color: 'var(--fg-faint)',
   textTransform: 'uppercase',
   letterSpacing: '0.10em',
-  padding:       '8px 14px',
-  borderBottom:  '1px solid var(--line)',
-  background:    'var(--bg-deep)',
-  whiteSpace:    'nowrap',
+  padding: '8px 14px',
+  borderBottom: '1px solid var(--line)',
+  background: 'var(--bg-deep)',
+  whiteSpace: 'nowrap',
 }
 
 const tdBase: React.CSSProperties = {
-  fontFamily:          'var(--f-mono)',
-  fontSize:            13,
-  padding:             '9px 14px',
-  borderBottom:        '1px solid var(--line)',
-  color:               'var(--fg)',
+  fontFamily: 'var(--f-mono)',
+  fontSize: 13,
+  padding: '9px 14px',
+  borderBottom: '1px solid var(--line)',
+  color: 'var(--fg)',
   fontFeatureSettings: '"tnum"',
 }
 
@@ -114,25 +114,28 @@ function ProgressBar({ pct }: { pct: number | null | undefined }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end' }}>
       <div
         style={{
-          width: 52, height: 4, borderRadius: 2,
-          background: 'var(--bg-deep)', overflow: 'hidden', flexShrink: 0,
+          width: 52,
+          height: 4,
+          borderRadius: 2,
+          background: 'var(--bg-deep)',
+          overflow: 'hidden',
+          flexShrink: 0,
         }}
       >
         <div
           style={{
-            height: '100%', width: `${w}%`,
-            background: 'var(--c-gold)', borderRadius: 2,
+            height: '100%',
+            width: `${w}%`,
+            background: 'var(--c-gold)',
+            borderRadius: 2,
           }}
         />
       </div>
       <span
         style={{
-          minWidth: 42, textAlign: 'right',
-          color: pct == null
-            ? 'var(--fg-faint)'
-            : pct >= 1
-              ? 'var(--color-positive)'
-              : 'var(--fg)',
+          minWidth: 42,
+          textAlign: 'right',
+          color: pct == null ? 'var(--fg-faint)' : pct >= 1 ? 'var(--color-positive)' : 'var(--fg)',
         }}
       >
         {fPct(pct)}
@@ -152,7 +155,8 @@ function SkeletonRows({ cols }: { cols: number }) {
             <td key={ci} style={{ ...tdBase, borderBottom: '1px solid var(--line)' }}>
               <div
                 style={{
-                  height: 10, borderRadius: 4,
+                  height: 10,
+                  borderRadius: 4,
                   background: 'color-mix(in oklch, var(--fg) 8%, transparent)',
                   width: ci === 0 ? 120 : 60,
                   marginLeft: ci === 0 ? 40 : 'auto',
@@ -175,7 +179,9 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
 
   function getMesLabel(iso: string): string {
     return new Date(`${iso}-15`).toLocaleDateString('pt-BR', {
-      month: 'long', year: 'numeric', timeZone: 'UTC',
+      month: 'long',
+      year: 'numeric',
+      timeZone: 'UTC',
     })
   }
 
@@ -190,7 +196,12 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
     })
 
     // Se estamos abrindo e ainda não carregamos o drill, faz o fetch lazy
-    if (!isOpen && (!drillData[equipe] || drillData[equipe].status === 'idle' || drillData[equipe].status === 'error')) {
+    if (
+      !isOpen &&
+      (!drillData[equipe] ||
+        drillData[equipe].status === 'idle' ||
+        drillData[equipe].status === 'error')
+    ) {
       setDrillData((prev) => ({ ...prev, [equipe]: { status: 'loading' } }))
       try {
         const res = await fetch(`/api/pnl/indicadores/drill?equipe=${encodeURIComponent(equipe)}`)
@@ -216,10 +227,10 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
       <div style={cardHeader}>
         <span
           style={{
-            fontFamily:    'var(--f-text)',
-            fontSize:      13,
-            fontWeight:    600,
-            color:         'var(--fg)',
+            fontFamily: 'var(--f-text)',
+            fontSize: 13,
+            fontWeight: 600,
+            color: 'var(--fg)',
             letterSpacing: '-.01em',
           }}
         >
@@ -227,9 +238,9 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
         </span>
         <span
           style={{
-            fontFamily:    'var(--f-mono)',
-            fontSize:      10,
-            color:         'var(--fg-faint)',
+            fontFamily: 'var(--f-mono)',
+            fontSize: 10,
+            color: 'var(--fg-faint)',
             letterSpacing: '.04em',
             textTransform: 'uppercase',
           }}
@@ -257,8 +268,8 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
           <tbody>
             {equipes.map((row) => {
               const isOpen = expanded.has(row.equipe)
-              const color  = EQUIPE_COLORS[row.equipe] ?? 'var(--fg-faint)'
-              const drill  = drillData[row.equipe] ?? { status: 'idle' }
+              const color = EQUIPE_COLORS[row.equipe] ?? 'var(--fg-faint)'
+              const drill = drillData[row.equipe] ?? { status: 'idle' }
 
               return (
                 <>
@@ -268,21 +279,21 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
                     onClick={() => toggle(row.equipe)}
                     style={{ cursor: 'pointer' }}
                     onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLTableRowElement).style.background =
+                      ;(e.currentTarget as HTMLTableRowElement).style.background =
                         'color-mix(in oklch, var(--fg) 3%, transparent)'
                     }}
                     onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLTableRowElement).style.background = 'transparent'
+                      ;(e.currentTarget as HTMLTableRowElement).style.background = 'transparent'
                     }}
                   >
                     {/* Equipe */}
                     <td
                       style={{
                         ...tdBase,
-                        textAlign:  'left',
+                        textAlign: 'left',
                         fontFamily: 'var(--f-text)',
                         fontWeight: 600,
-                        fontSize:   13,
+                        fontSize: 13,
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -295,9 +306,9 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
                           width="12"
                           height="12"
                           style={{
-                            color:      'var(--fg-faint)',
+                            color: 'var(--fg-faint)',
                             flexShrink: 0,
-                            transform:  isOpen ? 'rotate(90deg)' : 'none',
+                            transform: isOpen ? 'rotate(90deg)' : 'none',
                             transition: 'transform .15s',
                           }}
                         >
@@ -305,10 +316,11 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
                         </svg>
                         <div
                           style={{
-                            width: 8, height: 8,
+                            width: 8,
+                            height: 8,
                             borderRadius: 2,
-                            background:   color,
-                            flexShrink:   0,
+                            background: color,
+                            flexShrink: 0,
                           }}
                         />
                         {row.equipe}
@@ -337,7 +349,14 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
                     </td>
 
                     {/* Cap YTD */}
-                    <td style={{ ...tdBase, textAlign: 'right', color: 'var(--fg-mute)', fontSize: 12 }}>
+                    <td
+                      style={{
+                        ...tdBase,
+                        textAlign: 'right',
+                        color: 'var(--fg-mute)',
+                        fontSize: 12,
+                      }}
+                    >
                       {fBRL(row.cap_ytd)}
                     </td>
 
@@ -363,15 +382,20 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
                     </td>
 
                     {/* Rec YTD */}
-                    <td style={{ ...tdBase, textAlign: 'right', color: 'var(--fg-mute)', fontSize: 12 }}>
+                    <td
+                      style={{
+                        ...tdBase,
+                        textAlign: 'right',
+                        color: 'var(--fg-mute)',
+                        fontSize: 12,
+                      }}
+                    >
                       {fBRL(row.rec_ytd)}
                     </td>
                   </tr>
 
                   {/* Rows de assessores (quando expandido) */}
-                  {isOpen && drill.status === 'loading' && (
-                    <SkeletonRows cols={COL_COUNT} />
-                  )}
+                  {isOpen && drill.status === 'loading' && <SkeletonRows cols={COL_COUNT} />}
 
                   {isOpen && drill.status === 'error' && (
                     <tr style={{ background: 'var(--bg-deep)' }}>
@@ -379,9 +403,9 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
                         colSpan={COL_COUNT}
                         style={{
                           ...tdBase,
-                          textAlign:   'center',
-                          fontSize:    12,
-                          color:       'var(--fg-faint)',
+                          textAlign: 'center',
+                          fontSize: 12,
+                          color: 'var(--fg-faint)',
                           paddingLeft: 40,
                         }}
                       >
@@ -390,81 +414,119 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
                     </tr>
                   )}
 
-                  {isOpen && drill.status === 'loaded' && drill.assessores.map((a) => (
-                    <tr key={a.id} style={{ background: 'var(--bg-deep)' }}>
-                      {/* Nome */}
-                      <td
-                        style={{
-                          ...tdBase,
-                          textAlign:   'left',
-                          fontFamily:  'var(--f-text)',
-                          fontWeight:  400,
-                          fontSize:    12,
-                          paddingLeft: 40,
-                          color:       'var(--fg-mute)',
-                        }}
-                      >
-                        {a.nome}
-                      </td>
+                  {isOpen &&
+                    drill.status === 'loaded' &&
+                    drill.assessores.map((a) => (
+                      <tr key={a.id} style={{ background: 'var(--bg-deep)' }}>
+                        {/* Nome */}
+                        <td
+                          style={{
+                            ...tdBase,
+                            textAlign: 'left',
+                            fontFamily: 'var(--f-text)',
+                            fontWeight: 400,
+                            fontSize: 12,
+                            paddingLeft: 40,
+                            color: 'var(--fg-mute)',
+                          }}
+                        >
+                          {a.nome}
+                        </td>
 
-                      {/* Cap MTD */}
-                      <td
-                        style={{
-                          ...tdBase,
-                          textAlign: 'right',
-                          fontSize:  12,
-                          color:     a.cap_mtd < 0 ? 'var(--color-negative)' : 'var(--fg)',
-                        }}
-                      >
-                        {fBRL(a.cap_mtd)}
-                      </td>
+                        {/* Cap MTD */}
+                        <td
+                          style={{
+                            ...tdBase,
+                            textAlign: 'right',
+                            fontSize: 12,
+                            color: a.cap_mtd < 0 ? 'var(--color-negative)' : 'var(--fg)',
+                          }}
+                        >
+                          {fBRL(a.cap_mtd)}
+                        </td>
 
-                      {/* Cap Meta */}
-                      <td style={{ ...tdBase, textAlign: 'right', fontSize: 12, color: 'var(--fg-faint)' }}>
-                        {a.cap_meta > 0 ? fBRL(a.cap_meta) : '—'}
-                      </td>
+                        {/* Cap Meta */}
+                        <td
+                          style={{
+                            ...tdBase,
+                            textAlign: 'right',
+                            fontSize: 12,
+                            color: 'var(--fg-faint)',
+                          }}
+                        >
+                          {a.cap_meta > 0 ? fBRL(a.cap_meta) : '—'}
+                        </td>
 
-                      {/* % Cap */}
-                      <td style={{ ...tdBase, textAlign: 'right', fontSize: 12 }}>
-                        {a.cap_pct != null
-                          ? <ProgressBar pct={a.cap_pct} />
-                          : <span style={{ color: 'var(--fg-faint)' }}>—</span>
-                        }
-                      </td>
+                        {/* % Cap */}
+                        <td style={{ ...tdBase, textAlign: 'right', fontSize: 12 }}>
+                          {a.cap_pct != null ? (
+                            <ProgressBar pct={a.cap_pct} />
+                          ) : (
+                            <span style={{ color: 'var(--fg-faint)' }}>—</span>
+                          )}
+                        </td>
 
-                      {/* Cap YTD — não disponível no drill */}
-                      <td style={{ ...tdBase, textAlign: 'right', fontSize: 12, color: 'var(--fg-faint)' }}>
-                        —
-                      </td>
+                        {/* Cap YTD — não disponível no drill */}
+                        <td
+                          style={{
+                            ...tdBase,
+                            textAlign: 'right',
+                            fontSize: 12,
+                            color: 'var(--fg-faint)',
+                          }}
+                        >
+                          —
+                        </td>
 
-                      {/* Rec MTD */}
-                      <td
-                        style={{
-                          ...tdBase,
-                          textAlign: 'right',
-                          fontSize:  12,
-                          color:     a.rec_mtd < 0 ? 'var(--color-negative)' : 'var(--fg)',
-                        }}
-                      >
-                        {fBRL(a.rec_mtd)}
-                      </td>
+                        {/* Rec MTD */}
+                        <td
+                          style={{
+                            ...tdBase,
+                            textAlign: 'right',
+                            fontSize: 12,
+                            color: a.rec_mtd < 0 ? 'var(--color-negative)' : 'var(--fg)',
+                          }}
+                        >
+                          {fBRL(a.rec_mtd)}
+                        </td>
 
-                      {/* Rec Meta — não disponível no drill */}
-                      <td style={{ ...tdBase, textAlign: 'right', fontSize: 12, color: 'var(--fg-faint)' }}>
-                        —
-                      </td>
+                        {/* Rec Meta — não disponível no drill */}
+                        <td
+                          style={{
+                            ...tdBase,
+                            textAlign: 'right',
+                            fontSize: 12,
+                            color: 'var(--fg-faint)',
+                          }}
+                        >
+                          —
+                        </td>
 
-                      {/* % Rec — não disponível no drill */}
-                      <td style={{ ...tdBase, textAlign: 'right', fontSize: 12, color: 'var(--fg-faint)' }}>
-                        —
-                      </td>
+                        {/* % Rec — não disponível no drill */}
+                        <td
+                          style={{
+                            ...tdBase,
+                            textAlign: 'right',
+                            fontSize: 12,
+                            color: 'var(--fg-faint)',
+                          }}
+                        >
+                          —
+                        </td>
 
-                      {/* Rec YTD */}
-                      <td style={{ ...tdBase, textAlign: 'right', fontSize: 12, color: 'var(--fg-mute)' }}>
-                        {a.rec_ytd > 0 ? fBRL(a.rec_ytd) : '—'}
-                      </td>
-                    </tr>
-                  ))}
+                        {/* Rec YTD */}
+                        <td
+                          style={{
+                            ...tdBase,
+                            textAlign: 'right',
+                            fontSize: 12,
+                            color: 'var(--fg-mute)',
+                          }}
+                        >
+                          {a.rec_ytd > 0 ? fBRL(a.rec_ytd) : '—'}
+                        </td>
+                      </tr>
+                    ))}
                 </>
               )
             })}
@@ -473,16 +535,16 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
             <tr
               style={{
                 background: 'var(--bg-deep)',
-                borderTop:  '2px solid var(--line-strong)',
+                borderTop: '2px solid var(--line-strong)',
               }}
             >
               <td
                 style={{
                   ...tdBase,
-                  textAlign:    'left',
-                  fontFamily:   'var(--f-text)',
-                  fontWeight:   700,
-                  fontSize:     13,
+                  textAlign: 'left',
+                  fontFamily: 'var(--f-text)',
+                  fontWeight: 700,
+                  fontSize: 13,
                   borderBottom: 'none',
                 }}
               >
@@ -491,10 +553,10 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
               <td
                 style={{
                   ...tdBase,
-                  textAlign:    'right',
-                  fontWeight:   700,
+                  textAlign: 'right',
+                  fontWeight: 700,
                   borderBottom: 'none',
-                  color:        total.cap_mtd < 0 ? 'var(--color-negative)' : 'var(--fg)',
+                  color: total.cap_mtd < 0 ? 'var(--color-negative)' : 'var(--fg)',
                 }}
               >
                 {fBRL(total.cap_mtd)}
@@ -502,9 +564,9 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
               <td
                 style={{
                   ...tdBase,
-                  textAlign:    'right',
+                  textAlign: 'right',
                   borderBottom: 'none',
-                  color:        'var(--fg-mute)',
+                  color: 'var(--fg-mute)',
                 }}
               >
                 {fBRL(total.cap_meta)}
@@ -515,10 +577,10 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
               <td
                 style={{
                   ...tdBase,
-                  textAlign:    'right',
+                  textAlign: 'right',
                   borderBottom: 'none',
-                  color:        'var(--fg-mute)',
-                  fontSize:     12,
+                  color: 'var(--fg-mute)',
+                  fontSize: 12,
                 }}
               >
                 {fBRL(total.cap_ytd)}
@@ -526,10 +588,10 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
               <td
                 style={{
                   ...tdBase,
-                  textAlign:    'right',
-                  fontWeight:   700,
+                  textAlign: 'right',
+                  fontWeight: 700,
                   borderBottom: 'none',
-                  color:        total.rec_mtd < 0 ? 'var(--color-negative)' : 'var(--fg)',
+                  color: total.rec_mtd < 0 ? 'var(--color-negative)' : 'var(--fg)',
                 }}
               >
                 {fBRL(total.rec_mtd)}
@@ -537,9 +599,9 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
               <td
                 style={{
                   ...tdBase,
-                  textAlign:    'right',
+                  textAlign: 'right',
                   borderBottom: 'none',
-                  color:        'var(--fg-mute)',
+                  color: 'var(--fg-mute)',
                 }}
               >
                 {fBRL(total.rec_meta)}
@@ -550,10 +612,10 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
               <td
                 style={{
                   ...tdBase,
-                  textAlign:    'right',
+                  textAlign: 'right',
                   borderBottom: 'none',
-                  color:        'var(--fg-mute)',
-                  fontSize:     12,
+                  color: 'var(--fg-mute)',
+                  fontSize: 12,
                 }}
               >
                 {fBRL(total.rec_ytd)}

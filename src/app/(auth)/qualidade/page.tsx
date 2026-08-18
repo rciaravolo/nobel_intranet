@@ -7,11 +7,11 @@ import { PageGreeting } from '../_components/PageGreeting'
 
 type KpisQualidade = {
   indiceModeloServir: number | null
-  mesReferencia:      string | null
-  npsEnvios:          number
-  npsRespostas:       number
-  npsAssessor:        number | null
-  taxaResposta:       number | null
+  mesReferencia: string | null
+  npsEnvios: number
+  npsRespostas: number
+  npsAssessor: number | null
+  taxaResposta: number | null
 }
 
 /* ─── Fetcher ────────────────────────────────────────────────────────────── */
@@ -25,7 +25,9 @@ async function getKpisQualidade(role: string, email: string): Promise<KpisQualid
     if (!res.ok) return null
     const json = (await res.json()) as { data: KpisQualidade }
     return json.data
-  } catch { return null }
+  } catch {
+    return null
+  }
 }
 
 /* ─── KPI Card ───────────────────────────────────────────────────────────── */
@@ -45,21 +47,18 @@ function KpiCard({
     <div
       className="ds-stat"
       style={{
-        display:        'flex',
-        flexDirection:  'column',
-        alignItems:     'center',
-        textAlign:      'center',
-        gap:            8,
-        flex:           1,
-        minWidth:       160,
-        borderLeft:     accent ? '3px solid var(--c-gold)' : undefined,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        textAlign: 'center',
+        gap: 8,
+        flex: 1,
+        minWidth: 160,
+        borderLeft: accent ? '3px solid var(--c-gold)' : undefined,
       }}
     >
       <span className="lbl">{label}</span>
-      <span
-        className="num"
-        style={{ color: accent ? 'var(--color-b-500)' : undefined }}
-      >
+      <span className="num" style={{ color: accent ? 'var(--color-b-500)' : undefined }}>
         {value}
       </span>
       {sub && <span className="sub">{sub}</span>}

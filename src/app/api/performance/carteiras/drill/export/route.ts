@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const ativo = req.nextUrl.searchParams.get('ativo')
-  const tipo  = req.nextUrl.searchParams.get('tipo') ?? 'rf'
+  const tipo = req.nextUrl.searchParams.get('tipo') ?? 'rf'
   if (!ativo) return NextResponse.json({ error: 'ativo obrigatório' }, { status: 400 })
 
   const res = await apiFetch(

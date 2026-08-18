@@ -1,5 +1,5 @@
 'use client'
-import { BarChart2, Coins, Home, TrendingUp, type LucideIcon } from 'lucide-react'
+import { BarChart2, Coins, Home, type LucideIcon, TrendingUp } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 
 const SANS = 'var(--font-sans, "Garet", "Helvetica Neue", sans-serif)'
@@ -14,9 +14,9 @@ interface TabDef {
 }
 
 const BASE_TABS: TabDef[] = [
-  { id: 'onepage',  label: 'Onepage',  icon: Home,       href: '/m/onepage' },
-  { id: 'captacao', label: 'Captação', icon: Coins,      href: '/m/captacao' },
-  { id: 'receita',  label: 'Receita',  icon: TrendingUp, href: '/m/receita' },
+  { id: 'onepage', label: 'Onepage', icon: Home, href: '/m/onepage' },
+  { id: 'captacao', label: 'Captação', icon: Coins, href: '/m/captacao' },
+  { id: 'receita', label: 'Receita', icon: TrendingUp, href: '/m/receita' },
 ]
 
 const PNL_TAB: TabDef = { id: 'pnl', label: 'PnL', icon: BarChart2, href: '/m/pnl' }

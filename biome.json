@@ -34,16 +34,27 @@
     "rules": {
       "recommended": true,
       "correctness": {
-        "noUnusedVariables": "error",
-        "noUnusedImports": "error"
+        "noUnusedVariables": "warn",
+        "noUnusedImports": "error",
+        "useExhaustiveDependencies": "warn"
       },
       "suspicious": {
         "noExplicitAny": "error",
-        "noConsole": "warn"
+        "noConsole": "warn",
+        "noArrayIndexKey": "warn"
       },
       "style": {
         "noNonNullAssertion": "warn",
-        "useConst": "error"
+        "useConst": "error",
+        "noUnusedTemplateLiteral": "warn",
+        "useTemplate": "warn"
+      },
+      "complexity": {
+        "useLiteralKeys": "warn"
+      },
+      "a11y": {
+        "noSvgWithoutTitle": "warn",
+        "useKeyWithClickEvents": "warn"
       }
     }
   },

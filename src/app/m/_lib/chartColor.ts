@@ -3,11 +3,17 @@ const STOPS = ['#C29404', '#8F6B12', '#5F5E5B', '#8C8B87', '#B4B3AE', '#D2D1CC']
 
 function hexToRgb(h: string): [number, number, number] {
   const c = h.replace('#', '')
-  return [parseInt(c.slice(0, 2), 16), parseInt(c.slice(2, 4), 16), parseInt(c.slice(4, 6), 16)]
+  return [
+    Number.parseInt(c.slice(0, 2), 16),
+    Number.parseInt(c.slice(2, 4), 16),
+    Number.parseInt(c.slice(4, 6), 16),
+  ]
 }
 
 function toHex(n: number): string {
-  return Math.round(Math.max(0, Math.min(255, n))).toString(16).padStart(2, '0')
+  return Math.round(Math.max(0, Math.min(255, n)))
+    .toString(16)
+    .padStart(2, '0')
 }
 
 // Interpola a paleta Nobel: rank 0 (maior) = Ouro Nobel, rank total-1 (menor) = Cinza Claro
