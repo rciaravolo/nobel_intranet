@@ -9,8 +9,8 @@
 /* ─── Font faces ──────────────────────────────────────────────── */
 @font-face {
   font-family: "Garet";
-  src: url("/fonts/garet/Garet-Book.woff2") format("woff2"),
-       url("/fonts/garet/Garet-Book.ttf") format("truetype");
+  src: url("/fonts/garet/Garet-Book.woff2") format("woff2"), url("/fonts/garet/Garet-Book.ttf")
+    format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -18,8 +18,8 @@
 
 @font-face {
   font-family: "Garet";
-  src: url("/fonts/garet/Garet-Heavy.woff2") format("woff2"),
-       url("/fonts/garet/Garet-Heavy.ttf") format("truetype");
+  src: url("/fonts/garet/Garet-Heavy.woff2") format("woff2"), url("/fonts/garet/Garet-Heavy.ttf")
+    format("truetype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -43,7 +43,7 @@
 
 /* ─── Base ────────────────────────────────────────────────────── */
 .nobel-mobile {
-  --font-sans:    "Garet", "Helvetica Neue", sans-serif;
+  --font-sans: "Garet", "Helvetica Neue", sans-serif;
   --font-display: "Relicta", "Georgia", serif;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -98,8 +98,12 @@
 
 /* ─── Bar grow-in animation ──────────────────────────────────── */
 @keyframes nobel-grow-x {
-  from { transform: scaleX(0); }
-  to   { transform: scaleX(1); }
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 
 .grow-x {
@@ -109,8 +113,12 @@
 
 /* ─── Sparkline path animation ───────────────────────────────── */
 @keyframes nobel-spark {
-  0%   { stroke-dashoffset: 1000; }
-  100% { stroke-dashoffset: 0; }
+  0% {
+    stroke-dashoffset: 1000;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
 }
 
 .spark-line {

@@ -81,7 +81,7 @@ export default function MateriaisPage() {
 
       {data.materiais.map((mes, mi) => {
         const arquivos = mes.arquivos.filter(
-          (a) => filter === 'Todos' || TAG_TO_FILTER[a.tag] === filter
+          (a) => filter === 'Todos' || TAG_TO_FILTER[a.tag] === filter,
         )
         if (arquivos.length === 0) return null
         return (

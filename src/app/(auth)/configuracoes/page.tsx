@@ -1,4 +1,3 @@
-import { PageGreeting } from '../_components/PageGreeting'
 import { requireSession } from '@/lib/auth/session'
 
 export default async function ConfiguracoesPage() {

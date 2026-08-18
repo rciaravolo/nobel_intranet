@@ -90,7 +90,7 @@ function fData(s: string | null | undefined): string {
   const y = parts[0] ?? ''
   const m = parts[1] ?? '1'
   const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez']
-  return `${meses[parseInt(m, 10) - 1] ?? ''}/${y}`
+  return `${meses[Number.parseInt(m, 10) - 1] ?? ''}/${y}`
 }
 
 function fVar(v: number | null | undefined): string {
@@ -116,7 +116,13 @@ const ACCENT: Record<'rf' | 'rv', string> = {
 
 /* ─── Component ──────────────────────────────────────────────────────────── */
 
-export function DrillDrawer({ ativo = null, janela = null, setor = null, classe = 'rf', onClose }: Props) {
+export function DrillDrawer({
+  ativo = null,
+  janela = null,
+  setor = null,
+  classe = 'rf',
+  onClose,
+}: Props) {
   const [data, setData] = useState<DrillData | null>(null)
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState(false)
@@ -206,10 +212,10 @@ export function DrillDrawer({ ativo = null, janela = null, setor = null, classe 
     setSetorData(null)
 
     fetch('/api/performance/carteiras/drill/setor', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ setor }),
-      })
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ setor }),
+    })
       .then((r) => {
         if (!r.ok) throw new Error()
         return r.json() as Promise<{ data: SetorData }>
@@ -234,34 +240,36 @@ export function DrillDrawer({ ativo = null, janela = null, setor = null, classe 
     setDownloading(true)
     try {
       const tipo = classe === 'rv' ? 'rv' : 'rf'
-      const res  = await fetch(
+      const res = await fetch(
         `/api/performance/carteiras/drill/export?ativo=${encodeURIComponent(ativo)}&tipo=${tipo}`,
       )
       if (!res.ok) throw new Error()
-      const json = (await res.json()) as { data: { ativo: string; tipo: string; clientes: Record<string, unknown>[] } }
+      const json = (await res.json()) as {
+        data: { ativo: string; tipo: string; clientes: Record<string, unknown>[] }
+      }
       const clientes = json.data.clientes
 
       const rows = clientes.map((cl) => {
         if (tipo === 'rv') {
           return {
-            ID:         cl.id_cliente,
-            Nome:       cl.nome_cliente ?? '',
-            Assessor:   cl.nome_assessor ?? '',
-            Equipe:     cl.equipe ?? '',
-            Produto:    cl.produto ?? '',
-            Setor:      cl.setor ?? '',
+            ID: cl.id_cliente,
+            Nome: cl.nome_cliente ?? '',
+            Assessor: cl.nome_assessor ?? '',
+            Equipe: cl.equipe ?? '',
+            Produto: cl.produto ?? '',
+            Setor: cl.setor ?? '',
             'Volume (R$)': cl.total,
             'Variação (%)': cl.variacao ?? '',
           }
         }
         return {
-          ID:              cl.id_cliente,
-          Nome:            cl.nome_cliente ?? '',
-          Assessor:        cl.nome_assessor ?? '',
-          Equipe:          cl.equipe ?? '',
-          'Sub Produto':   cl.sub_produto ?? '',
-          Vencimento:      cl.data_vencimento ?? '',
-          'Volume (R$)':   cl.total,
+          ID: cl.id_cliente,
+          Nome: cl.nome_cliente ?? '',
+          Assessor: cl.nome_assessor ?? '',
+          Equipe: cl.equipe ?? '',
+          'Sub Produto': cl.sub_produto ?? '',
+          Vencimento: cl.data_vencimento ?? '',
+          'Volume (R$)': cl.total,
         }
       })
 
@@ -281,7 +289,7 @@ export function DrillDrawer({ ativo = null, janela = null, setor = null, classe 
   if (!ativo && !janela && !setor) return null
 
   const isJanelaMode = !!janela
-  const isSetorMode  = !!setor
+  const isSetorMode = !!setor
 
   const accent = isSetorMode ? ACCENT['rv'] : isJanelaMode ? ACCENT['rf'] : ACCENT[classe]
 
@@ -421,9 +429,18 @@ export function DrillDrawer({ ativo = null, janela = null, setor = null, classe 
                 transition: 'background .15s, color .15s',
               }}
             >
-              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M8 2v8M5 7l3 3 3-3"/>
-                <path d="M3 12h10"/>
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M8 2v8M5 7l3 3 3-3" />
+                <path d="M3 12h10" />
               </svg>
               {downloading ? 'Gerando...' : 'Excel'}
             </button>
@@ -483,27 +500,62 @@ export function DrillDrawer({ ativo = null, janela = null, setor = null, classe 
 
           {/* ── Setor mode ─────────────────────────────────────────────────── */}
           {isSetorMode && setorLoading && (
-            <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: 'var(--f-mono)', fontSize: 12, color: 'var(--fg-faint)' }}>
+            <div
+              style={{
+                padding: '40px 20px',
+                textAlign: 'center',
+                fontFamily: 'var(--f-mono)',
+                fontSize: 12,
+                color: 'var(--fg-faint)',
+              }}
+            >
               Carregando...
             </div>
           )}
           {isSetorMode && setorErro && (
-            <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: 'var(--f-mono)', fontSize: 12, color: 'var(--color-negative)' }}>
+            <div
+              style={{
+                padding: '40px 20px',
+                textAlign: 'center',
+                fontFamily: 'var(--f-mono)',
+                fontSize: 12,
+                color: 'var(--color-negative)',
+              }}
+            >
               Erro ao carregar dados.
             </div>
           )}
           {isSetorMode && setorData && (
             <>
               {/* KPI strip */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderBottom: '1px solid var(--line)' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  borderBottom: '1px solid var(--line)',
+                }}
+              >
                 {[
                   { label: 'AUC Total', value: fBRL(setorData.total) },
-                  { label: 'Clientes',  value: setorData.clientes_count.toLocaleString('pt-BR') },
-                  { label: 'Ativos',    value: setorData.ativos_count.toLocaleString('pt-BR') },
+                  { label: 'Clientes', value: setorData.clientes_count.toLocaleString('pt-BR') },
+                  { label: 'Ativos', value: setorData.ativos_count.toLocaleString('pt-BR') },
                 ].map(({ label, value }) => (
-                  <div key={label} style={{ padding: '14px 16px', borderRight: '1px solid var(--line)' }}>
+                  <div
+                    key={label}
+                    style={{ padding: '14px 16px', borderRight: '1px solid var(--line)' }}
+                  >
                     <p style={mono10}>{label}</p>
-                    <p style={{ fontFamily: 'var(--f-mono)', fontSize: 18, fontWeight: 700, color: 'var(--fg)', marginTop: 6, letterSpacing: '-.01em', fontFeatureSettings: '"tnum"' }}>
+                    <p
+                      style={{
+                        fontFamily: 'var(--f-mono)',
+                        fontSize: 18,
+                        fontWeight: 700,
+                        color: 'var(--fg)',
+                        marginTop: 6,
+                        letterSpacing: '-.01em',
+                        fontFeatureSettings: '"tnum"',
+                      }}
+                    >
                       {value}
                     </p>
                   </div>
@@ -512,17 +564,45 @@ export function DrillDrawer({ ativo = null, janela = null, setor = null, classe 
 
               {/* Top Ativos */}
               <div>
-                <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid var(--line)', background: 'var(--bg-deep)' }}>
+                <div
+                  style={{
+                    padding: '10px 16px 8px',
+                    borderBottom: '1px solid var(--line)',
+                    background: 'var(--bg-deep)',
+                  }}
+                >
                   <span style={mono10}>Top ativos · {setorData.top_ativos.length} exibidos</span>
                 </div>
                 {setorData.top_ativos.length === 0 ? (
-                  <div style={{ padding: '16px', fontFamily: 'var(--f-mono)', fontSize: 12, color: 'var(--fg-faint)' }}>Nenhum ativo encontrado.</div>
+                  <div
+                    style={{
+                      padding: '16px',
+                      fontFamily: 'var(--f-mono)',
+                      fontSize: 12,
+                      color: 'var(--fg-faint)',
+                    }}
+                  >
+                    Nenhum ativo encontrado.
+                  </div>
                 ) : (
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ background: 'var(--bg-deep)' }}>
                         {['Ativo', 'Produto', 'AUC', 'Clientes', 'P&L Médio'].map((h, i) => (
-                          <th key={h} style={{ fontFamily: 'var(--f-mono)', fontSize: 9, fontWeight: 500, color: 'var(--fg-faint)', letterSpacing: '.18em', textTransform: 'uppercase', padding: '8px 14px', textAlign: i > 1 ? 'right' : 'left', borderBottom: '1px solid var(--line)' }}>
+                          <th
+                            key={h}
+                            style={{
+                              fontFamily: 'var(--f-mono)',
+                              fontSize: 9,
+                              fontWeight: 500,
+                              color: 'var(--fg-faint)',
+                              letterSpacing: '.18em',
+                              textTransform: 'uppercase',
+                              padding: '8px 14px',
+                              textAlign: i > 1 ? 'right' : 'left',
+                              borderBottom: '1px solid var(--line)',
+                            }}
+                          >
                             {h}
                           </th>
                         ))}
@@ -532,21 +612,83 @@ export function DrillDrawer({ ativo = null, janela = null, setor = null, classe 
                       {setorData.top_ativos.map((a, i) => {
                         const up = (a.variacao ?? 0) >= 0
                         return (
-                          <tr key={`${a.ativo}-${i}`} style={{ borderBottom: i < setorData.top_ativos.length - 1 ? '1px solid var(--line)' : 'none' }}>
+                          <tr
+                            key={`${a.ativo}-${i}`}
+                            style={{
+                              borderBottom:
+                                i < setorData.top_ativos.length - 1
+                                  ? '1px solid var(--line)'
+                                  : 'none',
+                            }}
+                          >
                             <td style={{ padding: '9px 14px' }}>
-                              <span style={{ fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 700, color: accent, fontFeatureSettings: '"tnum"' }}>{a.ativo}</span>
+                              <span
+                                style={{
+                                  fontFamily: 'var(--f-mono)',
+                                  fontSize: 12,
+                                  fontWeight: 700,
+                                  color: accent,
+                                  fontFeatureSettings: '"tnum"',
+                                }}
+                              >
+                                {a.ativo}
+                              </span>
                             </td>
                             <td style={{ padding: '9px 14px' }}>
-                              <span style={{ fontFamily: 'var(--f-mono)', fontSize: 10, color: 'var(--fg-faint)', letterSpacing: '.06em' }}>{a.produto ?? '—'}</span>
+                              <span
+                                style={{
+                                  fontFamily: 'var(--f-mono)',
+                                  fontSize: 10,
+                                  color: 'var(--fg-faint)',
+                                  letterSpacing: '.06em',
+                                }}
+                              >
+                                {a.produto ?? '—'}
+                              </span>
                             </td>
-                            <td style={{ padding: '9px 14px', textAlign: 'right', fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 600, color: 'var(--fg)', fontFeatureSettings: '"tnum"' }}>
+                            <td
+                              style={{
+                                padding: '9px 14px',
+                                textAlign: 'right',
+                                fontFamily: 'var(--f-mono)',
+                                fontSize: 12,
+                                fontWeight: 600,
+                                color: 'var(--fg)',
+                                fontFeatureSettings: '"tnum"',
+                              }}
+                            >
                               {fBRL(a.total)}
                             </td>
-                            <td style={{ padding: '9px 14px', textAlign: 'right', fontFamily: 'var(--f-mono)', fontSize: 12, color: 'var(--fg-faint)', fontFeatureSettings: '"tnum"' }}>
+                            <td
+                              style={{
+                                padding: '9px 14px',
+                                textAlign: 'right',
+                                fontFamily: 'var(--f-mono)',
+                                fontSize: 12,
+                                color: 'var(--fg-faint)',
+                                fontFeatureSettings: '"tnum"',
+                              }}
+                            >
                               {a.clientes}
                             </td>
                             <td style={{ padding: '9px 14px', textAlign: 'right' }}>
-                              <span style={{ display: 'inline-flex', alignItems: 'center', fontFamily: 'var(--f-mono)', fontSize: 10, fontWeight: 500, letterSpacing: '.08em', fontFeatureSettings: '"tnum"', color: up ? 'var(--color-positive)' : 'var(--color-negative)', background: up ? 'var(--color-positive-bg)' : 'var(--color-negative-bg)', padding: '2px 7px', borderRadius: 999 }}>
+                              <span
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  fontFamily: 'var(--f-mono)',
+                                  fontSize: 10,
+                                  fontWeight: 500,
+                                  letterSpacing: '.08em',
+                                  fontFeatureSettings: '"tnum"',
+                                  color: up ? 'var(--color-positive)' : 'var(--color-negative)',
+                                  background: up
+                                    ? 'var(--color-positive-bg)'
+                                    : 'var(--color-negative-bg)',
+                                  padding: '2px 7px',
+                                  borderRadius: 999,
+                                }}
+                              >
                                 {fVar(a.variacao)}
                               </span>
                             </td>
@@ -560,17 +702,47 @@ export function DrillDrawer({ ativo = null, janela = null, setor = null, classe 
 
               {/* Top Clientes */}
               <div style={{ borderTop: '1px solid var(--line)' }}>
-                <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid var(--line)', background: 'var(--bg-deep)' }}>
-                  <span style={mono10}>Top clientes · {setorData.top_clientes.length} exibidos</span>
+                <div
+                  style={{
+                    padding: '10px 16px 8px',
+                    borderBottom: '1px solid var(--line)',
+                    background: 'var(--bg-deep)',
+                  }}
+                >
+                  <span style={mono10}>
+                    Top clientes · {setorData.top_clientes.length} exibidos
+                  </span>
                 </div>
                 {setorData.top_clientes.length === 0 ? (
-                  <div style={{ padding: '16px', fontFamily: 'var(--f-mono)', fontSize: 12, color: 'var(--fg-faint)' }}>Nenhum cliente encontrado.</div>
+                  <div
+                    style={{
+                      padding: '16px',
+                      fontFamily: 'var(--f-mono)',
+                      fontSize: 12,
+                      color: 'var(--fg-faint)',
+                    }}
+                  >
+                    Nenhum cliente encontrado.
+                  </div>
                 ) : (
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ background: 'var(--bg-deep)' }}>
                         {['#', 'ID', 'Nome', 'AUC', 'P&L Médio', 'Assessor'].map((h, i) => (
-                          <th key={h} style={{ fontFamily: 'var(--f-mono)', fontSize: 9, fontWeight: 500, color: 'var(--fg-faint)', letterSpacing: '.18em', textTransform: 'uppercase', padding: '8px 14px', textAlign: i >= 3 && i < 5 ? 'right' : 'left', borderBottom: '1px solid var(--line)' }}>
+                          <th
+                            key={h}
+                            style={{
+                              fontFamily: 'var(--f-mono)',
+                              fontSize: 9,
+                              fontWeight: 500,
+                              color: 'var(--fg-faint)',
+                              letterSpacing: '.18em',
+                              textTransform: 'uppercase',
+                              padding: '8px 14px',
+                              textAlign: i >= 3 && i < 5 ? 'right' : 'left',
+                              borderBottom: '1px solid var(--line)',
+                            }}
+                          >
                             {h}
                           </th>
                         ))}
@@ -580,24 +752,102 @@ export function DrillDrawer({ ativo = null, janela = null, setor = null, classe 
                       {setorData.top_clientes.map((cl, i) => {
                         const up = (cl.variacao ?? 0) >= 0
                         return (
-                          <tr key={`${cl.id_cliente}-${i}`} style={{ borderBottom: i < setorData.top_clientes.length - 1 ? '1px solid var(--line)' : 'none' }}>
-                            <td style={{ padding: '9px 14px', fontFamily: 'var(--f-mono)', fontSize: 10, color: 'var(--fg-faint)', width: 28 }}>{i + 1}</td>
+                          <tr
+                            key={`${cl.id_cliente}-${i}`}
+                            style={{
+                              borderBottom:
+                                i < setorData.top_clientes.length - 1
+                                  ? '1px solid var(--line)'
+                                  : 'none',
+                            }}
+                          >
+                            <td
+                              style={{
+                                padding: '9px 14px',
+                                fontFamily: 'var(--f-mono)',
+                                fontSize: 10,
+                                color: 'var(--fg-faint)',
+                                width: 28,
+                              }}
+                            >
+                              {i + 1}
+                            </td>
                             <td style={{ padding: '9px 14px' }}>
-                              <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, fontWeight: 600, color: accent, fontFeatureSettings: '"tnum"' }}>{cl.id_cliente}</span>
+                              <span
+                                style={{
+                                  fontFamily: 'var(--f-mono)',
+                                  fontSize: 11,
+                                  fontWeight: 600,
+                                  color: accent,
+                                  fontFeatureSettings: '"tnum"',
+                                }}
+                              >
+                                {cl.id_cliente}
+                              </span>
                             </td>
                             <td style={{ padding: '9px 14px', maxWidth: 150 }}>
-                              <span style={{ fontFamily: 'var(--f-text)', fontSize: 12, color: 'var(--fg)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cl.nome_cliente ?? '—'}</span>
+                              <span
+                                style={{
+                                  fontFamily: 'var(--f-text)',
+                                  fontSize: 12,
+                                  color: 'var(--fg)',
+                                  display: 'block',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {cl.nome_cliente ?? '—'}
+                              </span>
                             </td>
-                            <td style={{ padding: '9px 14px', textAlign: 'right', fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 600, color: 'var(--fg)', fontFeatureSettings: '"tnum"' }}>
+                            <td
+                              style={{
+                                padding: '9px 14px',
+                                textAlign: 'right',
+                                fontFamily: 'var(--f-mono)',
+                                fontSize: 12,
+                                fontWeight: 600,
+                                color: 'var(--fg)',
+                                fontFeatureSettings: '"tnum"',
+                              }}
+                            >
                               {fBRL(cl.total)}
                             </td>
                             <td style={{ padding: '9px 14px', textAlign: 'right' }}>
-                              <span style={{ display: 'inline-flex', alignItems: 'center', fontFamily: 'var(--f-mono)', fontSize: 10, fontWeight: 500, letterSpacing: '.08em', fontFeatureSettings: '"tnum"', color: up ? 'var(--color-positive)' : 'var(--color-negative)', background: up ? 'var(--color-positive-bg)' : 'var(--color-negative-bg)', padding: '2px 7px', borderRadius: 999 }}>
+                              <span
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  fontFamily: 'var(--f-mono)',
+                                  fontSize: 10,
+                                  fontWeight: 500,
+                                  letterSpacing: '.08em',
+                                  fontFeatureSettings: '"tnum"',
+                                  color: up ? 'var(--color-positive)' : 'var(--color-negative)',
+                                  background: up
+                                    ? 'var(--color-positive-bg)'
+                                    : 'var(--color-negative-bg)',
+                                  padding: '2px 7px',
+                                  borderRadius: 999,
+                                }}
+                              >
                                 {fVar(cl.variacao)}
                               </span>
                             </td>
                             <td style={{ padding: '9px 14px', maxWidth: 120 }}>
-                              <span style={{ fontFamily: 'var(--f-text)', fontSize: 11, color: 'var(--fg-mute)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cl.nome_assessor ?? '—'}</span>
+                              <span
+                                style={{
+                                  fontFamily: 'var(--f-text)',
+                                  fontSize: 11,
+                                  color: 'var(--fg-mute)',
+                                  display: 'block',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                                {cl.nome_assessor ?? '—'}
+                              </span>
                             </td>
                           </tr>
                         )
@@ -611,27 +861,62 @@ export function DrillDrawer({ ativo = null, janela = null, setor = null, classe 
 
           {/* ── Janela mode ────────────────────────────────────────────────── */}
           {isJanelaMode && janelaLoading && (
-            <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: 'var(--f-mono)', fontSize: 12, color: 'var(--fg-faint)' }}>
+            <div
+              style={{
+                padding: '40px 20px',
+                textAlign: 'center',
+                fontFamily: 'var(--f-mono)',
+                fontSize: 12,
+                color: 'var(--fg-faint)',
+              }}
+            >
               Carregando...
             </div>
           )}
           {isJanelaMode && janelaErro && (
-            <div style={{ padding: '40px 20px', textAlign: 'center', fontFamily: 'var(--f-mono)', fontSize: 12, color: 'var(--color-negative)' }}>
+            <div
+              style={{
+                padding: '40px 20px',
+                textAlign: 'center',
+                fontFamily: 'var(--f-mono)',
+                fontSize: 12,
+                color: 'var(--color-negative)',
+              }}
+            >
               Erro ao carregar dados.
             </div>
           )}
           {isJanelaMode && janelaData && (
             <>
               {/* KPI strip */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', borderBottom: '1px solid var(--line)' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, 1fr)',
+                  borderBottom: '1px solid var(--line)',
+                }}
+              >
                 {[
                   { label: 'Volume Total', value: fBRL(janelaData.total) },
                   { label: 'Posições', value: janelaData.posicoes.toLocaleString('pt-BR') },
                   { label: 'Clientes', value: janelaData.clientes_count.toLocaleString('pt-BR') },
                 ].map(({ label, value }) => (
-                  <div key={label} style={{ padding: '14px 16px', borderRight: '1px solid var(--line)' }}>
+                  <div
+                    key={label}
+                    style={{ padding: '14px 16px', borderRight: '1px solid var(--line)' }}
+                  >
                     <p style={mono10}>{label}</p>
-                    <p style={{ fontFamily: 'var(--f-mono)', fontSize: 18, fontWeight: 700, color: 'var(--fg)', marginTop: 6, letterSpacing: '-.01em', fontFeatureSettings: '"tnum"' }}>
+                    <p
+                      style={{
+                        fontFamily: 'var(--f-mono)',
+                        fontSize: 18,
+                        fontWeight: 700,
+                        color: 'var(--fg)',
+                        marginTop: 6,
+                        letterSpacing: '-.01em',
+                        fontFeatureSettings: '"tnum"',
+                      }}
+                    >
                       {value}
                     </p>
                   </div>
@@ -640,62 +925,149 @@ export function DrillDrawer({ ativo = null, janela = null, setor = null, classe 
 
               {/* Clients table */}
               <div>
-                <div style={{ padding: '10px 16px 8px', borderBottom: '1px solid var(--line)', background: 'var(--bg-deep)' }}>
+                <div
+                  style={{
+                    padding: '10px 16px 8px',
+                    borderBottom: '1px solid var(--line)',
+                    background: 'var(--bg-deep)',
+                  }}
+                >
                   <span style={mono10}>Top clientes · {janelaData.clientes.length} exibidos</span>
                 </div>
                 {janelaData.clientes.length === 0 ? (
-                  <div style={{ padding: '24px 16px', fontFamily: 'var(--f-mono)', fontSize: 12, color: 'var(--fg-faint)' }}>
+                  <div
+                    style={{
+                      padding: '24px 16px',
+                      fontFamily: 'var(--f-mono)',
+                      fontSize: 12,
+                      color: 'var(--fg-faint)',
+                    }}
+                  >
                     Nenhum cliente encontrado.
                   </div>
                 ) : (
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ background: 'var(--bg-deep)' }}>
-                        {['#', 'ID', 'Nome', 'Tipo', 'Próx. Venc.', 'Volume', 'Assessor'].map((h, i) => (
-                          <th
-                            key={h}
-                            style={{
-                              fontFamily: 'var(--f-mono)', fontSize: 9, fontWeight: 500,
-                              color: 'var(--fg-faint)', letterSpacing: '.18em',
-                              textTransform: 'uppercase', padding: '8px 14px',
-                              textAlign: i >= 5 ? 'right' : 'left',
-                              borderBottom: '1px solid var(--line)',
-                            }}
-                          >
-                            {h}
-                          </th>
-                        ))}
+                        {['#', 'ID', 'Nome', 'Tipo', 'Próx. Venc.', 'Volume', 'Assessor'].map(
+                          (h, i) => (
+                            <th
+                              key={h}
+                              style={{
+                                fontFamily: 'var(--f-mono)',
+                                fontSize: 9,
+                                fontWeight: 500,
+                                color: 'var(--fg-faint)',
+                                letterSpacing: '.18em',
+                                textTransform: 'uppercase',
+                                padding: '8px 14px',
+                                textAlign: i >= 5 ? 'right' : 'left',
+                                borderBottom: '1px solid var(--line)',
+                              }}
+                            >
+                              {h}
+                            </th>
+                          ),
+                        )}
                       </tr>
                     </thead>
                     <tbody>
                       {janelaData.clientes.map((cl, i) => (
-                        <tr key={`${cl.id_cliente}-${i}`} style={{ borderBottom: i < janelaData.clientes.length - 1 ? '1px solid var(--line)' : 'none' }}>
-                          <td style={{ padding: '9px 14px', fontFamily: 'var(--f-mono)', fontSize: 10, color: 'var(--fg-faint)', width: 28 }}>{i + 1}</td>
+                        <tr
+                          key={`${cl.id_cliente}-${i}`}
+                          style={{
+                            borderBottom:
+                              i < janelaData.clientes.length - 1 ? '1px solid var(--line)' : 'none',
+                          }}
+                        >
+                          <td
+                            style={{
+                              padding: '9px 14px',
+                              fontFamily: 'var(--f-mono)',
+                              fontSize: 10,
+                              color: 'var(--fg-faint)',
+                              width: 28,
+                            }}
+                          >
+                            {i + 1}
+                          </td>
                           <td style={{ padding: '9px 14px' }}>
-                            <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, fontWeight: 600, color: accent, fontFeatureSettings: '"tnum"' }}>
+                            <span
+                              style={{
+                                fontFamily: 'var(--f-mono)',
+                                fontSize: 11,
+                                fontWeight: 600,
+                                color: accent,
+                                fontFeatureSettings: '"tnum"',
+                              }}
+                            >
                               {cl.id_cliente}
                             </span>
                           </td>
                           <td style={{ padding: '9px 14px', maxWidth: 140 }}>
-                            <span style={{ fontFamily: 'var(--f-text)', fontSize: 12, color: 'var(--fg)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <span
+                              style={{
+                                fontFamily: 'var(--f-text)',
+                                fontSize: 12,
+                                color: 'var(--fg)',
+                                display: 'block',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
                               {cl.nome_cliente ?? '—'}
                             </span>
                           </td>
                           <td style={{ padding: '9px 14px' }}>
-                            <span style={{ fontFamily: 'var(--f-mono)', fontSize: 10, color: 'var(--fg-faint)', letterSpacing: '.06em' }}>
+                            <span
+                              style={{
+                                fontFamily: 'var(--f-mono)',
+                                fontSize: 10,
+                                color: 'var(--fg-faint)',
+                                letterSpacing: '.06em',
+                              }}
+                            >
                               {cl.tipo_ativo ?? '—'}
                             </span>
                           </td>
                           <td style={{ padding: '9px 14px', textAlign: 'right' }}>
-                            <span style={{ fontFamily: 'var(--f-mono)', fontSize: 11, color: 'var(--fg-faint)', fontFeatureSettings: '"tnum"' }}>
+                            <span
+                              style={{
+                                fontFamily: 'var(--f-mono)',
+                                fontSize: 11,
+                                color: 'var(--fg-faint)',
+                                fontFeatureSettings: '"tnum"',
+                              }}
+                            >
                               {fData(cl.proximo_vencimento)}
                             </span>
                           </td>
-                          <td style={{ padding: '9px 14px', textAlign: 'right', fontFamily: 'var(--f-mono)', fontSize: 12, fontWeight: 600, color: 'var(--fg)', fontFeatureSettings: '"tnum"' }}>
+                          <td
+                            style={{
+                              padding: '9px 14px',
+                              textAlign: 'right',
+                              fontFamily: 'var(--f-mono)',
+                              fontSize: 12,
+                              fontWeight: 600,
+                              color: 'var(--fg)',
+                              fontFeatureSettings: '"tnum"',
+                            }}
+                          >
                             {fBRL(cl.total)}
                           </td>
                           <td style={{ padding: '9px 14px', maxWidth: 120 }}>
-                            <span style={{ fontFamily: 'var(--f-text)', fontSize: 11, color: 'var(--fg-mute)', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            <span
+                              style={{
+                                fontFamily: 'var(--f-text)',
+                                fontSize: 11,
+                                color: 'var(--fg-mute)',
+                                display: 'block',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
                               {cl.nome_assessor ?? '—'}
                             </span>
                           </td>
@@ -802,26 +1174,31 @@ export function DrillDrawer({ ativo = null, janela = null, setor = null, classe 
                   <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <thead>
                       <tr style={{ background: 'var(--bg-deep)' }}>
-                        {['#', 'ID', 'Nome', 'Assessor', 'Volume', isRV ? 'Variação' : 'Vencimento'].map(
-                          (h, i) => (
-                            <th
-                              key={h}
-                              style={{
-                                fontFamily: 'var(--f-mono)',
-                                fontSize: 9,
-                                fontWeight: 500,
-                                color: 'var(--fg-faint)',
-                                letterSpacing: '.18em',
-                                textTransform: 'uppercase',
-                                padding: '8px 14px',
-                                textAlign: i < 4 ? 'left' : 'right',
-                                borderBottom: '1px solid var(--line)',
-                              }}
-                            >
-                              {h}
-                            </th>
-                          ),
-                        )}
+                        {[
+                          '#',
+                          'ID',
+                          'Nome',
+                          'Assessor',
+                          'Volume',
+                          isRV ? 'Variação' : 'Vencimento',
+                        ].map((h, i) => (
+                          <th
+                            key={h}
+                            style={{
+                              fontFamily: 'var(--f-mono)',
+                              fontSize: 9,
+                              fontWeight: 500,
+                              color: 'var(--fg-faint)',
+                              letterSpacing: '.18em',
+                              textTransform: 'uppercase',
+                              padding: '8px 14px',
+                              textAlign: i < 4 ? 'left' : 'right',
+                              borderBottom: '1px solid var(--line)',
+                            }}
+                          >
+                            {h}
+                          </th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody>
@@ -924,9 +1301,7 @@ export function DrillDrawer({ ativo = null, janela = null, setor = null, classe 
                                     fontWeight: 500,
                                     letterSpacing: '.08em',
                                     fontFeatureSettings: '"tnum"',
-                                    color: up
-                                      ? 'var(--color-positive)'
-                                      : 'var(--color-negative)',
+                                    color: up ? 'var(--color-positive)' : 'var(--color-negative)',
                                     background: up
                                       ? 'var(--color-positive-bg)'
                                       : 'var(--color-negative-bg)',

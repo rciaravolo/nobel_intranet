@@ -4,11 +4,11 @@ import { useState } from 'react'
 import { DrillDrawer } from './DrillDrawer'
 
 const TIPO_COLOR: Record<string, string> = {
-  'Emissão Bancária':            '#2D5FA0',
-  'Credito Privado':             '#C29404',
-  'Título Público':              '#248A47',
-  'Tesouro Direto':              '#8F6B12',
-  'Letras Financeiras':          '#5F5E5B',
+  'Emissão Bancária': '#2D5FA0',
+  'Credito Privado': '#C29404',
+  'Título Público': '#248A47',
+  'Tesouro Direto': '#8F6B12',
+  'Letras Financeiras': '#5F5E5B',
   'Letra Imobiliária Garantida': '#8C8B87',
 }
 
@@ -16,8 +16,8 @@ function fBRL(v: number): string {
   const abs = Math.abs(v)
   const pre = v < 0 ? '-R$ ' : 'R$ '
   if (abs >= 1_000_000_000) return `${pre}${(abs / 1_000_000_000).toFixed(2).replace('.', ',')}B`
-  if (abs >= 1_000_000)     return `${pre}${(abs / 1_000_000).toFixed(1).replace('.', ',')}M`
-  if (abs >= 1_000)         return `${pre}${Math.round(abs / 1_000)}K`
+  if (abs >= 1_000_000) return `${pre}${(abs / 1_000_000).toFixed(1).replace('.', ',')}M`
+  if (abs >= 1_000) return `${pre}${Math.round(abs / 1_000)}K`
   return `${pre}${abs.toFixed(0)}`
 }
 
@@ -171,10 +171,7 @@ export function WallOfMaturities({ maturities }: Props) {
 
       {/* Drawer */}
       {selectedJanela && (
-        <DrillDrawer
-          janela={selectedJanela}
-          onClose={() => setSelectedJanela(null)}
-        />
+        <DrillDrawer janela={selectedJanela} onClose={() => setSelectedJanela(null)} />
       )}
     </>
   )

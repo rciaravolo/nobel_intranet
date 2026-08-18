@@ -47,3 +47,5 @@ Thumbs.db
 npm-debug.log*
 
 .vercel
+
+tsconfig.tsbuildinfo

@@ -1,8 +1,8 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import { ScreenHeader } from '../../_components/ScreenHeader'
-import { fmtBR, fmtCur } from '../../_lib/format'
 import { rankColor } from '../../_lib/chartColor'
+import { fmtBR, fmtCur } from '../../_lib/format'
 import type { CapPayload, ReceitaPayload } from '../page'
 
 /* ─── Design tokens ─────────────────────────────────────────────────────── */
@@ -22,7 +22,6 @@ const T = {
   success: '#248A47',
   danger: '#D94141',
 }
-
 
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
 
@@ -147,11 +146,13 @@ function ReceitaTable({ dados }: { dados: ReceitaPayload }) {
 
   if (!snapDates || snapDates.length === 0) return null
 
-  const dateHoje  = snapDates[0]!
+  const dateHoje = snapDates[0]!
   const dateOntem = snapDates[1] ?? null
 
   const sorted = [...equipes].sort(
-    (a, b) => (snapMatrix[b]?.[dateHoje] ?? -Infinity) - (snapMatrix[a]?.[dateHoje] ?? -Infinity),
+    (a, b) =>
+      (snapMatrix[b]?.[dateHoje] ?? Number.NEGATIVE_INFINITY) -
+      (snapMatrix[a]?.[dateHoje] ?? Number.NEGATIVE_INFINITY),
   )
 
   const H = {
@@ -166,42 +167,103 @@ function ReceitaTable({ dados }: { dados: ReceitaPayload }) {
   return (
     <div>
       {/* Cabeçalho */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: GAP, padding: '7px 14px', borderBottom: `1px solid ${T.border}`, background: T.cardDeep }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: GAP,
+          padding: '7px 14px',
+          borderBottom: `1px solid ${T.border}`,
+          background: T.cardDeep,
+        }}
+      >
         <div style={{ width: 10, flexShrink: 0 }} />
         <div style={{ flex: 1, ...H }}>equipe</div>
         <div style={{ width: COL.pct, textAlign: 'center', ...H }}>{fData(dateHoje)}</div>
-        {dateOntem && <div style={{ width: COL.pct, textAlign: 'center', ...H }}>{fData(dateOntem)}</div>}
+        {dateOntem && (
+          <div style={{ width: COL.pct, textAlign: 'center', ...H }}>{fData(dateOntem)}</div>
+        )}
         <div style={{ width: COL.delta, textAlign: 'right', ...H }}>D-1</div>
       </div>
 
       {/* Linhas por equipe */}
       {sorted.map((equipe, i) => {
-        const pctHoje  = snapMatrix[equipe]?.[dateHoje] ?? null
+        const pctHoje = snapMatrix[equipe]?.[dateHoje] ?? null
         const pctOntem = dateOntem ? (snapMatrix[equipe]?.[dateOntem] ?? null) : null
-        const delta    = pctHoje != null && pctOntem != null ? pctHoje - pctOntem : null
-        const color    = rankColor(i, sorted.length)
+        const delta = pctHoje != null && pctOntem != null ? pctHoje - pctOntem : null
+        const color = rankColor(i, sorted.length)
         const deltaColor = (delta ?? 0) >= 0 ? T.success : T.danger
         return (
-          <div key={equipe} style={{ display: 'flex', alignItems: 'center', gap: GAP, padding: '10px 14px', borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
-            <div style={{ width: 10, height: 10, borderRadius: 2, background: color, flexShrink: 0 }} />
-            <div style={{ flex: 1, fontFamily: SANS, fontSize: 12, fontWeight: 600, color: T.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div
+            key={equipe}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: GAP,
+              padding: '10px 14px',
+              borderBottom: `1px solid rgba(255,255,255,0.05)`,
+            }}
+          >
+            <div
+              style={{ width: 10, height: 10, borderRadius: 2, background: color, flexShrink: 0 }}
+            />
+            <div
+              style={{
+                flex: 1,
+                fontFamily: SANS,
+                fontSize: 12,
+                fontWeight: 600,
+                color: T.text,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
               {equipe}
             </div>
-            <div style={{ width: COL.pct, textAlign: 'center', fontFamily: MONO, fontSize: 12, fontWeight: 700, color: T.text, fontVariantNumeric: 'tabular-nums' }}>
+            <div
+              style={{
+                width: COL.pct,
+                textAlign: 'center',
+                fontFamily: MONO,
+                fontSize: 12,
+                fontWeight: 700,
+                color: T.text,
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
               {pctHoje != null ? `${fmtBR(pctHoje * 100, 1)}%` : '—'}
             </div>
             {dateOntem && (
-              <div style={{ width: COL.pct, textAlign: 'center', fontFamily: MONO, fontSize: 11, color: 'rgba(255,255,255,0.38)', fontVariantNumeric: 'tabular-nums' }}>
+              <div
+                style={{
+                  width: COL.pct,
+                  textAlign: 'center',
+                  fontFamily: MONO,
+                  fontSize: 11,
+                  color: 'rgba(255,255,255,0.38)',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
                 {pctOntem != null ? `${fmtBR(pctOntem * 100, 1)}%` : '—'}
               </div>
             )}
-            <div style={{ width: COL.delta, textAlign: 'right', fontFamily: MONO, fontSize: 11, fontWeight: 600, color: deltaColor, fontVariantNumeric: 'tabular-nums' }}>
+            <div
+              style={{
+                width: COL.delta,
+                textAlign: 'right',
+                fontFamily: MONO,
+                fontSize: 11,
+                fontWeight: 600,
+                color: deltaColor,
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
               {fDeltaPct(delta)}
             </div>
           </div>
         )
       })}
-
     </div>
   )
 }
@@ -217,7 +279,14 @@ interface CaptacaoRowProps {
   color?: string
 }
 
-function CaptacaoRow({ equipe, capHoje, pctHoje, isTotal, isLast, color = T.muted }: CaptacaoRowProps) {
+function CaptacaoRow({
+  equipe,
+  capHoje,
+  pctHoje,
+  isTotal,
+  isLast,
+  color = T.muted,
+}: CaptacaoRowProps) {
   const capColor = capHoje >= 0 ? T.success : T.danger
 
   return (
@@ -232,20 +301,70 @@ function CaptacaoRow({ equipe, capHoje, pctHoje, isTotal, isLast, color = T.mute
         borderTop: isTotal ? `1px solid ${T.borderMed}` : undefined,
       }}
     >
-      <div style={{ width: 10, height: 10, borderRadius: 2, background: isTotal ? 'transparent' : color, flexShrink: 0, border: isTotal ? `1px solid ${T.muted}` : 'none' }} />
+      <div
+        style={{
+          width: 10,
+          height: 10,
+          borderRadius: 2,
+          background: isTotal ? 'transparent' : color,
+          flexShrink: 0,
+          border: isTotal ? `1px solid ${T.muted}` : 'none',
+        }}
+      />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: SANS, fontSize: isTotal ? 11 : 13, fontWeight: isTotal ? 700 : 600, letterSpacing: isTotal ? '0.08em' : undefined, textTransform: isTotal ? 'uppercase' : undefined, color: isTotal ? 'rgba(255,255,255,0.45)' : T.text, marginBottom: 5 }}>
+        <div
+          style={{
+            fontFamily: SANS,
+            fontSize: isTotal ? 11 : 13,
+            fontWeight: isTotal ? 700 : 600,
+            letterSpacing: isTotal ? '0.08em' : undefined,
+            textTransform: isTotal ? 'uppercase' : undefined,
+            color: isTotal ? 'rgba(255,255,255,0.45)' : T.text,
+            marginBottom: 5,
+          }}
+        >
           {isTotal ? 'Total Geral' : equipe}
         </div>
-        <div style={{ height: 3, background: 'rgba(255,255,255,0.07)', borderRadius: 2, overflow: 'hidden' }}>
-          <div style={{ width: `${Math.min(100, Math.max(0, (pctHoje ?? 0) * 100))}%`, height: '100%', background: isTotal ? T.muted : color, borderRadius: 2 }} />
+        <div
+          style={{
+            height: 3,
+            background: 'rgba(255,255,255,0.07)',
+            borderRadius: 2,
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              width: `${Math.min(100, Math.max(0, (pctHoje ?? 0) * 100))}%`,
+              height: '100%',
+              background: isTotal ? T.muted : color,
+              borderRadius: 2,
+            }}
+          />
         </div>
       </div>
       <div style={{ flexShrink: 0, textAlign: 'right', minWidth: 80 }}>
-        <div style={{ fontFamily: MONO, fontSize: 13, fontWeight: isTotal ? 700 : 600, color: capColor, fontVariantNumeric: 'tabular-nums', fontFeatureSettings: '"tnum"' }}>
+        <div
+          style={{
+            fontFamily: MONO,
+            fontSize: 13,
+            fontWeight: isTotal ? 700 : 600,
+            color: capColor,
+            fontVariantNumeric: 'tabular-nums',
+            fontFeatureSettings: '"tnum"',
+          }}
+        >
           {fmtCur(capHoje)}
         </div>
-        <div style={{ fontFamily: MONO, fontSize: 12, color: pctHoje != null && pctHoje >= 1 ? T.success : 'rgba(255,255,255,0.45)', fontVariantNumeric: 'tabular-nums', marginTop: 1 }}>
+        <div
+          style={{
+            fontFamily: MONO,
+            fontSize: 12,
+            color: pctHoje != null && pctHoje >= 1 ? T.success : 'rgba(255,255,255,0.45)',
+            fontVariantNumeric: 'tabular-nums',
+            marginTop: 1,
+          }}
+        >
           {fPct(pctHoje)}
         </div>
       </div>
@@ -263,27 +382,80 @@ function ReceitaCard({ dados }: { dados: ReceitaPayload }) {
     : undefined
 
   return (
-    <div style={{ borderRadius: 12, background: T.card, border: `1px solid ${T.border}`, overflow: 'hidden' }}>
-      <CardHeader label="Receita por Equipe" badge="MTD" {...(dataLabel !== undefined && { extra: dataLabel })} />
+    <div
+      style={{
+        borderRadius: 12,
+        background: T.card,
+        border: `1px solid ${T.border}`,
+        overflow: 'hidden',
+      }}
+    >
+      <CardHeader
+        label="Receita por Equipe"
+        badge="MTD"
+        {...(dataLabel !== undefined && { extra: dataLabel })}
+      />
 
       {snapDates && snapDates.length > 0 ? (
         <ReceitaTable dados={dados} />
       ) : (
-        <div style={{ padding: '24px 20px', textAlign: 'center', fontFamily: MONO, fontSize: 12, color: T.muted }}>
+        <div
+          style={{
+            padding: '24px 20px',
+            textAlign: 'center',
+            fontFamily: MONO,
+            fontSize: 12,
+            color: T.muted,
+          }}
+        >
           Histórico não disponível.
         </div>
       )}
 
       {/* Footer — total R$ */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 14px', borderTop: `1px solid ${T.borderMed}`, background: T.cardDeep }}>
-        <span style={{ fontFamily: SANS, fontSize: 11, fontWeight: 700, color: T.muted, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '11px 14px',
+          borderTop: `1px solid ${T.borderMed}`,
+          background: T.cardDeep,
+        }}
+      >
+        <span
+          style={{
+            fontFamily: SANS,
+            fontSize: 11,
+            fontWeight: 700,
+            color: T.muted,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+          }}
+        >
           Total Geral
         </span>
         <div style={{ textAlign: 'right' }}>
-          <div style={{ fontFamily: MONO, fontSize: 14, fontWeight: 700, color: T.text, fontVariantNumeric: 'tabular-nums', fontFeatureSettings: '"tnum"' }}>
+          <div
+            style={{
+              fontFamily: MONO,
+              fontSize: 14,
+              fontWeight: 700,
+              color: T.text,
+              fontVariantNumeric: 'tabular-nums',
+              fontFeatureSettings: '"tnum"',
+            }}
+          >
             {fmtCur(grandTotalReceita)}
           </div>
-          <div style={{ fontFamily: MONO, fontSize: 12, color: pctGeral != null && pctGeral >= 1 ? T.success : 'rgba(255,255,255,0.45)', fontVariantNumeric: 'tabular-nums' }}>
+          <div
+            style={{
+              fontFamily: MONO,
+              fontSize: 12,
+              color: pctGeral != null && pctGeral >= 1 ? T.success : 'rgba(255,255,255,0.45)',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
             {fPct(pctGeral)} da meta
           </div>
         </div>
@@ -323,10 +495,17 @@ function CaptacaoCard({ dados }: { dados: CapPayload }) {
 
   const hoje = fData(dados.dataHoje)
   const rows = [...dados.equipes].sort((a, b) => b.capHoje - a.capHoje)
-  const posCount = rows.filter(r => r.capHoje >= 0).length
+  const posCount = rows.filter((r) => r.capHoje >= 0).length
 
   return (
-    <div style={{ borderRadius: 12, background: T.card, border: `1px solid ${T.border}`, overflow: 'hidden' }}>
+    <div
+      style={{
+        borderRadius: 12,
+        background: T.card,
+        border: `1px solid ${T.border}`,
+        overflow: 'hidden',
+      }}
+    >
       <CardHeader label="Captação por Equipe" extra={`Hoje ${hoje}`} />
 
       {rows.map((row, i) => (
@@ -376,11 +555,7 @@ export function PnlClient({ receita, captacao }: PnlClientProps) {
         paddingBottom: 110,
       }}
     >
-      <ScreenHeader
-        title="PnL"
-        eyebrow="RESULTADO GERENCIAL"
-        onBack={() => router.back()}
-      />
+      <ScreenHeader title="PnL" eyebrow="RESULTADO GERENCIAL" onBack={() => router.back()} />
 
       <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 24 }}>
         {/* ── Receita ── */}

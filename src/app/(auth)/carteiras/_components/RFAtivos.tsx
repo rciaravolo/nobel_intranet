@@ -112,11 +112,14 @@ export function RFAtivos({ ativos }: Props) {
                   style={{
                     borderBottom: i < ativos.length - 1 ? '1px solid var(--line)' : 'none',
                     cursor: 'pointer',
-                    background: isSelected ? 'color-mix(in srgb, #2D5FA0 8%, var(--bg-elev))' : 'transparent',
+                    background: isSelected
+                      ? 'color-mix(in srgb, #2D5FA0 8%, var(--bg-elev))'
+                      : 'transparent',
                     transition: 'background .1s',
                   }}
                   onMouseEnter={(e) => {
-                    if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'var(--bg-deep)'
+                    if (!isSelected)
+                      (e.currentTarget as HTMLElement).style.background = 'var(--bg-deep)'
                   }}
                   onMouseLeave={(e) => {
                     ;(e.currentTarget as HTMLElement).style.background = isSelected

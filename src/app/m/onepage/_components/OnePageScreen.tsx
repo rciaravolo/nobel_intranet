@@ -183,8 +183,6 @@ export function OnePageScreen({ data, theme, onToggleTheme }: OnePageScreenProps
             HOJE
           </span>
         </div>
-
-
       </section>
 
       {/* ── KPI STRIP ── */}
@@ -215,7 +213,7 @@ export function OnePageScreen({ data, theme, onToggleTheme }: OnePageScreenProps
             <em
               style={{
                 fontFamily: SANS,
-                                fontWeight: 500,
+                fontWeight: 500,
                 color: data.captacao.liquida < 0 ? T.danger : T.success,
               }}
             >
@@ -258,7 +256,7 @@ export function OnePageScreen({ data, theme, onToggleTheme }: OnePageScreenProps
             <em
               style={{
                 fontFamily: SANS,
-                                fontWeight: 500,
+                fontWeight: 500,
                 color: T.gold,
               }}
             >
@@ -281,7 +279,7 @@ export function OnePageScreen({ data, theme, onToggleTheme }: OnePageScreenProps
             <em
               style={{
                 fontFamily: SANS,
-                                fontWeight: 500,
+                fontWeight: 500,
               }}
             >
               1MM – 10MM
@@ -442,7 +440,11 @@ function DeltaChip({ pct }: { pct: number }) {
 }
 
 // ─── CaptacaoCard ─────────────────────────────────────────────────────────────
-function CaptacaoCard({ label, value, tone = 'ink' }: { label: string; value: string; tone?: Tone }) {
+function CaptacaoCard({
+  label,
+  value,
+  tone = 'ink',
+}: { label: string; value: string; tone?: Tone }) {
   return (
     <div
       style={{

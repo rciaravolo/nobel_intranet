@@ -29,23 +29,31 @@ function fBRL(v: number): string {
 /* ─── Paleta por classe ──────────────────────────────────────────────────── */
 
 const CLASSE_COLOR: Record<'rf' | 'rv', { bg: string; fg: string; border: string }> = {
-  rf: { bg: 'color-mix(in srgb,#2D5FA0 12%,transparent)', fg: '#2D5FA0', border: 'color-mix(in srgb,#2D5FA0 30%,transparent)' },
-  rv: { bg: 'color-mix(in srgb,#C29404 12%,transparent)', fg: '#8F6B12', border: 'color-mix(in srgb,#C29404 30%,transparent)' },
+  rf: {
+    bg: 'color-mix(in srgb,#2D5FA0 12%,transparent)',
+    fg: '#2D5FA0',
+    border: 'color-mix(in srgb,#2D5FA0 30%,transparent)',
+  },
+  rv: {
+    bg: 'color-mix(in srgb,#C29404 12%,transparent)',
+    fg: '#8F6B12',
+    border: 'color-mix(in srgb,#C29404 30%,transparent)',
+  },
 }
 
 /* ─── Component ──────────────────────────────────────────────────────────── */
 
 export function BuscaAtivo() {
-  const [query, setQuery]       = useState('')
-  const [loading, setLoading]   = useState(false)
+  const [query, setQuery] = useState('')
+  const [loading, setLoading] = useState(false)
   const [resultados, setResult] = useState<Resultado[]>([])
   const [showDrop, setShowDrop] = useState(false)
   const [selected, setSelected] = useState<Selected | null>(null)
-  const [focused, setFocused]   = useState(-1)
+  const [focused, setFocused] = useState(-1)
 
   const containerRef = useRef<HTMLDivElement>(null)
-  const inputRef     = useRef<HTMLInputElement>(null)
-  const debounceRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   /* ── Busca debounced ── */
   useEffect(() => {
@@ -248,8 +256,7 @@ export function BuscaAtivo() {
                     padding: '10px 14px',
                     background: isFocused ? 'var(--bg-deep)' : 'transparent',
                     border: 'none',
-                    borderBottom:
-                      i < resultados.length - 1 ? '1px solid var(--line)' : 'none',
+                    borderBottom: i < resultados.length - 1 ? '1px solid var(--line)' : 'none',
                     cursor: 'pointer',
                     textAlign: 'left',
                     transition: 'background .08s',

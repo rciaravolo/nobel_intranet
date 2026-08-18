@@ -228,10 +228,7 @@ function Row({
           flexShrink: 0,
         }}
       >
-        <Icon
-          size={16}
-          color={isDestructive ? T.danger : T.muted}
-        />
+        <Icon size={16} color={isDestructive ? T.danger : T.muted} />
       </div>
       <span
         style={{

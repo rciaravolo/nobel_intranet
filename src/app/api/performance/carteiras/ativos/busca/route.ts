@@ -9,10 +9,9 @@ export async function GET(req: NextRequest) {
 
   const q = req.nextUrl.searchParams.get('q') ?? ''
 
-  const res = await apiFetch(
-    `/performance/carteiras/ativos/busca?q=${encodeURIComponent(q)}`,
-    { headers: authHeaders(session) },
-  )
+  const res = await apiFetch(`/performance/carteiras/ativos/busca?q=${encodeURIComponent(q)}`, {
+    headers: authHeaders(session),
+  })
 
   const json = await res.json()
   return NextResponse.json(json, { status: res.status })

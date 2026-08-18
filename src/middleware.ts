@@ -1,6 +1,19 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-const PUBLIC = ['/login', '/esqueci-senha', '/nova-senha', '/api/auth/login', '/api/auth/logout', '/api/auth/forgot', '/api/auth/reset', '/api/auth/demo', '/api/mock', '/demo', '/_next', '/favicon']
+const PUBLIC = [
+  '/login',
+  '/esqueci-senha',
+  '/nova-senha',
+  '/api/auth/login',
+  '/api/auth/logout',
+  '/api/auth/forgot',
+  '/api/auth/reset',
+  '/api/auth/demo',
+  '/api/mock',
+  '/demo',
+  '/_next',
+  '/favicon',
+]
 const ASSET_RE = /\.(png|jpg|jpeg|svg|ico|webp|woff2?|css|js|map)$/
 const MOBILE_UA = /Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i
 
@@ -18,9 +31,7 @@ const MOBILE_MAP: Record<string, string> = {
   '/automacoes': '/m/onepage',
 }
 
-const REVERSE_MAP = Object.fromEntries(
-  Object.entries(MOBILE_MAP).map(([k, v]) => [v, k])
-)
+const REVERSE_MAP = Object.fromEntries(Object.entries(MOBILE_MAP).map(([k, v]) => [v, k]))
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl

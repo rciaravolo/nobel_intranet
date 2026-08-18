@@ -9,9 +9,7 @@ export async function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get('id')
   if (!id) return NextResponse.json({ error: 'id obrigatório' }, { status: 400 })
 
-
-  const res = await apiFetch(`/performance/carteiras/cliente?id=${encodeURIComponent(id)}`, {
-  })
+  const res = await apiFetch(`/performance/carteiras/cliente?id=${encodeURIComponent(id)}`, {})
 
   const json = await res.json()
   return NextResponse.json(json, { status: res.status })
