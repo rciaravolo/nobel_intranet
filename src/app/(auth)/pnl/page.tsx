@@ -136,7 +136,6 @@ async function getReceitaHistorico(
 const EQUIPE_COLORS: Record<string, string> = {
   SMART: 'var(--color-b-500)',
   PRIVATE: 'var(--c-gold)',
-  'RIO PRETO': '#10B981',
   BRAVO: '#8B5CF6',
 }
 
