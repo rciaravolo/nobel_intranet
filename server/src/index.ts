@@ -14,6 +14,7 @@ import npsRouter from './routes/nps'
 import missoesRouter from './routes/missoes'
 import rupturaRouter from './routes/ruptura'
 import financialPlanningRouter from './routes/financial-planning'
+import saudeClienteRouter from './routes/saude-cliente'
 import { fetchAllNews } from './lib/rss'
 import { fetchAllTickers } from './lib/ticker'
 
@@ -54,6 +55,7 @@ app.route('/nps', npsRouter)
 app.route('/missoes', missoesRouter)
 app.route('/ruptura', rupturaRouter)
 app.route('/financial-planning', financialPlanningRouter)
+app.route('/saude-cliente', saudeClienteRouter)
 
 // ---------------------------------------------------------------------------
 // 404 catch-all
