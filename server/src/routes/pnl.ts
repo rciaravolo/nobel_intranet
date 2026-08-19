@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { buildWhereFilter, resolveFilterFromCtx } from '../lib/role-filter'
 import type { Env, Variables } from '../types'
 
 const MES_COLS = [
@@ -24,7 +25,13 @@ app.use('*', async (c, next) => {
   }
 
   const role = c.req.header('X-User-Role')
-  if (role !== 'admin' && role !== 'master') return c.json({ error: 'Forbidden' }, 403)
+  // Regra base: apenas admin/master. Exceção: lider tem acesso a /plano-carreira
+  // (filtrado por equipe via resolveFilter dentro da rota).
+  const path = c.req.path
+  const isPlanoCarreira = path === '/pnl/plano-carreira' || path.endsWith('/plano-carreira')
+  const allowed =
+    role === 'admin' || role === 'master' || (role === 'lider' && isPlanoCarreira)
+  if (!allowed) return c.json({ error: 'Forbidden' }, 403)
 
   await next()
 })
@@ -501,6 +508,11 @@ app.get('/indicadores/drill', async (c) => {
 app.get('/plano-carreira', async (c) => {
   const db = c.env.PERF_DB
 
+  // lider → filtra pelos assessores da sua equipe; admin/master → todos.
+  const filter = await resolveFilterFromCtx(c)
+  if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
+  const planWhere = buildWhereFilter(filter, 'id_assessor')
+
   const brt   = new Date(Date.now() - 3 * 60 * 60 * 1000)
   const year  = brt.getUTCFullYear()
   const month = brt.getUTCMonth()
@@ -523,7 +535,7 @@ app.get('/plano-carreira', async (c) => {
   }
 
   const [planRows, capRows, mdsRows, ...receitaResults] = await Promise.all([
-    db.prepare('SELECT id_assessor, nome_assessor, equipe, classe FROM plano_carreira')
+    db.prepare(`SELECT id_assessor, nome_assessor, equipe, classe FROM plano_carreira${planWhere}`)
       .all<{ id_assessor: string; nome_assessor: string; equipe: string; classe: string }>(),
 
     db.prepare(`SELECT id_assessor, SUM(captacao) AS cap_mtd FROM tb_cap WHERE strftime('%Y-%m', data) = ? GROUP BY id_assessor`)

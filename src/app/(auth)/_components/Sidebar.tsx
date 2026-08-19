@@ -263,6 +263,7 @@ const NAV: NavGroup[] = [
       {
         href: '/plano-carreira',
         label: 'Plano de Carreira',
+        roles: ['admin', 'master', 'lider'],
         icon: (
           <svg
             aria-hidden="true"
