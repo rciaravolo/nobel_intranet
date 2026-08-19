@@ -25,11 +25,19 @@ type Payload = {
   assessores: PlanAssessor[]
 }
 
-async function getPlanoCarreira(role: string, email: string): Promise<Payload | null> {
+async function getPlanoCarreira(
+  role: string,
+  email: string,
+  equipe: string | undefined,
+): Promise<Payload | null> {
   try {
     const res = await apiFetch('/pnl/plano-carreira', {
       cache: 'no-store',
-      headers: { 'X-User-Role': role, 'X-User-Email': email },
+      headers: {
+        'X-User-Role': role,
+        'X-User-Email': email,
+        ...(equipe ? { 'X-User-Equipe': equipe } : {}),
+      },
     })
     if (!res.ok) return null
     const json = (await res.json()) as { data: Payload }
@@ -42,11 +50,11 @@ async function getPlanoCarreira(role: string, email: string): Promise<Payload | 
 export default async function PlanoCarreiraPage() {
   const session = await requireSession()
 
-  if (session.role !== 'admin' && session.role !== 'master') {
+  if (session.role !== 'admin' && session.role !== 'master' && session.role !== 'lider') {
     redirect('/dashboard')
   }
 
-  const payload = await getPlanoCarreira(session.role, session.email)
+  const payload = await getPlanoCarreira(session.role, session.email, session.equipe)
 
   return (
     <div style={{ maxWidth: 1400 }}>
