@@ -333,12 +333,12 @@ export function BlocoCaptacao({ captacao, mesLabel, filterType, filterValue }: P
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40 }}>
             <DeepDiveTable
-              titulo="Maiores Aportes"
+              titulo="Entrada Líquida"
               dados={dados.aportes}
               cor="var(--color-positive)"
             />
             <DeepDiveTable
-              titulo="Maiores Resgates"
+              titulo="Saída Líquida"
               dados={dados.resgates}
               cor="var(--color-negative)"
             />
