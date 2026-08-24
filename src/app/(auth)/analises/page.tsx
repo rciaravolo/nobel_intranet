@@ -81,8 +81,9 @@ const RECEITA_COLOR: Record<string, string> = {
   'Fee Fixo': '#8B5CF6',
   Seguros: '#10B981',
   Consórcio: '#F97316',
-  Dominion: '#6366F1',
+  Internacional: '#6366F1',
   'Oferta de Fundos': '#EC4899',
+  'Planejamento Financeiro': '#14B8A6',
 }
 const _rColor = (p: string) => RECEITA_COLOR[p] ?? '#B8963E'
 

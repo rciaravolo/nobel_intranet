@@ -32,12 +32,13 @@ const PRODUTO_SLUG: Record<string, string> = {
   'Fee Fixo': 'feefixo',
   Seguros: 'seguros',
   Consórcio: 'consorcio',
-  Dominion: 'dominion',
+  Internacional: 'dominion',
   'Oferta de Fundos': 'oferta_fundos',
   Fundos: 'fundos',
   Previdência: 'previdencia',
   Precatórios: 'precas',
   Financiamento: 'financiamento',
+  'Planejamento Financeiro': 'planejamento',
 }
 
 const RECEITA_COLOR: Record<string, string> = {
@@ -48,12 +49,13 @@ const RECEITA_COLOR: Record<string, string> = {
   'Fee Fixo': '#8B5CF6',
   Seguros: '#10B981',
   Consórcio: '#F97316',
-  Dominion: '#6366F1',
+  Internacional: '#6366F1',
   'Oferta de Fundos': '#EC4899',
   Fundos: '#0EA5E9',
   Previdência: '#84CC16',
   Precatórios: '#A78BFA',
   Financiamento: '#F43F5E',
+  'Planejamento Financeiro': '#14B8A6',
 }
 
 function fBRL(val: number): string {

@@ -218,6 +218,7 @@ app.get('/onepage', async (c) => {
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_prev${buildWhereFilter(filter)}`).first<{ v: number }>(),
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_precas${buildWhereFilter(filter)}`).first<{ v: number }>(),
       db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_financiamento${buildWhereFilter(filter)}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_planejamento${buildWhereFilter(filter)}`).first<{ v: number }>(),
     ]),
     db.prepare(`
       SELECT
@@ -240,8 +241,9 @@ app.get('/onepage', async (c) => {
 
   const LABELS = [
     'Renda Variável', 'Renda Fixa', 'COE', 'Câmbio', 'Fee Fixo',
-    'Seguros', 'Consórcio', 'Dominion', 'Oferta de Fundos',
+    'Seguros', 'Consórcio', 'Internacional', 'Oferta de Fundos',
     'Fundos', 'Previdência', 'Precatórios', 'Financiamento',
+    'Planejamento Financeiro',
   ]
   const porProduto = receitaRows
     .map((r, i) => ({ produto: LABELS[i]!, receita: r?.v ?? 0 }))
@@ -293,6 +295,7 @@ const PRODUTOS_METAS: ProdutoMeta[] = [
   { slug: 'fundos',         tabela: 'receita_fundos',        label: 'Fundos'           },
   { slug: 'previdencia',    tabela: 'receita_prev',          label: 'Previdência'      },
   { slug: 'precas',         tabela: 'receita_precas',        label: 'Precatórios'      },
+  { slug: 'planejamento',   tabela: 'receita_planejamento',  label: 'Planejamento Financeiro' },
 ]
 
 app.get('/metas', async (c) => {
@@ -449,12 +452,13 @@ app.get('/deepdive/receita/:produto', async (c) => {
     feefixo:       { tabela: 'receita_feefixo',       label: 'Fee Fixo'         },
     seguros:       { tabela: 'receita_seguros',       label: 'Seguros'          },
     consorcio:     { tabela: 'receita_consorcio',     label: 'Consórcio'        },
-    dominion:      { tabela: 'receita_dominion',      label: 'Dominion'         },
+    dominion:      { tabela: 'receita_dominion',      label: 'Internacional'    },
     oferta_fundos: { tabela: 'receita_oferta_fundos', label: 'Oferta de Fundos' },
     fundos:        { tabela: 'receita_fundos',        label: 'Fundos'           },
     previdencia:   { tabela: 'receita_prev',          label: 'Previdência'      },
     precas:        { tabela: 'receita_precas',        label: 'Precatórios'      },
     financiamento: { tabela: 'receita_financiamento', label: 'Financiamento'    },
+    planejamento:  { tabela: 'receita_planejamento',  label: 'Planejamento Financeiro' },
   }
 
   const info = PRODUTO_MAP[produto]
@@ -474,6 +478,19 @@ app.get('/deepdive/receita/:produto', async (c) => {
              r.nome_assessor,
              SUM(r.receita) AS valor
       FROM   receita_financiamento r
+      ${buildWhereFilter(filter, 'r.id_assessor')}
+      GROUP  BY r.nome_cliente
+      ORDER  BY valor DESC
+      LIMIT  20
+    `).all<ClienteRow>()
+    clientes = r.results
+  } else if (produto === 'planejamento') {
+    const r = await db.prepare(`
+      SELECT r.nome_cliente AS id_cliente,
+             r.nome_cliente,
+             r.nome_assessor,
+             SUM(r.receita) AS valor
+      FROM   receita_planejamento r
       ${buildWhereFilter(filter, 'r.id_assessor')}
       GROUP  BY r.nome_cliente
       ORDER  BY valor DESC

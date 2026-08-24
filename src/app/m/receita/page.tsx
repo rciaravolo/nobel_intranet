@@ -28,11 +28,12 @@ const PRODUTO_SLUG: Record<string, string> = {
   'Fee Fixo': 'feefixo',
   Seguros: 'seguros',
   Consórcio: 'consorcio',
-  Dominion: 'dominion',
+  Internacional: 'dominion',
   'Oferta de Fundos': 'oferta_fundos',
   Fundos: 'fundos',
   Previdência: 'previdencia',
   Precatórios: 'precas',
+  'Planejamento Financeiro': 'planejamento',
 }
 
 type ClienteReceita = { id_cliente: number | string; nome_cliente: string | null; valor: number }
