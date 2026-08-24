@@ -401,11 +401,11 @@ app.get('/deepdive/captacao', async (c) => {
       FROM   tb_cap c
       LEFT JOIN base_clientes bc ON CAST(c.id_cliente AS INTEGER) = bc.id_cliente
       LEFT JOIN assessores a ON c.id_assessor = a.id_assessor
-      WHERE  c.aux = 'C'
-        AND  strftime('%Y-%m', c.data) = (SELECT strftime('%Y-%m', MAX(data)) FROM tb_cap)${f}
+      WHERE  strftime('%Y-%m', c.data) = (SELECT strftime('%Y-%m', MAX(data)) FROM tb_cap)${f}
       GROUP  BY c.id_cliente
+      HAVING SUM(c.captacao) > 0
       ORDER  BY valor DESC
-      LIMIT  20
+      LIMIT  10
     `).all<{ id_cliente: string; nome_cliente: string | null; nome_assessor: string | null; valor: number }>(),
 
     db.prepare(`
@@ -416,11 +416,11 @@ app.get('/deepdive/captacao', async (c) => {
       FROM   tb_cap c
       LEFT JOIN base_clientes bc ON CAST(c.id_cliente AS INTEGER) = bc.id_cliente
       LEFT JOIN assessores a ON c.id_assessor = a.id_assessor
-      WHERE  c.aux = 'D'
-        AND  strftime('%Y-%m', c.data) = (SELECT strftime('%Y-%m', MAX(data)) FROM tb_cap)${f}
+      WHERE  strftime('%Y-%m', c.data) = (SELECT strftime('%Y-%m', MAX(data)) FROM tb_cap)${f}
       GROUP  BY c.id_cliente
+      HAVING SUM(c.captacao) < 0
       ORDER  BY valor ASC
-      LIMIT  20
+      LIMIT  10
     `).all<{ id_cliente: string; nome_cliente: string | null; nome_assessor: string | null; valor: number }>(),
   ])
 
