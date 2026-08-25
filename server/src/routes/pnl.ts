@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { buildWhereFilter, resolveFilterFromCtx } from '../lib/role-filter'
+import { snapshotReceita } from '../lib/snapshot-receita'
 import type { Env, Variables } from '../types'
 
 const MES_COLS = [
@@ -7,10 +8,14 @@ const MES_COLS = [
   'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
 ] as const
 
+// Equipes comerciais — usadas em captação e nos indicadores gerenciais.
 const EQUIPES = ['SMART', 'PRIVATE', 'BRAVO'] as const
 type Equipe = (typeof EQUIPES)[number]
-
 const EQUIPES_SQL = `('SMART','PRIVATE','BRAVO')`
+
+// Equipes do PnL de receita — inclui PLANEJAMENTO (que gera receita mas não tem meta).
+const EQUIPES_PNL = ['SMART', 'PRIVATE', 'BRAVO', 'PLANEJAMENTO'] as const
+const EQUIPES_PNL_SQL = `('SMART','PRIVATE','BRAVO','PLANEJAMENTO')`
 
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>()
@@ -182,13 +187,13 @@ app.get('/receita-equipes', async (c) => {
     db.prepare(`
       SELECT equipe, ${mesCol} AS meta
       FROM   tb_metas_times
-      WHERE  equipe IN ${EQUIPES_SQL}
+      WHERE  equipe IN ${EQUIPES_PNL_SQL}
     `).all<{ equipe: string; meta: number | null }>(),
     db.prepare(`
       SELECT equipe, data, receita_total
       FROM   receita_snapshot
       WHERE  strftime('%Y-%m', data) = ?
-        AND  equipe IN ${EQUIPES_SQL}
+        AND  equipe IN ${EQUIPES_PNL_SQL}
       ORDER  BY data DESC
     `).bind(effectiveMesISO).all<{ equipe: string; data: string; receita_total: number }>(),
     ...TABELAS.map((tabela) =>
@@ -196,7 +201,7 @@ app.get('/receita-equipes', async (c) => {
         SELECT a.equipe, SUM(r.receita) AS receita
         FROM   ${tabela} r
         JOIN   assessores a ON r.id_assessor = a.id_assessor
-        WHERE  a.equipe IN ${EQUIPES_SQL}
+        WHERE  a.equipe IN ${EQUIPES_PNL_SQL}
         GROUP  BY a.equipe
       `).all<{ equipe: string; receita: number }>()
     ),
@@ -205,6 +210,7 @@ app.get('/receita-equipes', async (c) => {
   const metaMap:      Record<string, number> = {}
   const totalReceita: Record<string, number> = {}
 
+  for (const equipe of EQUIPES_PNL) metaMap[equipe] = 0
   for (const r of metaRows.results) metaMap[r.equipe] = r.meta ?? 0
 
   for (const res of receitaResults) {
@@ -229,7 +235,7 @@ app.get('/receita-equipes', async (c) => {
   // Monta snapshot das 2 datas mais recentes
   const snapDates = [...new Set(allSnapRows.results.map(r => r.data))].slice(0, 2)
   const snapMatrix: Record<string, Record<string, number | null>> = {}
-  for (const equipe of EQUIPES) {
+  for (const equipe of EQUIPES_PNL) {
     snapMatrix[equipe] = {}
     const meta = metaMap[equipe] ?? 0
     for (const row of allSnapRows.results.filter(r => r.equipe === equipe && snapDates.includes(r.data))) {
@@ -239,7 +245,7 @@ app.get('/receita-equipes', async (c) => {
 
   return c.json({
     data: {
-      equipes: EQUIPES as readonly string[],
+      equipes: EQUIPES_PNL as readonly string[],
       metas: metaMap,
       totalReceita,
       grandTotalReceita,
@@ -277,13 +283,13 @@ app.get('/receita-historico', async (c) => {
     db.prepare(`
       SELECT equipe, ${mesCol} AS meta
       FROM   tb_metas_times
-      WHERE  equipe IN ${EQUIPES_SQL}
+      WHERE  equipe IN ${EQUIPES_PNL_SQL}
     `).all<{ equipe: string; meta: number | null }>(),
     db.prepare(`
       SELECT equipe, data, receita_total
       FROM   receita_snapshot
       WHERE  strftime('%Y-%m', data) = ?
-        AND  equipe IN ${EQUIPES_SQL}
+        AND  equipe IN ${EQUIPES_PNL_SQL}
       ORDER  BY data DESC
     `).bind(mesISO).all<{ equipe: string; data: string; receita_total: number }>(),
   ])
@@ -292,10 +298,11 @@ app.get('/receita-historico', async (c) => {
   if (dates.length === 0) return c.json({ data: { semDados: true as const, mesISO } })
 
   const metaMap: Record<string, number> = {}
+  for (const equipe of EQUIPES_PNL) metaMap[equipe] = 0
   for (const r of metaRows.results) metaMap[r.equipe] = r.meta ?? 0
 
   const matrix: Record<string, Record<string, number | null>> = {}
-  for (const equipe of EQUIPES) {
+  for (const equipe of EQUIPES_PNL) {
     matrix[equipe] = {}
     const meta = metaMap[equipe] ?? 0
     for (const row of snapshotRows.results.filter((r) => r.equipe === equipe)) {
@@ -307,7 +314,7 @@ app.get('/receita-historico', async (c) => {
     data: {
       semDados:  false as const,
       mesISO,
-      equipes:   EQUIPES as readonly string[],
+      equipes:   EQUIPES_PNL as readonly string[],
       dates,
       metas:     metaMap,
       matrix,
@@ -600,6 +607,20 @@ app.get('/plano-carreira', async (c) => {
     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
 
   return c.json({ data: { mesISO, assessores } })
+})
+
+/* ─── POST /pnl/admin/snapshot-now ────────────────────────────────────────
+ * One-shot: dispara o snapshot de receita imediatamente (mesma lógica do cron
+ * das 18h BRT). Sobrescreve o registro do dia (INSERT OR REPLACE).
+ * Uso: chamar 1x após corrigir a lista de equipes no cron pra popular o dia
+ * de hoje com dado correto sem esperar o próximo agendamento.
+ */
+app.post('/admin/snapshot-now', async (c) => {
+  const role = c.req.header('X-User-Role')
+  if (role !== 'admin') return c.json({ error: 'Forbidden' }, 403)
+
+  const result = await snapshotReceita(c.env)
+  return c.json({ data: result })
 })
 
 export default app
