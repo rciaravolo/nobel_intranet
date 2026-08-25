@@ -22,6 +22,7 @@ type AssessorDrill = {
   cap_mtd: number
   cap_meta: number
   cap_pct: number | null
+  cap_ytd: number
   rec_mtd: number
   rec_ytd: number
 }
@@ -465,16 +466,16 @@ export function IndicadoresTeams({ equipes, total, mesISO }: Props) {
                           )}
                         </td>
 
-                        {/* Cap YTD — não disponível no drill */}
+                        {/* Cap YTD */}
                         <td
                           style={{
                             ...tdBase,
                             textAlign: 'right',
                             fontSize: 12,
-                            color: 'var(--fg-faint)',
+                            color: a.cap_ytd !== 0 ? 'var(--fg-mute)' : 'var(--fg-faint)',
                           }}
                         >
-                          —
+                          {a.cap_ytd !== 0 ? fBRL(a.cap_ytd) : '—'}
                         </td>
 
                         {/* Rec MTD */}
