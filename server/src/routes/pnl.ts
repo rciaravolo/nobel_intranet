@@ -421,8 +421,8 @@ app.get('/indicadores/drill', async (c) => {
   const mesISO = `${effYear}-${String(effMonth + 1).padStart(2, '0')}`
   const mesCol = MES_COLS[effMonth]!
 
-  // 13 queries de receita separadas (sem UNION ALL em subquery) + rec YTD via roa_historico
-  const [capMtdRows, metaCapRows, recYtdRows, ...receitaResults] = await Promise.all([
+  // 13 queries de receita separadas (sem UNION ALL em subquery) + cap/rec YTD
+  const [capMtdRows, metaCapRows, capYtdRows, recYtdRows, ...receitaResults] = await Promise.all([
     // Cap MTD por assessor da equipe
     db.prepare(`
       SELECT a.id_assessor, a.nome_assessor, SUM(c.captacao) AS cap_mtd
@@ -440,6 +440,16 @@ app.get('/indicadores/drill', async (c) => {
       JOIN   assessores a ON mc.id_assessor = a.id_assessor
       WHERE  a.equipe = ?
     `).bind(equipe).all<{ id_assessor: string; meta: number | null }>(),
+
+    // Captação YTD por assessor
+    db.prepare(`
+      SELECT c.id_assessor, SUM(c.captacao) AS cap_ytd
+      FROM   tb_cap c
+      JOIN   assessores a ON c.id_assessor = a.id_assessor
+      WHERE  strftime('%Y', c.data) = ?
+        AND  a.equipe = ?
+      GROUP  BY c.id_assessor
+    `).bind(String(effYear), equipe).all<{ id_assessor: string; cap_ytd: number }>(),
 
     // Receita YTD por assessor via roa_historico
     db.prepare(`
@@ -471,6 +481,9 @@ app.get('/indicadores/drill', async (c) => {
     }
   }
 
+  const capYtdMap: Record<string, number> = {}
+  for (const r of capYtdRows.results) capYtdMap[r.id_assessor] = r.cap_ytd
+
   const recYtdMap: Record<string, number> = {}
   for (const r of recYtdRows.results) recYtdMap[r.id_assessor] = r.rec_ytd
 
@@ -481,6 +494,7 @@ app.get('/indicadores/drill', async (c) => {
   const assessores = capMtdRows.results.map((r) => {
     const cap_meta = metaMap[r.id_assessor] ?? 0
     const cap_pct  = cap_meta > 0 ? r.cap_mtd / cap_meta : null
+    const cap_ytd  = capYtdMap[r.id_assessor] ?? 0
     const rec_mtd  = recMtdMap[r.id_assessor] ?? 0
     const rec_ytd  = recYtdMap[r.id_assessor] ?? 0
     return {
@@ -489,6 +503,7 @@ app.get('/indicadores/drill', async (c) => {
       cap_mtd:  r.cap_mtd,
       cap_meta,
       cap_pct,
+      cap_ytd,
       rec_mtd,
       rec_ytd,
     }
