@@ -137,6 +137,7 @@ const EQUIPE_COLORS: Record<string, string> = {
   SMART: 'var(--color-b-500)',
   PRIVATE: 'var(--c-gold)',
   BRAVO: '#8B5CF6',
+  PLANEJAMENTO: 'var(--color-positive)',
 }
 
 /* ─── Estilos compartilhados ─────────────────────────────────────────────── */
