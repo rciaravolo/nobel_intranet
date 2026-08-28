@@ -243,6 +243,12 @@ API_URL=https://intra-api.nobelcapital.workers.dev
 INTERNAL_API_SECRET=
 NEXT_PUBLIC_API_URL=
 
+# E-mail (Resend) — obrigatórias para envio real de e-mails
+# RESEND_API_KEY pode usar a test-only `onboarding@resend.dev` localmente,
+# mas RESEND_FROM em produção DEVE ser um domínio verificado no painel Resend.
+RESEND_API_KEY=
+RESEND_FROM=INTRA Nobel <no-reply@nobelcapital.com.br>
+
 # Variáveis de ambiente do SISTEMA (Windows User Env Vars) — para wrangler CLI local
 # NUNCA salvar em arquivo do repo. Setar via Painel → Editar variáveis do usuário.
 CLOUDFLARE_ACCOUNT_ID=eed296214f8b8aa38533e38843f88aff  # conta corporativa Nobel (bi@nobelcapital.com.br)
