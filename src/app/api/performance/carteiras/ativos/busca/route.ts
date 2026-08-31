@@ -9,8 +9,14 @@ export async function GET(req: NextRequest) {
 
   const q = req.nextUrl.searchParams.get('q') ?? ''
 
+  const filterType = req.nextUrl.searchParams.get('filter_type')
+  const filterValue = req.nextUrl.searchParams.get('filter_value')
+
   const res = await apiFetch(`/performance/carteiras/ativos/busca?q=${encodeURIComponent(q)}`, {
-    headers: authHeaders(session),
+    headers: authHeaders(session, {
+      ...(filterType ? { 'X-Filter-Type': filterType } : {}),
+      ...(filterValue ? { 'X-Filter-Value': filterValue } : {}),
+    }),
   })
 
   const json = await res.json()

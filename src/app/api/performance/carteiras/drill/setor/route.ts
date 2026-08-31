@@ -11,11 +11,18 @@ export async function POST(req: NextRequest) {
   const setor = body.setor?.trim()
   if (!setor) return NextResponse.json({ error: 'setor obrigatório' }, { status: 400 })
 
+  const filterType = req.nextUrl.searchParams.get('filter_type')
+  const filterValue = req.nextUrl.searchParams.get('filter_value')
+
   // POST body avoids Cloudflare URL decode que trunca '&' em query strings.
   // Passa setor via JSON body para o Hono handler.
   const res = await apiFetch('/performance/carteiras/drill/setor', {
     method: 'POST',
-    headers: authHeaders(session, { 'Content-Type': 'application/json' }),
+    headers: authHeaders(session, {
+      'Content-Type': 'application/json',
+      ...(filterType ? { 'X-Filter-Type': filterType } : {}),
+      ...(filterValue ? { 'X-Filter-Value': filterValue } : {}),
+    }),
     body: JSON.stringify({ setor }),
   })
 

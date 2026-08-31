@@ -11,9 +11,17 @@ export async function GET(req: NextRequest) {
   const tipo = req.nextUrl.searchParams.get('tipo') ?? 'rf'
   if (!ativo) return NextResponse.json({ error: 'ativo obrigatório' }, { status: 400 })
 
+  const filterType = req.nextUrl.searchParams.get('filter_type')
+  const filterValue = req.nextUrl.searchParams.get('filter_value')
+
   const res = await apiFetch(
     `/performance/carteiras/drill/export?ativo=${encodeURIComponent(ativo)}&tipo=${tipo}`,
-    { headers: authHeaders(session) },
+    {
+      headers: authHeaders(session, {
+        ...(filterType ? { 'X-Filter-Type': filterType } : {}),
+        ...(filterValue ? { 'X-Filter-Value': filterValue } : {}),
+      }),
+    },
   )
 
   const json = await res.json()

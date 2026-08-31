@@ -1,5 +1,6 @@
 'use client'
 
+import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import * as XLSX from 'xlsx'
 
@@ -123,6 +124,17 @@ export function DrillDrawer({
   classe = 'rf',
   onClose,
 }: Props) {
+  const searchParams = useSearchParams()
+  const filterType = searchParams.get('filter_type')
+  const filterValue = searchParams.get('filter_value')
+  const filterQs = (() => {
+    const p = new URLSearchParams()
+    if (filterType) p.set('filter_type', filterType)
+    if (filterValue) p.set('filter_value', filterValue)
+    const s = p.toString()
+    return s ? `&${s}` : ''
+  })()
+
   const [data, setData] = useState<DrillData | null>(null)
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState(false)
@@ -148,8 +160,8 @@ export function DrillDrawer({
 
     const endpoint =
       classe === 'rv'
-        ? `/api/performance/carteiras/drill/rv?ativo=${encodeURIComponent(ativo)}`
-        : `/api/performance/carteiras/drill?ativo=${encodeURIComponent(ativo)}`
+        ? `/api/performance/carteiras/drill/rv?ativo=${encodeURIComponent(ativo)}${filterQs}`
+        : `/api/performance/carteiras/drill?ativo=${encodeURIComponent(ativo)}${filterQs}`
 
     fetch(endpoint)
       .then((r) => {
@@ -169,7 +181,7 @@ export function DrillDrawer({
     return () => {
       cancelled = true
     }
-  }, [ativo, classe])
+  }, [ativo, classe, filterQs])
 
   useEffect(() => {
     if (!janela) {
@@ -181,7 +193,7 @@ export function DrillDrawer({
     setJanelaErro(false)
     setJanelaData(null)
 
-    fetch(`/api/performance/carteiras/drill/janela?janela=${encodeURIComponent(janela)}`)
+    fetch(`/api/performance/carteiras/drill/janela?janela=${encodeURIComponent(janela)}${filterQs}`)
       .then((r) => {
         if (!r.ok) throw new Error()
         return r.json() as Promise<{ data: JanelaData }>
@@ -199,7 +211,7 @@ export function DrillDrawer({
     return () => {
       cancelled = true
     }
-  }, [janela])
+  }, [janela, filterQs])
 
   useEffect(() => {
     if (!setor) {
@@ -211,7 +223,7 @@ export function DrillDrawer({
     setSetorErro(false)
     setSetorData(null)
 
-    fetch('/api/performance/carteiras/drill/setor', {
+    fetch(`/api/performance/carteiras/drill/setor${filterQs ? `?${filterQs.slice(1)}` : ''}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ setor }),
@@ -233,7 +245,7 @@ export function DrillDrawer({
     return () => {
       cancelled = true
     }
-  }, [setor])
+  }, [setor, filterQs])
 
   async function handleExport() {
     if (!ativo || downloading) return
@@ -241,7 +253,7 @@ export function DrillDrawer({
     try {
       const tipo = classe === 'rv' ? 'rv' : 'rf'
       const res = await fetch(
-        `/api/performance/carteiras/drill/export?ativo=${encodeURIComponent(ativo)}&tipo=${tipo}`,
+        `/api/performance/carteiras/drill/export?ativo=${encodeURIComponent(ativo)}&tipo=${tipo}${filterQs}`,
       )
       if (!res.ok) throw new Error()
       const json = (await res.json()) as {
