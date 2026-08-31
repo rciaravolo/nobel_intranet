@@ -73,7 +73,15 @@ export async function POST(req: NextRequest) {
           userName: data.user.name,
           resetUrl,
         })
-        await sendEmail({ to: data.user.email, subject, html })
+        const sendResult = await sendEmail({ to: data.user.email, subject, html })
+        if (!sendResult.ok) {
+          console.error('[forgot] sendEmail falhou', {
+            reason: sendResult.reason,
+            status: sendResult.status,
+            detail: sendResult.detail,
+            to: data.user.email,
+          })
+        }
       }
     } else {
       console.error('[forgot] worker retornou', workerRes.status)

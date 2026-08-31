@@ -10,8 +10,14 @@ export async function GET(req: NextRequest) {
   const ativo = req.nextUrl.searchParams.get('ativo')
   if (!ativo) return NextResponse.json({ error: 'ativo obrigatório' }, { status: 400 })
 
+  const filterType = req.nextUrl.searchParams.get('filter_type')
+  const filterValue = req.nextUrl.searchParams.get('filter_value')
+
   const res = await apiFetch(`/performance/carteiras/drill?ativo=${encodeURIComponent(ativo)}`, {
-    headers: authHeaders(session),
+    headers: authHeaders(session, {
+      ...(filterType ? { 'X-Filter-Type': filterType } : {}),
+      ...(filterValue ? { 'X-Filter-Value': filterValue } : {}),
+    }),
   })
 
   const json = await res.json()

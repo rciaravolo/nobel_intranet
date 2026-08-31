@@ -5,7 +5,7 @@
  */
 
 const RESEND_API_URL = 'https://api.resend.com/emails'
-const DEFAULT_FROM = process.env.RESEND_FROM ?? 'INTRA Nobel <onboarding@resend.dev>'
+const FALLBACK_FROM = 'INTRA Nobel <onboarding@resend.dev>'
 
 export interface SendEmailInput {
   to: string
@@ -17,11 +17,13 @@ export interface SendEmailResult {
   ok: boolean
   reason?: string
   status?: number
-  detail?: string
+  detail?: string | undefined
 }
 
 export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult> {
   const apiKey = process.env.RESEND_API_KEY
+  const from = process.env.RESEND_FROM ?? FALLBACK_FROM
+
   if (!apiKey) {
     console.warn('[email] RESEND_API_KEY não configurada — email não enviado')
     console.info('[email]', {
@@ -32,6 +34,13 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
     return { ok: false, reason: 'no-api-key' }
   }
 
+  if (from === FALLBACK_FROM) {
+    console.error(
+      '[email] RESEND_FROM não configurada — usando onboarding@resend.dev, que só entrega para o dono da conta Resend. Configure RESEND_FROM com um domínio verificado.',
+    )
+    return { ok: false, reason: 'missing-from' }
+  }
+
   try {
     const res = await fetch(RESEND_API_URL, {
       method: 'POST',
@@ -40,7 +49,7 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: DEFAULT_FROM,
+        from,
         to: input.to,
         subject: input.subject,
         html: input.html,
@@ -53,7 +62,12 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
       return { ok: false, reason: 'resend-error', status: res.status, detail }
     }
 
-    return { ok: true, status: res.status }
+    const data = (await res.json().catch(() => undefined)) as { id?: string } | undefined
+    if (data?.id) {
+      console.info('[email] Resend ok', { id: data.id, to: input.to, subject: input.subject })
+    }
+
+    return { ok: true, status: res.status, detail: data?.id }
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err)
     console.error('[email] fetch throw', detail)

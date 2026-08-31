@@ -10,9 +10,17 @@ export async function GET(req: NextRequest) {
   const janela = req.nextUrl.searchParams.get('janela')
   if (!janela) return NextResponse.json({ error: 'janela obrigatória' }, { status: 400 })
 
+  const filterType = req.nextUrl.searchParams.get('filter_type')
+  const filterValue = req.nextUrl.searchParams.get('filter_value')
+
   const res = await apiFetch(
     `/performance/carteiras/drill/janela?janela=${encodeURIComponent(janela)}`,
-    { headers: authHeaders(session) },
+    {
+      headers: authHeaders(session, {
+        ...(filterType ? { 'X-Filter-Type': filterType } : {}),
+        ...(filterValue ? { 'X-Filter-Value': filterValue } : {}),
+      }),
+    },
   )
 
   const json = await res.json()

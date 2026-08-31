@@ -1,5 +1,6 @@
 'use client'
 
+import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { DrillDrawer } from './DrillDrawer'
 
@@ -44,6 +45,17 @@ const CLASSE_COLOR: Record<'rf' | 'rv', { bg: string; fg: string; border: string
 /* ─── Component ──────────────────────────────────────────────────────────── */
 
 export function BuscaAtivo() {
+  const searchParams = useSearchParams()
+  const filterType = searchParams.get('filter_type')
+  const filterValue = searchParams.get('filter_value')
+  const filterQs = (() => {
+    const p = new URLSearchParams()
+    if (filterType) p.set('filter_type', filterType)
+    if (filterValue) p.set('filter_value', filterValue)
+    const s = p.toString()
+    return s ? `&${s}` : ''
+  })()
+
   const [query, setQuery] = useState('')
   const [loading, setLoading] = useState(false)
   const [resultados, setResult] = useState<Resultado[]>([])
@@ -68,7 +80,7 @@ export function BuscaAtivo() {
       setLoading(true)
       try {
         const res = await fetch(
-          `/api/performance/carteiras/ativos/busca?q=${encodeURIComponent(query)}`,
+          `/api/performance/carteiras/ativos/busca?q=${encodeURIComponent(query)}${filterQs}`,
         )
         if (!res.ok) return
         const json = (await res.json()) as { data: { resultados: Resultado[] } }
@@ -84,7 +96,7 @@ export function BuscaAtivo() {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [query])
+  }, [query, filterQs])
 
   /* ── Fechar dropdown ao clicar fora ── */
   useEffect(() => {
