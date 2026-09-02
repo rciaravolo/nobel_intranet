@@ -107,13 +107,13 @@ app.get('/historico', async (c) => {
     db.prepare(`
       SELECT strftime('%m', data) AS mes, strftime('%Y', data) AS ano, SUM(captacao) AS v
       FROM   cap_historica
-      WHERE  strftime('%Y', data) IN ('2025','2026')${f}
+      WHERE  data >= '2025-01-01' AND data < '2027-01-01'${f}
       GROUP  BY ano, mes ORDER BY ano, mes
     `).all<{ mes: string; ano: string; v: number }>(),
     db.prepare(`
       SELECT strftime('%m', data) AS mes, strftime('%Y', data) AS ano, SUM(total) AS v
       FROM   cust_historica
-      WHERE  strftime('%Y', data) IN ('2025','2026')${f}
+      WHERE  data >= '2025-01-01' AND data < '2027-01-01'${f}
       GROUP  BY ano, mes ORDER BY ano, mes
     `).all<{ mes: string; ano: string; v: number }>(),
     db.prepare(`
