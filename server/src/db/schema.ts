@@ -1,8 +1,10 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
+import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 export const comunicados = sqliteTable('comunicados', {
-  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   titulo: text('titulo').notNull(),
   conteudo: text('conteudo').notNull(),
   categoria: text('categoria', { enum: ['RH', 'Produtos', 'PJ2'] }).notNull(),
@@ -16,7 +18,9 @@ export const comunicados = sqliteTable('comunicados', {
 
 export const userRoles = sqliteTable('user_roles', {
   email: text('email').primaryKey(),
-  role: text('role', { enum: ['RH', 'Diretoria', 'Membro'] }).notNull().default('Membro'),
+  role: text('role', { enum: ['RH', 'Diretoria', 'Membro'] })
+    .notNull()
+    .default('Membro'),
   criadoEm: text('criado_em').notNull().default(sql`(datetime('now'))`),
 })
 
@@ -43,9 +47,7 @@ export const users = sqliteTable('users', {
   department: text('department').notNull(),
   avatarInitials: text('avatar_initials').notNull(),
   ativo: integer('ativo', { mode: 'boolean' }).notNull().default(true),
-  mustChangePassword: integer('must_change_password', { mode: 'boolean' })
-    .notNull()
-    .default(false),
+  mustChangePassword: integer('must_change_password', { mode: 'boolean' }).notNull().default(false),
   criadoEm: text('criado_em').notNull().default(sql`(datetime('now'))`),
   atualizadoEm: text('atualizado_em').notNull().default(sql`(datetime('now'))`),
 })
@@ -58,6 +60,21 @@ export const passwordResetTokens = sqliteTable('password_reset_tokens', {
   criadoEm: text('criado_em').notNull().default(sql`(datetime('now'))`),
 })
 
+export const materiais = sqliteTable('materiais', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  titulo: text('titulo').notNull(),
+  descricao: text('descricao'),
+  arquivoNome: text('arquivo_nome').notNull(),
+  arquivoKey: text('arquivo_key').notNull().unique(),
+  arquivoSize: integer('arquivo_size').notNull(),
+  arquivoMime: text('arquivo_mime').notNull(),
+  publicadoPor: text('publicado_por').notNull(),
+  publicadoEm: text('publicado_em').notNull().default(sql`(datetime('now'))`),
+  atualizadoEm: text('atualizado_em').notNull().default(sql`(datetime('now'))`),
+})
+
 export type Comunicado = typeof comunicados.$inferSelect
 export type NovoComunicado = typeof comunicados.$inferInsert
 export type UserRole = typeof userRoles.$inferSelect
@@ -65,3 +82,5 @@ export type LoginEvent = typeof loginEvents.$inferSelect
 export type User = typeof users.$inferSelect
 export type NovoUser = typeof users.$inferInsert
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect
+export type Material = typeof materiais.$inferSelect
+export type NovoMaterial = typeof materiais.$inferInsert

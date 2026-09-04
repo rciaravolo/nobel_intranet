@@ -1,23 +1,24 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
-import type { Env, Variables } from './types'
+import { fetchAllNews } from './lib/rss'
+import { snapshotReceita } from './lib/snapshot-receita'
+import { fetchAllTickers } from './lib/ticker'
+import adminRouter from './routes/admin'
+import authRouter from './routes/auth'
 import comunicadosRouter from './routes/comunicados'
+import financialPlanningRouter from './routes/financial-planning'
+import materiaisRouter from './routes/materiais'
+import missoesRouter from './routes/missoes'
 import noticiasRouter, { KV_KEY as NOTICIAS_KV_KEY } from './routes/noticias'
-import tickerRouter, { TICKER_KV_KEY } from './routes/ticker'
+import npsRouter from './routes/nps'
 import performanceRouter from './routes/performance'
 import pnlRouter from './routes/pnl'
-import adminRouter from './routes/admin'
 import qualidadeRouter from './routes/qualidade'
-import authRouter from './routes/auth'
-import npsRouter from './routes/nps'
-import missoesRouter from './routes/missoes'
 import rupturaRouter from './routes/ruptura'
-import financialPlanningRouter from './routes/financial-planning'
 import saudeClienteRouter from './routes/saude-cliente'
-import { fetchAllNews } from './lib/rss'
-import { fetchAllTickers } from './lib/ticker'
-import { snapshotReceita } from './lib/snapshot-receita'
+import tickerRouter, { TICKER_KV_KEY } from './routes/ticker'
+import type { Env, Variables } from './types'
 
 const app = new Hono<{ Bindings: Env; Variables: Variables }>()
 
@@ -45,6 +46,7 @@ app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOStri
 // Rotas da API
 // ---------------------------------------------------------------------------
 app.route('/comunicados', comunicadosRouter)
+app.route('/materiais', materiaisRouter)
 app.route('/noticias', noticiasRouter)
 app.route('/ticker', tickerRouter)
 app.route('/performance', performanceRouter)

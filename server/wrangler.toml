@@ -26,6 +26,11 @@ binding = "NOTICIAS_KV"
 id = "c0e878edccb34cfd85b31a4272928917"
 preview_id = "ae9f9b48720e4022aa5cc86da03d1741"
 
+[[r2_buckets]]
+binding = "MATERIAIS_R2"
+bucket_name = "intra-materiais"
+preview_bucket_name = "intra-materiais"
+
 [vars]
 CF_ACCESS_AUD = ""
 CF_ACCESS_TEAM_DOMAIN = "nobelcapital.cloudflareaccess.com"
