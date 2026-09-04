@@ -3,7 +3,7 @@
 import type { Material } from '@/lib/api/materiais'
 import { materiaisApi } from '@/lib/api/materiais'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { MaterialCard } from './MaterialCard'
 import { MaterialFormModal } from './MaterialFormModal'
@@ -15,6 +15,16 @@ type Props = {
 export function MateriaisList({ canManage }: Props) {
   const qc = useQueryClient()
   const [busca, setBusca] = useState('')
+
+  // Marca "materiais vistos" ao chegar em /relatorios — evita o popup
+  // ficar avisando de materiais que o user acabou de ver.
+  useEffect(() => {
+    try {
+      localStorage.setItem('materiais_visto_em', new Date().toISOString())
+    } catch {
+      // localStorage indisponível (ex.: SSR fake) — ignorar
+    }
+  }, [])
   const [modalMode, setModalMode] = useState<
     null | { mode: 'create' } | { mode: 'edit'; material: Material }
   >(null)
