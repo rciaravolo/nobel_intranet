@@ -174,6 +174,27 @@ export default async function IndicadoresPage() {
     <div style={{ maxWidth: 1340 }}>
       <PageGreeting name={session.name} label="Indicadores gerenciais" />
 
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          padding: '10px 14px',
+          marginTop: 12,
+          marginBottom: 20,
+          background: 'color-mix(in oklch, var(--c-gold) 10%, transparent)',
+          border: '1px solid color-mix(in oklch, var(--c-gold) 30%, transparent)',
+          borderRadius: 8,
+          fontFamily: 'var(--f-mono)',
+          fontSize: 11,
+          letterSpacing: '.03em',
+          color: 'var(--fg-mute)',
+        }}
+      >
+        <span style={{ color: 'var(--c-gold)', fontSize: 12 }}>⚠</span>
+        Página em processo de aperfeiçoamento dos dados
+      </div>
+
       {semDados ? (
         <div
           style={{
