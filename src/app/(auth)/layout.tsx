@@ -6,6 +6,7 @@ type TickerPayload = {
 import { logDailyAccess } from '@/lib/api/admin'
 import { requireSession } from '@/lib/auth/session'
 import { FirstAccessModal } from './_components/FirstAccessModal'
+import { NovosMateriaisPopup } from './_components/NovosMateriaisPopup'
 import { Sidebar } from './_components/Sidebar'
 import { TickerBar } from './_components/TickerBar'
 
@@ -32,6 +33,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
         <main className="main-content">{children}</main>
       </div>
       {session.mustChangePassword && <FirstAccessModal userName={session.name} />}
+      {!session.mustChangePassword && <NovosMateriaisPopup />}
     </div>
   )
 }
