@@ -286,6 +286,7 @@ type ProdutoMeta = {
   pj: Pj
   tabela?: string       // sem tabela → realizado 0 (produto novo que ainda não tem receita rastreada)
   tabelaExtra?: string
+  semProjecao?: boolean // receita lumpy: extrapolação linear engana → não projeta pra frente
 }
 
 // PJ1 = assessoria de investimentos; PJ2 = seguros/consórcio/saúde (empresas separadas).
@@ -299,8 +300,8 @@ const PRODUTOS_METAS: ProdutoMeta[] = [
   { slug: 'internacional', pj: 'PJ1', tabela: 'receita_parceiros',     label: 'Internacional'           },
   { slug: 'off_shore',     pj: 'PJ1', tabela: 'receita_dominion',      label: 'Off-shore'               },
   { slug: 'oferta_fundos', pj: 'PJ1', tabela: 'receita_oferta_fundos', label: 'Oferta de Fundos'        },
-  { slug: 'fundos',        pj: 'PJ1', tabela: 'receita_fundos',        label: 'Fundos'                  },
-  { slug: 'previdencia',   pj: 'PJ1', tabela: 'receita_prev',          label: 'Previdência'             },
+  { slug: 'fundos',        pj: 'PJ1', tabela: 'receita_fundos',        label: 'Fundos',                 semProjecao: true },
+  { slug: 'previdencia',   pj: 'PJ1', tabela: 'receita_prev',          label: 'Previdência',            semProjecao: true },
   { slug: 'precas',        pj: 'PJ1', tabela: 'receita_precas',        label: 'Precatórios'             },
   { slug: 'planejamento',  pj: 'PJ1', tabela: 'receita_planejamento',  label: 'Planejamento Financeiro' },
   { slug: 'seguros',       pj: 'PJ2', tabela: 'receita_seguros',       label: 'Seguros'                 },
@@ -385,10 +386,13 @@ app.get('/metas', async (c) => {
     const meta           = metasMes[p.slug] ?? 0
     const paceRealizado  = dias.passados > 0 ? realizado / dias.passados : 0
     const paceNecessario = dias.restantes > 0 ? Math.max(0, meta - realizado) / dias.restantes : 0
-    const projecao       = realizado + paceRealizado * dias.restantes
+    // Produtos lumpy (fundos, previdência) não extrapolam: projecao = realizado.
+    // Isso garante que total.projecao bata com o que a UI mostra por linha.
+    const projecao       = p.semProjecao ? realizado : realizado + paceRealizado * dias.restantes
     const pctMeta        = meta > 0 ? projecao / meta : null
     return {
       slug: p.slug, label: p.label, pj: p.pj,
+      semProjecao: p.semProjecao ?? false,
       meta, realizado,
       gap:         meta - realizado,
       pctAtingido: meta > 0 ? realizado / meta : null,
