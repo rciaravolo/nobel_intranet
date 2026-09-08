@@ -5,6 +5,7 @@
 type MetaProduto = {
   slug: string
   label: string
+  pj: 'PJ1' | 'PJ2'
   meta: number
   realizado: number
   gap: number
