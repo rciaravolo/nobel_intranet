@@ -1,6 +1,5 @@
 import { Hono } from 'hono'
 import type { Env, Variables } from '../types'
-import metasJson from '../data/metas.json'
 import { diasUteisDoMes } from '../lib/dias-uteis'
 import {
   resolveFilterFromCtx,
@@ -324,14 +323,31 @@ app.get('/metas', async (c) => {
   const effYear  = usesPrevMonth && month === 0 ? year - 1 : year
   const mesISO   = `${effYear}-${String(effMonth + 1).padStart(2, '0')}`
 
-  const metasData = metasJson as Record<string, Record<string, number>>
-  let metasMes = metasData[mesISO]
+  // Metas vêm de PERF_DB.metas_produto (uma linha por mes_iso × produto_slug).
+  // Fallback: se o mês corrente não tem metas cadastradas, usa o mais recente.
+  const metasRows = await db
+    .prepare('SELECT produto_slug, valor FROM metas_produto WHERE mes_iso = ?')
+    .bind(mesISO)
+    .all<{ produto_slug: string; valor: number }>()
+
+  let metasMes: Record<string, number> | null =
+    metasRows.results.length > 0
+      ? Object.fromEntries(metasRows.results.map(r => [r.produto_slug, r.valor]))
+      : null
   let mesUsado = mesISO
 
   if (!metasMes) {
-    // Fallback: usa o mês mais recente com meta definida
-    const ultimoMes = Object.keys(metasData).sort().at(-1)
-    if (ultimoMes) { metasMes = metasData[ultimoMes]; mesUsado = ultimoMes }
+    const ultimoMesRow = await db
+      .prepare('SELECT mes_iso FROM metas_produto ORDER BY mes_iso DESC LIMIT 1')
+      .first<{ mes_iso: string }>()
+    if (ultimoMesRow?.mes_iso) {
+      const rows = await db
+        .prepare('SELECT produto_slug, valor FROM metas_produto WHERE mes_iso = ?')
+        .bind(ultimoMesRow.mes_iso)
+        .all<{ produto_slug: string; valor: number }>()
+      metasMes = Object.fromEntries(rows.results.map(r => [r.produto_slug, r.valor]))
+      mesUsado = ultimoMesRow.mes_iso
+    }
   }
 
   if (!metasMes) return c.json({ data: { semMeta: true, mesISO } })

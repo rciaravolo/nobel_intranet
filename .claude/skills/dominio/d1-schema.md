@@ -143,6 +143,21 @@ receita_fundos, receita_prev
   receita               REAL
 ```
 
+## Tabela de Metas
+
+```sql
+metas_produto           -- metas comerciais firm-wide por mês × produto
+  mes_iso               TEXT      -- 'YYYY-MM'
+  produto_slug          TEXT      -- 'rv','rf','coe','cambio','feefixo','seguros',
+                                  --  'consorcio','internacional','oferta_fundos',
+                                  --  'fundos','previdencia','precas','planejamento'
+  valor                 REAL      -- meta de receita bruta em BRL
+  atualizado_em         TEXT      -- datetime('now')
+  PRIMARY KEY (mes_iso, produto_slug)
+```
+
+Usado por `GET /metas`. Cadastro é manual via `wrangler d1 execute nobel-performance-db --remote --command "INSERT INTO metas_produto ..."` — **não** commitar seed no repo pra não vazar os valores.
+
 ## Tabelas de Assessores e Captação
 
 ```sql

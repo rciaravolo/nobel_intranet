@@ -172,7 +172,7 @@ export function BlocoMetas({ dados, compact = false }: Props) {
             Metas Produtos
           </p>
           <p style={{ fontSize: 12, color: 'var(--fg-mute)' }}>
-            Configure os valores em{' '}
+            Cadastre as metas do mês na tabela{' '}
             <code
               style={{
                 fontSize: 11,
@@ -181,9 +181,9 @@ export function BlocoMetas({ dados, compact = false }: Props) {
                 borderRadius: 4,
               }}
             >
-              server/src/data/metas.json
+              metas_produto
             </code>{' '}
-            e faça o deploy para ativar os indicadores de pace.
+            do PERF_DB para ativar os indicadores de pace.
           </p>
         </div>
       </div>
