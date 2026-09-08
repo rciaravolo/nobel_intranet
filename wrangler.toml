@@ -11,7 +11,9 @@ binding = "ASSETS"
 [vars]
 API_URL = "https://intra-api.nobelcapital.workers.dev"
 USE_D1_USERS = "true"
+RESEND_FROM = "INTRA Nobel <no-reply@nobelcapital.com.br>"
 
 [[services]]
 binding = "INTRA_API"
 service = "intra-api"
+

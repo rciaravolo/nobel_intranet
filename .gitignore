@@ -12,6 +12,9 @@ node_modules/
 .next/
 out/
 
+# OpenNext / Cloudflare build output
+.open-next/
+
 # Cloudflare / Wrangler
 # CLOUDFLARE_API_TOKEN nunca vai em arquivo do repo — usar env var do sistema
 # (Windows: User Environment Variables; Unix: ~/.bashrc/export)
@@ -41,6 +44,11 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Scripts — outputs gerados (nunca commitar)
+scripts/_dispatch/
+scripts/_welcome_preview.html
+scripts/_welcome_preview.subject.txt
 
 # Logs
 *.log
