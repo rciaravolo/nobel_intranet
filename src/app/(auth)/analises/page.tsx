@@ -3,6 +3,8 @@ import { requireSession } from '@/lib/auth/session'
 import { PageGreeting } from '../_components/PageGreeting'
 import { AnalisesFilters } from './_components/AnalisesFilters'
 import { BlocoCaptacao } from './_components/BlocoCaptacao'
+import { BlocoMetaCaptacao } from './_components/BlocoMetaCaptacao'
+import { BlocoMetaReceita } from './_components/BlocoMetaReceita'
 import { BlocoMetas } from './_components/BlocoMetas'
 import { BlocoReceita } from './_components/BlocoReceita'
 import { ExportOnepageButton } from './_components/ExportOnepageButton'
@@ -1139,11 +1141,25 @@ export default async function AnalisesPage({
             </>
           )}
 
+          {/* Meta de Captação — realizado vs. meta, escopado por role */}
+          <BlocoMetaCaptacao
+            key={`meta-captacao-${filterType ?? ''}-${filterValue ?? ''}`}
+            {...(canFilter && filterType ? { filterType } : {})}
+            {...(canFilter && filterValue ? { filterValue } : {})}
+          />
+
           {/* Receita por Produto — key força remount ao mudar filtro, limpando cache */}
           <BlocoReceita
             key={`receita-${filterType ?? ''}-${filterValue ?? ''}`}
             porProduto={receita.porProduto}
             receitaTotal={receita.total}
+            {...(canFilter && filterType ? { filterType } : {})}
+            {...(canFilter && filterValue ? { filterValue } : {})}
+          />
+
+          {/* Meta de Receita — realizado vs. meta, escopado por role */}
+          <BlocoMetaReceita
+            key={`meta-receita-${filterType ?? ''}-${filterValue ?? ''}`}
             {...(canFilter && filterType ? { filterType } : {})}
             {...(canFilter && filterValue ? { filterValue } : {})}
           />
