@@ -403,6 +403,90 @@ app.get('/metas', async (c) => {
   })
 })
 
+/* ─── GET /metas-agregadas ───────────────────────────────────────────────────
+   Metas de captação e receita agregadas por role (admin/master, lider, assessor,
+   lider_pj). Fonte: meta_captacao / meta_receita — SEMPRE via JOIN com
+   `assessores` e filtrando pela equipe REAL de lá, nunca pela coluna `equipe`
+   solta dentro das tabelas de meta (drift confirmado, ex: Fabio Castelucci
+   aparece como SMART em meta_captacao/meta_receita mas é BRAVO em assessores).
+   Equipes sem meta cadastrada (RIO PRETO, PLANEJAMENTO) simplesmente não têm
+   linhas nessas tabelas — SUM/COALESCE trata isso como 0, sem erro.
+
+   "Realizado" reaproveita exatamente a mesma lógica/fonte de /onepage (o
+   endpoint que alimenta os KPI cards e os blocos BlocoCaptacao/BlocoReceita
+   de /analises): captação líquida do mês corrente em tb_cap e soma de todas
+   as tabelas receita_* — para os números baterem com o que já é exibido hoje.
+ ─────────────────────────────────────────────────────────────────────────── */
+app.get('/metas-agregadas', async (c) => {
+  const db = c.env.PERF_DB
+
+  const filter = await resolveFilterFromCtx(c)
+  if (filter.type === 'denied') return c.json({ error: 'Forbidden' }, 403)
+
+  const w = buildWhereFilter(filter)
+  const f = buildAndFilter(filter)
+
+  const [capRow, receitaRows, metaCapRow, metaReceitaRow] = await Promise.all([
+    db
+      .prepare(`
+        SELECT SUM(captacao) AS liquida
+        FROM tb_cap
+        WHERE strftime('%Y-%m', data) = (SELECT strftime('%Y-%m', MAX(data)) FROM tb_cap)${f}
+      `)
+      .first<{ liquida: number | null }>(),
+    Promise.all([
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_rv${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_rf${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_coe${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_cambio${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_feefixo${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_seguros${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_consorcio${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_dominion${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_oferta_fundos${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_fundos${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_prev${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_precas${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_financiamento${w}`).first<{ v: number }>(),
+      db.prepare(`SELECT COALESCE(SUM(receita),0) AS v FROM receita_planejamento${w}`).first<{ v: number }>(),
+    ]),
+    db
+      .prepare(`
+        SELECT COALESCE(SUM(mc.meta), 0) AS meta
+        FROM   meta_captacao mc
+        JOIN   assessores a ON mc.id_assessor = a.id_assessor
+        ${buildWhereFilter(filter, 'a.id_assessor')}
+      `)
+      .first<{ meta: number }>(),
+    db
+      .prepare(`
+        SELECT COALESCE(SUM(mr.meta), 0) AS meta
+        FROM   meta_receita mr
+        JOIN   assessores a ON mr.id_assessor = a.id_assessor
+        ${buildWhereFilter(filter, 'a.id_assessor')}
+      `)
+      .first<{ meta: number }>(),
+  ])
+
+  const receitaRealizado = (receitaRows as Array<{ v: number } | null>).reduce(
+    (s, r) => s + (r?.v ?? 0),
+    0,
+  )
+
+  return c.json({
+    data: {
+      captacao: {
+        realizado: capRow?.liquida ?? 0,
+        meta:      metaCapRow?.meta ?? 0,
+      },
+      receita: {
+        realizado: receitaRealizado,
+        meta:      metaReceitaRow?.meta ?? 0,
+      },
+    },
+  })
+})
+
 app.get('/deepdive/captacao', async (c) => {
   const db = c.env.PERF_DB
 
