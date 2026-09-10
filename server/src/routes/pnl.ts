@@ -3,11 +3,6 @@ import { buildWhereFilter, resolveFilterFromCtx } from '../lib/role-filter'
 import { snapshotReceita } from '../lib/snapshot-receita'
 import type { Env, Variables } from '../types'
 
-const MES_COLS = [
-  'janeiro', 'fevereiro', 'marco', 'abril', 'maio', 'junho',
-  'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
-] as const
-
 // Equipes comerciais — usadas em captação e nos indicadores gerenciais.
 const EQUIPES = ['SMART', 'PRIVATE', 'BRAVO'] as const
 type Equipe = (typeof EQUIPES)[number]
@@ -63,7 +58,6 @@ app.get('/captacao-equipes', async (c) => {
   const effYear  = usesPrevMonth && month === 0 ? year - 1 : year
 
   const mesISO = `${effYear}-${String(effMonth + 1).padStart(2, '0')}`
-  const mesCol = MES_COLS[effMonth]!
 
   // 2 datas mais recentes no mês corrente
   const datesRes = await db
@@ -100,7 +94,7 @@ app.get('/captacao-equipes', async (c) => {
       : Promise.resolve({ results: [] as { equipe: string; cap: number }[] }),
 
     db.prepare(`
-      SELECT a.equipe, SUM(mc.${mesCol}) AS meta
+      SELECT a.equipe, SUM(mc.meta) AS meta
       FROM   meta_captacao mc
       JOIN   assessores a ON mc.id_assessor = a.id_assessor
       WHERE  a.equipe IN ${EQUIPES_SQL}
@@ -173,7 +167,6 @@ app.get('/receita-equipes', async (c) => {
   const usesPrevMonth = bizDaysInMonth <= 2
   const effMonth = usesPrevMonth ? (month === 0 ? 11 : month - 1) : month
   const effYear  = usesPrevMonth && month === 0 ? year - 1 : year
-  const mesCol   = MES_COLS[effMonth]!
   const effectiveMesISO = `${effYear}-${String(effMonth + 1).padStart(2, '0')}`
 
   const TABELAS = [
@@ -185,7 +178,7 @@ app.get('/receita-equipes', async (c) => {
 
   const [metaRows, allSnapRows, ...receitaResults] = await Promise.all([
     db.prepare(`
-      SELECT equipe, ${mesCol} AS meta
+      SELECT equipe, meta AS meta
       FROM   tb_metas_times
       WHERE  equipe IN ${EQUIPES_PNL_SQL}
     `).all<{ equipe: string; meta: number | null }>(),
@@ -271,8 +264,6 @@ app.get('/receita-historico', async (c) => {
   if (!refDate) return c.json({ data: { semDados: true as const, mesISO: '' } })
 
   const mesISO = refDate.substring(0, 7)
-  const mesNum = parseInt(refDate.substring(5, 7), 10) - 1
-  const mesCol = MES_COLS[mesNum]!
 
   const [datesRes, metaRows, snapshotRows] = await Promise.all([
     db.prepare(`
@@ -281,7 +272,7 @@ app.get('/receita-historico', async (c) => {
       ORDER  BY data DESC LIMIT 10
     `).bind(mesISO).all<{ data: string }>(),
     db.prepare(`
-      SELECT equipe, ${mesCol} AS meta
+      SELECT equipe, meta AS meta
       FROM   tb_metas_times
       WHERE  equipe IN ${EQUIPES_PNL_SQL}
     `).all<{ equipe: string; meta: number | null }>(),
@@ -426,7 +417,6 @@ app.get('/indicadores/drill', async (c) => {
   const effYear  = usesPrevMonth && month === 0 ? year - 1 : year
 
   const mesISO = `${effYear}-${String(effMonth + 1).padStart(2, '0')}`
-  const mesCol = MES_COLS[effMonth]!
 
   // 13 queries de receita separadas (sem UNION ALL em subquery) + cap/rec YTD
   const [capMtdRows, metaCapRows, capYtdRows, recYtdRows, ...receitaResults] = await Promise.all([
@@ -442,7 +432,7 @@ app.get('/indicadores/drill', async (c) => {
 
     // Meta cap por assessor da equipe
     db.prepare(`
-      SELECT mc.id_assessor, mc.${mesCol} AS meta
+      SELECT mc.id_assessor, mc.meta AS meta
       FROM   meta_captacao mc
       JOIN   assessores a ON mc.id_assessor = a.id_assessor
       WHERE  a.equipe = ?
