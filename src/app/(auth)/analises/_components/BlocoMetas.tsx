@@ -5,6 +5,8 @@
 type MetaProduto = {
   slug: string
   label: string
+  pj: 'PJ1' | 'PJ2'
+  semProjecao: boolean
   meta: number
   realizado: number
   gap: number
@@ -13,6 +15,11 @@ type MetaProduto = {
   paceNecessario: number
   projecao: number
   pctMeta: number | null
+}
+
+const PJ_META: Record<'PJ1' | 'PJ2', { label: string; sub: string }> = {
+  PJ1: { label: 'PJ1', sub: 'Assessoria de Investimentos' },
+  PJ2: { label: 'PJ2', sub: 'Seguros & Consórcio' },
 }
 
 type TotalMetas = {
@@ -335,100 +342,169 @@ export function BlocoMetas({ dados, compact = false }: Props) {
           </div>
         </div>
 
-        {/* Lista de produtos */}
-        <div style={{ padding: '6px 0' }}>
-          {produtos
-            .filter((p) => p.meta > 0 || p.realizado > 0)
-            .map((p, i, arr) => {
-              const s = sinal(p.pctMeta, p.meta)
-              const cor = SINAL_COR[s]
-              const pctBar = p.meta > 0 ? Math.min((p.realizado / p.meta) * 100, 100) : 0
-              const isLast = i === arr.length - 1
-              return (
+        {/* Lista de produtos agrupada por PJ */}
+        <div>
+          {(['PJ1', 'PJ2'] as const).map((pj) => {
+            const itens = produtos.filter((p) => p.pj === pj && (p.meta > 0 || p.realizado > 0))
+            if (itens.length === 0) return null
+
+            const subMeta = itens.reduce((s, p) => s + p.meta, 0)
+            const subReal = itens.reduce((s, p) => s + p.realizado, 0)
+            const subPct = subMeta > 0 ? subReal / subMeta : null
+
+            return (
+              <div key={pj}>
+                {/* Subheader do grupo PJ */}
                 <div
-                  key={p.slug}
                   style={{
-                    padding: '10px 18px',
-                    borderBottom: isLast ? 'none' : '1px solid var(--line)',
+                    padding: '9px 18px 8px',
+                    background: 'var(--bg-deep)',
+                    borderTop: '1px solid var(--line)',
+                    borderBottom: '1px solid var(--line)',
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    justifyContent: 'space-between',
+                    gap: 8,
                   }}
                 >
-                  {/* Linha principal */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      marginBottom: 6,
-                    }}
-                  >
-                    <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--fg)' }}>
-                      {p.label}
-                    </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                      <span
-                        style={{
-                          fontSize: 15,
-                          fontWeight: 600,
-                          fontFamily: 'var(--f-mono)',
-                          letterSpacing: '-.01em',
-                          color: cor,
-                        }}
-                      >
-                        {fPct(p.pctAtingido)}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 600,
-                          padding: '2px 7px',
-                          borderRadius: 'var(--r-pill)',
-                          background: SINAL_BG[s],
-                          color: cor,
-                          whiteSpace: 'nowrap',
-                          border: SINAL_BORDER[s],
-                        }}
-                      >
-                        {SINAL_LABEL[s]}
-                      </span>
-                    </div>
-                  </div>
-                  {/* Barra */}
-                  <div
-                    style={{
-                      height: 4,
-                      background: 'var(--n-100)',
-                      borderRadius: 2,
-                      overflow: 'hidden',
-                      marginBottom: 5,
-                    }}
-                  >
-                    <div
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                    <span
                       style={{
-                        height: '100%',
-                        width: `${pctBar}%`,
-                        background: cor,
-                        borderRadius: 2,
+                        fontFamily: 'var(--f-mono)',
+                        fontSize: 10,
+                        fontWeight: 700,
+                        letterSpacing: '0.14em',
+                        color: 'var(--fg-mute)',
                       }}
-                    />
-                  </div>
-                  {/* Sub-linha: realizado / meta | projeção */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: 12, color: 'var(--fg-mute)' }}>
-                      {fBRL(p.realizado)}{' '}
-                      <span style={{ color: 'var(--fg-faint)' }}>
-                        / {p.meta > 0 ? fBRL(p.meta) : '—'}
-                      </span>
+                    >
+                      {PJ_META[pj].label}
                     </span>
-                    {p.realizado > 0 && p.slug !== 'fundos' && p.slug !== 'previdencia' && (
-                      <span style={{ fontSize: 12, color: 'var(--fg-faint)' }}>
-                        proj.{' '}
-                        <span style={{ color: cor, fontWeight: 600 }}>{fBRL(p.projecao)}</span>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: 'var(--fg-faint)',
+                        letterSpacing: '-.01em',
+                      }}
+                    >
+                      {PJ_META[pj].sub}
+                    </span>
+                  </div>
+                  <span
+                    style={{
+                      fontFamily: 'var(--f-mono)',
+                      fontSize: 11,
+                      color: 'var(--fg-mute)',
+                      fontFeatureSettings: '"tnum"',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {fBRL(subReal)}{' '}
+                    <span style={{ color: 'var(--fg-faint)' }}>
+                      / {subMeta > 0 ? fBRL(subMeta) : '—'}
+                    </span>
+                    {subPct != null && (
+                      <span style={{ color: 'var(--fg-mute)', fontWeight: 600 }}>
+                        {' · '}
+                        {fPct(subPct)}
                       </span>
                     )}
-                  </div>
+                  </span>
                 </div>
-              )
-            })}
+
+                {/* Produtos do grupo */}
+                {itens.map((p, i) => {
+                  const s = sinal(p.pctMeta, p.meta)
+                  const cor = SINAL_COR[s]
+                  const pctBar = p.meta > 0 ? Math.min((p.realizado / p.meta) * 100, 100) : 0
+                  const isLast = i === itens.length - 1
+                  return (
+                    <div
+                      key={p.slug}
+                      style={{
+                        padding: '10px 18px',
+                        borderBottom: isLast ? 'none' : '1px solid var(--line)',
+                      }}
+                    >
+                      {/* Linha principal */}
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          marginBottom: 6,
+                        }}
+                      >
+                        <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--fg)' }}>
+                          {p.label}
+                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                          <span
+                            style={{
+                              fontSize: 15,
+                              fontWeight: 600,
+                              fontFamily: 'var(--f-mono)',
+                              letterSpacing: '-.01em',
+                              color: cor,
+                            }}
+                          >
+                            {fPct(p.pctAtingido)}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 600,
+                              padding: '2px 7px',
+                              borderRadius: 'var(--r-pill)',
+                              background: SINAL_BG[s],
+                              color: cor,
+                              whiteSpace: 'nowrap',
+                              border: SINAL_BORDER[s],
+                            }}
+                          >
+                            {SINAL_LABEL[s]}
+                          </span>
+                        </div>
+                      </div>
+                      {/* Barra */}
+                      <div
+                        style={{
+                          height: 4,
+                          background: 'var(--n-100)',
+                          borderRadius: 2,
+                          overflow: 'hidden',
+                          marginBottom: 5,
+                        }}
+                      >
+                        <div
+                          style={{
+                            height: '100%',
+                            width: `${pctBar}%`,
+                            background: cor,
+                            borderRadius: 2,
+                          }}
+                        />
+                      </div>
+                      {/* Sub-linha: realizado / meta | projeção */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: 12, color: 'var(--fg-mute)' }}>
+                          {fBRL(p.realizado)}{' '}
+                          <span style={{ color: 'var(--fg-faint)' }}>
+                            / {p.meta > 0 ? fBRL(p.meta) : '—'}
+                          </span>
+                        </span>
+                        {p.realizado > 0 && !p.semProjecao && (
+                          <span style={{ fontSize: 12, color: 'var(--fg-faint)' }}>
+                            proj.{' '}
+                            <span style={{ color: cor, fontWeight: 600 }}>{fBRL(p.projecao)}</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          })}
         </div>
       </div>
     )

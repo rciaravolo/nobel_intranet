@@ -279,22 +279,34 @@ app.get('/onepage', async (c) => {
   })
 })
 
-type ProdutoMeta = { slug: string; tabela: string; tabelaExtra?: string; label: string }
+type Pj = 'PJ1' | 'PJ2'
+type ProdutoMeta = {
+  slug: string
+  label: string
+  pj: Pj
+  tabela?: string       // sem tabela → realizado 0 (produto novo que ainda não tem receita rastreada)
+  tabelaExtra?: string
+  semProjecao?: boolean // receita lumpy: extrapolação linear engana → não projeta pra frente
+}
 
+// PJ1 = assessoria de investimentos; PJ2 = seguros/consórcio/saúde (empresas separadas).
+// Ordem aqui é a ordem de exibição no BlocoMetas.
 const PRODUTOS_METAS: ProdutoMeta[] = [
-  { slug: 'rv',             tabela: 'receita_rv',            label: 'Renda Variável'   },
-  { slug: 'rf',             tabela: 'receita_rf',            label: 'Renda Fixa'       },
-  { slug: 'coe',            tabela: 'receita_coe',           label: 'COE'              },
-  { slug: 'cambio',         tabela: 'receita_cambio',        label: 'Câmbio'           },
-  { slug: 'feefixo',        tabela: 'receita_feefixo',       label: 'Fee Fixo'         },
-  { slug: 'seguros',        tabela: 'receita_seguros',       label: 'Seguros'          },
-  { slug: 'consorcio',      tabela: 'receita_consorcio',     label: 'Consórcio'        },
-  { slug: 'internacional',  tabela: 'receita_dominion', tabelaExtra: 'receita_parceiros', label: 'Internacional' },
-  { slug: 'oferta_fundos',  tabela: 'receita_oferta_fundos', label: 'Oferta de Fundos' },
-  { slug: 'fundos',         tabela: 'receita_fundos',        label: 'Fundos'           },
-  { slug: 'previdencia',    tabela: 'receita_prev',          label: 'Previdência'      },
-  { slug: 'precas',         tabela: 'receita_precas',        label: 'Precatórios'      },
-  { slug: 'planejamento',   tabela: 'receita_planejamento',  label: 'Planejamento Financeiro' },
+  { slug: 'rv',            pj: 'PJ1', tabela: 'receita_rv',            label: 'Renda Variável'          },
+  { slug: 'rf',            pj: 'PJ1', tabela: 'receita_rf',            label: 'Renda Fixa'              },
+  { slug: 'coe',           pj: 'PJ1', tabela: 'receita_coe',           label: 'COE'                     },
+  { slug: 'cambio',        pj: 'PJ1', tabela: 'receita_cambio',        label: 'Câmbio'                  },
+  { slug: 'feefixo',       pj: 'PJ1', tabela: 'receita_feefixo',       label: 'Fee Fixo'                },
+  { slug: 'internacional', pj: 'PJ1', tabela: 'receita_parceiros',     label: 'Internacional'           },
+  { slug: 'off_shore',     pj: 'PJ1', tabela: 'receita_dominion',      label: 'Off-shore'               },
+  { slug: 'oferta_fundos', pj: 'PJ1', tabela: 'receita_oferta_fundos', label: 'Oferta de Fundos'        },
+  { slug: 'fundos',        pj: 'PJ1', tabela: 'receita_fundos',        label: 'Fundos',                 semProjecao: true },
+  { slug: 'previdencia',   pj: 'PJ1', tabela: 'receita_prev',          label: 'Previdência',            semProjecao: true },
+  { slug: 'precas',        pj: 'PJ1', tabela: 'receita_precas',        label: 'Precatórios'             },
+  { slug: 'planejamento',  pj: 'PJ1', tabela: 'receita_planejamento',  label: 'Planejamento Financeiro' },
+  { slug: 'seguros',       pj: 'PJ2', tabela: 'receita_seguros',       label: 'Seguros'                 },
+  { slug: 'consorcio',     pj: 'PJ2', tabela: 'receita_consorcio',     label: 'Consórcio'               },
+  { slug: 'plano_saude',   pj: 'PJ2', tabela: 'receita_seg_saude',     label: 'Plano de Saúde'          },
 ]
 
 app.get('/metas', async (c) => {
@@ -356,8 +368,11 @@ app.get('/metas', async (c) => {
   const dataParaDias = usesPrevMonth ? new Date(Date.UTC(effYear, effMonth + 1, 0)) : agora
   const dias = diasUteisDoMes(dataParaDias)
 
-  const receitaRows = await Promise.all(
+  // Alguns produtos (ex: plano_saude) ainda não têm tabela de receita criada.
+  // Nesses casos e em qualquer falha de query, realizado = 0.
+  const receitaRows = await Promise.allSettled(
     PRODUTOS_METAS.map(p => {
+      if (!p.tabela) return Promise.resolve({ v: 0 } as { v: number })
       const sql = p.tabelaExtra
         ? `SELECT COALESCE(SUM(v),0) AS v FROM (SELECT receita AS v FROM ${p.tabela}${buildWhereFilter(filter)} UNION ALL SELECT receita AS v FROM ${p.tabelaExtra}${buildWhereFilter(filter)})`
         : `SELECT COALESCE(SUM(receita), 0) AS v FROM ${p.tabela}${buildWhereFilter(filter)}`
@@ -366,14 +381,18 @@ app.get('/metas', async (c) => {
   )
 
   const produtos = PRODUTOS_METAS.map((p, i) => {
-    const realizado      = receitaRows[i]?.v ?? 0
+    const row = receitaRows[i]
+    const realizado      = row?.status === 'fulfilled' ? (row.value?.v ?? 0) : 0
     const meta           = metasMes[p.slug] ?? 0
     const paceRealizado  = dias.passados > 0 ? realizado / dias.passados : 0
     const paceNecessario = dias.restantes > 0 ? Math.max(0, meta - realizado) / dias.restantes : 0
-    const projecao       = realizado + paceRealizado * dias.restantes
+    // Produtos lumpy (fundos, previdência) não extrapolam: projecao = realizado.
+    // Isso garante que total.projecao bata com o que a UI mostra por linha.
+    const projecao       = p.semProjecao ? realizado : realizado + paceRealizado * dias.restantes
     const pctMeta        = meta > 0 ? projecao / meta : null
     return {
-      slug: p.slug, label: p.label,
+      slug: p.slug, label: p.label, pj: p.pj,
+      semProjecao: p.semProjecao ?? false,
       meta, realizado,
       gap:         meta - realizado,
       pctAtingido: meta > 0 ? realizado / meta : null,

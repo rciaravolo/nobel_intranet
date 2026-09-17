@@ -29,6 +29,8 @@ type OnepagePayload = {
 type MetaProduto = {
   slug: string
   label: string
+  pj: 'PJ1' | 'PJ2'
+  semProjecao: boolean
   meta: number
   realizado: number
   gap: number
