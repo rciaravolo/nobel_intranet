@@ -9,6 +9,7 @@ import { DrillDrawer } from './DrillDrawer'
 type Resultado = {
   classe: 'rf' | 'rv'
   ativo: string
+  nome_ativo?: string | null
   categoria: string | null
   total: number
   clientes: number
@@ -180,7 +181,7 @@ export function BuscaAtivo() {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onKeyDown}
             onFocus={() => query.length >= 2 && resultados.length > 0 && setShowDrop(true)}
-            placeholder="Buscar ativo... PETR4, NTN-B, CDB Itaú..."
+            placeholder="Buscar ativo... PETR4, NTN-B, CRI Rede D'Or..."
             style={{
               flex: 1,
               border: 'none',
@@ -298,18 +299,42 @@ export function BuscaAtivo() {
                   {/* Ativo */}
                   <span
                     style={{
-                      fontFamily: 'var(--f-mono)',
-                      fontSize: 13,
-                      fontWeight: 700,
-                      color: 'var(--fg)',
-                      letterSpacing: '-.01em',
                       flex: 1,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
+                      minWidth: 0,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 1,
                     }}
                   >
-                    {r.ativo}
+                    <span
+                      style={{
+                        fontFamily: r.nome_ativo ? 'var(--f-text)' : 'var(--f-mono)',
+                        fontSize: 13,
+                        fontWeight: r.nome_ativo ? 600 : 700,
+                        color: 'var(--fg)',
+                        letterSpacing: '-.01em',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {r.nome_ativo ?? r.ativo}
+                    </span>
+                    {r.nome_ativo && (
+                      <span
+                        style={{
+                          fontFamily: 'var(--f-mono)',
+                          fontSize: 9,
+                          color: 'var(--fg-faint)',
+                          letterSpacing: '.04em',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {r.ativo}
+                      </span>
+                    )}
                   </span>
 
                   {/* Categoria */}
