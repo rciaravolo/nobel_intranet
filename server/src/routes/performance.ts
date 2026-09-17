@@ -848,22 +848,39 @@ app.get('/carteiras/rf/ativos', async (c) => {
 
   const wa = buildAndFilter(filter, 'p.id_assessor')
 
+  // Nome amigável vem de analitico_rf.ticker = último token de tb_diversificador.ativo
+  // (ex: "CRA FLU CRA02200C1F" → "CRA PATENSE - MAI/2028"). Títulos públicos compartilham
+  // o ticker SELIC entre vencimentos (n > 1) → sem nome único, cai no código original.
   const rows = await db
     .prepare(`
-      SELECT d.ativo, d.sub_produto, d.emissor,
-             SUM(d.net)              AS total,
-             COUNT(DISTINCT d.id_cliente) AS clientes,
-             COUNT(*)                AS posicoes
-      FROM   tb_diversificador d
-      INNER  JOIN tb_positivador p ON d.id_cliente = p.id_cliente
-      WHERE  d.produto = 'Renda Fixa'
-        AND  d.ativo IS NOT NULL
-        ${wa}
-      GROUP  BY d.ativo, d.sub_produto, d.emissor
-      ORDER  BY total DESC
-      LIMIT  40
+      WITH top AS (
+        SELECT d.ativo, d.sub_produto, d.emissor,
+               SUM(d.net)              AS total,
+               COUNT(DISTINCT d.id_cliente) AS clientes,
+               COUNT(*)                AS posicoes
+        FROM   tb_diversificador d
+        INNER  JOIN tb_positivador p ON d.id_cliente = p.id_cliente
+        WHERE  d.produto = 'Renda Fixa'
+          AND  d.ativo IS NOT NULL
+          ${wa}
+        GROUP  BY d.ativo, d.sub_produto, d.emissor
+        ORDER  BY total DESC
+        LIMIT  40
+      ),
+      nomes AS (
+        SELECT ticker, MIN(nome_ativo) AS nome_ativo
+        FROM   analitico_rf
+        WHERE  ticker IN (SELECT substr(ativo, length(rtrim(ativo, replace(ativo, ' ', ''))) + 1) FROM top)
+          AND  nome_ativo IS NOT NULL
+        GROUP  BY ticker
+        HAVING COUNT(DISTINCT nome_ativo) = 1
+      )
+      SELECT top.*, n.nome_ativo
+      FROM   top
+      LEFT   JOIN nomes n ON n.ticker = substr(top.ativo, length(rtrim(top.ativo, replace(top.ativo, ' ', ''))) + 1)
+      ORDER  BY top.total DESC
     `)
-    .all<{ ativo: string; sub_produto: string; emissor: string | null; total: number; clientes: number; posicoes: number }>()
+    .all<{ ativo: string; nome_ativo: string | null; sub_produto: string; emissor: string | null; total: number; clientes: number; posicoes: number }>()
 
   return c.json({ data: { ativos: rows.results } })
 })
