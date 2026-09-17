@@ -760,22 +760,41 @@ app.get('/carteiras/ativos/busca', async (c) => {
       .bind(like)
       .all<{ classe: 'rv'; ativo: string; categoria: string | null; total: number; clientes: number }>(),
 
+    // RF busca por código OU nome amigável (analitico_rf.nome_ativo via ticker = último token de d.ativo)
     db
       .prepare(`
-        SELECT 'rf' AS classe, d.ativo, d.sub_produto AS categoria,
-               SUM(d.net) AS total, COUNT(DISTINCT d.id_cliente) AS clientes
-        FROM   tb_diversificador d
-        INNER  JOIN tb_positivador p ON d.id_cliente = p.id_cliente
-        WHERE  d.ativo LIKE ?
-          AND  d.ativo IS NOT NULL
-          AND  d.produto = 'Renda Fixa'
-          ${waRFJ}
-        GROUP  BY d.ativo, d.sub_produto
-        ORDER  BY total DESC
-        LIMIT  8
+        WITH match_tk AS (
+          SELECT DISTINCT ticker FROM analitico_rf
+          WHERE  nome_ativo LIKE ?1 AND ticker IS NOT NULL
+        ),
+        res AS (
+          SELECT d.ativo, d.sub_produto AS categoria,
+                 SUM(d.net) AS total, COUNT(DISTINCT d.id_cliente) AS clientes
+          FROM   tb_diversificador d
+          INNER  JOIN tb_positivador p ON d.id_cliente = p.id_cliente
+          WHERE  d.ativo IS NOT NULL
+            AND  d.produto = 'Renda Fixa'
+            AND  (d.ativo LIKE ?1
+                  OR substr(d.ativo, length(rtrim(d.ativo, replace(d.ativo, ' ', ''))) + 1) IN (SELECT ticker FROM match_tk))
+            ${waRFJ}
+          GROUP  BY d.ativo, d.sub_produto
+          ORDER  BY total DESC
+          LIMIT  8
+        ),
+        nomes AS (
+          SELECT ticker, MIN(nome_ativo) AS nome_ativo
+          FROM   analitico_rf
+          WHERE  ticker IN (SELECT substr(ativo, length(rtrim(ativo, replace(ativo, ' ', ''))) + 1) FROM res)
+            AND  nome_ativo IS NOT NULL
+          GROUP  BY ticker
+          HAVING COUNT(DISTINCT nome_ativo) = 1
+        )
+        SELECT 'rf' AS classe, res.*, n.nome_ativo
+        FROM   res
+        LEFT   JOIN nomes n ON n.ticker = substr(res.ativo, length(rtrim(res.ativo, replace(res.ativo, ' ', ''))) + 1)
       `)
       .bind(like)
-      .all<{ classe: 'rf'; ativo: string; categoria: string | null; total: number; clientes: number }>(),
+      .all<{ classe: 'rf'; ativo: string; nome_ativo: string | null; categoria: string | null; total: number; clientes: number }>(),
   ])
 
   const resultados = [...rvRows.results, ...rfRows.results]
@@ -848,22 +867,39 @@ app.get('/carteiras/rf/ativos', async (c) => {
 
   const wa = buildAndFilter(filter, 'p.id_assessor')
 
+  // Nome amigável vem de analitico_rf.ticker = último token de tb_diversificador.ativo
+  // (ex: "CRA FLU CRA02200C1F" → "CRA PATENSE - MAI/2028"). Títulos públicos compartilham
+  // o ticker SELIC entre vencimentos (n > 1) → sem nome único, cai no código original.
   const rows = await db
     .prepare(`
-      SELECT d.ativo, d.sub_produto, d.emissor,
-             SUM(d.net)              AS total,
-             COUNT(DISTINCT d.id_cliente) AS clientes,
-             COUNT(*)                AS posicoes
-      FROM   tb_diversificador d
-      INNER  JOIN tb_positivador p ON d.id_cliente = p.id_cliente
-      WHERE  d.produto = 'Renda Fixa'
-        AND  d.ativo IS NOT NULL
-        ${wa}
-      GROUP  BY d.ativo, d.sub_produto, d.emissor
-      ORDER  BY total DESC
-      LIMIT  40
+      WITH top AS (
+        SELECT d.ativo, d.sub_produto, d.emissor,
+               SUM(d.net)              AS total,
+               COUNT(DISTINCT d.id_cliente) AS clientes,
+               COUNT(*)                AS posicoes
+        FROM   tb_diversificador d
+        INNER  JOIN tb_positivador p ON d.id_cliente = p.id_cliente
+        WHERE  d.produto = 'Renda Fixa'
+          AND  d.ativo IS NOT NULL
+          ${wa}
+        GROUP  BY d.ativo, d.sub_produto, d.emissor
+        ORDER  BY total DESC
+        LIMIT  40
+      ),
+      nomes AS (
+        SELECT ticker, MIN(nome_ativo) AS nome_ativo
+        FROM   analitico_rf
+        WHERE  ticker IN (SELECT substr(ativo, length(rtrim(ativo, replace(ativo, ' ', ''))) + 1) FROM top)
+          AND  nome_ativo IS NOT NULL
+        GROUP  BY ticker
+        HAVING COUNT(DISTINCT nome_ativo) = 1
+      )
+      SELECT top.*, n.nome_ativo
+      FROM   top
+      LEFT   JOIN nomes n ON n.ticker = substr(top.ativo, length(rtrim(top.ativo, replace(top.ativo, ' ', ''))) + 1)
+      ORDER  BY top.total DESC
     `)
-    .all<{ ativo: string; sub_produto: string; emissor: string | null; total: number; clientes: number; posicoes: number }>()
+    .all<{ ativo: string; nome_ativo: string | null; sub_produto: string; emissor: string | null; total: number; clientes: number; posicoes: number }>()
 
   return c.json({ data: { ativos: rows.results } })
 })
