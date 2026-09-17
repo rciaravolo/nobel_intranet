@@ -886,6 +886,21 @@ app.get('/carteiras/rf/ativos', async (c) => {
 
   const wa = buildAndFilter(filter, 'p.id_assessor')
 
+  // Busca opcional (?q=): cada palavra precisa casar com código, emissor OU nome amigável.
+  // Busca parcial — "patense", "vale 2099", "CRA0220" funcionam.
+  const termos = (c.req.query('q') ?? '')
+    .trim()
+    .split(/\s+/)
+    .filter((t) => t.length > 0)
+    .slice(0, 5)
+  const wq = termos
+    .map(
+      (_, i) => `AND (d.ativo LIKE ?${i + 1} OR d.emissor LIKE ?${i + 1}
+                  OR substr(d.ativo, length(rtrim(d.ativo, replace(d.ativo, ' ', ''))) + 1)
+                     IN (SELECT ticker FROM analitico_rf WHERE nome_ativo LIKE ?${i + 1} AND ticker IS NOT NULL))`,
+    )
+    .join('\n          ')
+
   // Nome amigável vem de analitico_rf.ticker = último token de tb_diversificador.ativo
   // (ex: "CRA FLU CRA02200C1F" → "CRA PATENSE - MAI/2028"). Títulos públicos compartilham
   // o ticker SELIC entre vencimentos (n > 1) → sem nome único, cai no código original.
@@ -900,10 +915,11 @@ app.get('/carteiras/rf/ativos', async (c) => {
         INNER  JOIN tb_positivador p ON d.id_cliente = p.id_cliente
         WHERE  d.produto = 'Renda Fixa'
           AND  d.ativo IS NOT NULL
+          ${wq}
           ${wa}
         GROUP  BY d.ativo, d.sub_produto, d.emissor
         ORDER  BY total DESC
-        LIMIT  40
+        LIMIT  ${termos.length > 0 ? 100 : 40}
       ),
       nomes AS (
         SELECT ticker, MIN(nome_ativo) AS nome_ativo
@@ -918,6 +934,7 @@ app.get('/carteiras/rf/ativos', async (c) => {
       LEFT   JOIN nomes n ON n.ticker = substr(top.ativo, length(rtrim(top.ativo, replace(top.ativo, ' ', ''))) + 1)
       ORDER  BY top.total DESC
     `)
+    .bind(...termos.map((t) => `%${t}%`))
     .all<{ ativo: string; nome_ativo: string | null; sub_produto: string; emissor: string | null; total: number; clientes: number; posicoes: number }>()
 
   return c.json({ data: { ativos: rows.results } })

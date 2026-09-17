@@ -43,6 +43,14 @@ const CLASSE_COLOR: Record<'rf' | 'rv', { bg: string; fg: string; border: string
   },
 }
 
+/* ─── Sincronia com a tabela RF ──────────────────────────────────────────── */
+
+export const RF_BUSCA_EVENT = 'carteiras:rf-busca'
+
+function emitirBuscaRF(q: string) {
+  window.dispatchEvent(new CustomEvent<string>(RF_BUSCA_EVENT, { detail: q }))
+}
+
 /* ─── Component ──────────────────────────────────────────────────────────── */
 
 export function BuscaAtivo() {
@@ -74,10 +82,12 @@ export function BuscaAtivo() {
       setResult([])
       setShowDrop(false)
       setFocused(-1)
+      emitirBuscaRF('')
       return
     }
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(async () => {
+      emitirBuscaRF(query)
       setLoading(true)
       try {
         const res = await fetch(
@@ -123,6 +133,10 @@ export function BuscaAtivo() {
       e.preventDefault()
       const r = resultados[focused]
       if (r) pick(r)
+    } else if (e.key === 'Enter') {
+      // Enter sem item destacado: fecha o dropdown e deixa a tabela filtrada à vista
+      e.preventDefault()
+      setShowDrop(false)
     } else if (e.key === 'Escape') {
       setShowDrop(false)
       inputRef.current?.blur()
@@ -132,7 +146,6 @@ export function BuscaAtivo() {
   function pick(r: Resultado) {
     setSelected({ ativo: r.ativo, classe: r.classe })
     setShowDrop(false)
-    setQuery('')
   }
 
   function clear() {
