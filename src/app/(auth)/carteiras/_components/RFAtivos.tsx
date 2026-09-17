@@ -5,6 +5,7 @@ import { DrillDrawer } from './DrillDrawer'
 
 export type RFAtivo = {
   ativo: string
+  nome_ativo: string | null
   sub_produto: string
   emissor: string | null
   total: number
@@ -141,17 +142,31 @@ export function RFAtivos({ ativos }: Props) {
                           }}
                         />
                       )}
-                      <span
-                        style={{
-                          fontFamily: 'var(--f-mono)',
-                          fontSize: 12,
-                          fontWeight: 700,
-                          color: isSelected ? '#2D5FA0' : 'var(--fg)',
-                          letterSpacing: '-.01em',
-                        }}
-                      >
-                        {a.ativo}
-                      </span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <span
+                          style={{
+                            fontFamily: 'var(--f-text)',
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: isSelected ? '#2D5FA0' : 'var(--fg)',
+                            letterSpacing: '-.01em',
+                          }}
+                        >
+                          {a.nome_ativo ?? a.ativo}
+                        </span>
+                        {a.nome_ativo && (
+                          <span
+                            style={{
+                              fontFamily: 'var(--f-mono)',
+                              fontSize: 9,
+                              color: 'var(--fg-faint)',
+                              letterSpacing: '.04em',
+                            }}
+                          >
+                            {a.ativo}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </td>
 
