@@ -71,7 +71,7 @@ function KpiCard({
 export default async function QualidadePage() {
   const session = await requireSession()
 
-  if (session.role !== 'admin' && session.role !== 'master') {
+  if (session.role !== 'admin') {
     redirect('/dashboard')
   }
 

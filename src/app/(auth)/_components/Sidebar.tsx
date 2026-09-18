@@ -280,6 +280,7 @@ const NAV: NavGroup[] = [
       {
         href: '/qualidade',
         label: 'Qualidade',
+        roles: ['admin'],
         icon: (
           <svg
             aria-hidden="true"

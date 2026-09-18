@@ -21,7 +21,7 @@ app.use('*', async (c, next) => {
     if (!cfJwt) return c.json({ error: 'Unauthorized' }, 401)
   }
   const role = c.req.header('X-User-Role')
-  if (role !== 'admin' && role !== 'master') return c.json({ error: 'Forbidden' }, 403)
+  if (role !== 'admin') return c.json({ error: 'Forbidden' }, 403)
   await next()
 })
 
